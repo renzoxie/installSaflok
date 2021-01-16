@@ -1,6 +1,6 @@
 <#
 .Synopsis
-   Helper Script to install SAFLOK SYSTEM 6000 automaticlly
+   Helper Script to install SAFLOK SYSTEM 6000 automatically
 .DESCRIPTION
    This script fully installation of SAFLOK Lodging Systems for Marriott projects automatically
 .EXAMPLE
@@ -191,7 +191,7 @@ $saflokMsgr = Join-Path $saflokV4InstFolder 'Saflok_MsgrServer.exe'
 $saflokIRS = Join-Path $saflokV4InstFolder 'Saflok_IRS.exe'
 $shareFolder = Join-Path $saflokV4InstFolder  'SaflokData'
 # ---------------------------
-# Instaled EXE files for version inforamtion
+# Installed EXE files for version information
 $gatewayExe = Join-Path $hubGateWayInstFolder 'LENS_Gateway.exe'
 $hmsExe = Join-Path $hmsInstFolder 'LENS_HMS.exe'
 $wsPmsExe = Join-Path $pmsInstFolder 'LENS_PMS.exe'
@@ -693,7 +693,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         } # service recovery 
         # ----------------------------------------------------------------
         # FOOTER
-        Logging "" "Installed Version Infomation: " 
+        Logging "" "Installed Version Information: " 
         Logging "" "+---------------------------------------------------------"
         $gatewayVer = Get-FileVersion $gatewayExe;$hmsVer = Get-FileVersion $hmsExe;$wsPmsVer = Get-FileVersion $wsPmsExe;$kdsVer = Get-FileVersion $kdsExe;$pollingVer = Get-FileVersion $digitalPollingExe
         If (Test-Path $gatewayExe -PathType Leaf) { Logging " " "Gateway: $gatewayVer"; Start-Sleep -Seconds 1 } 
