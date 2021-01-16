@@ -9,7 +9,7 @@
     Author: renzoxie@139.com
     Saflok version: v5.45, Marriott ONLY
     Create Date: 16 April 2019
-    Modified Date: 11 JAN 2021
+    Modified Date: 16 JAN 2021
 # current script version is 1.7
 # fix minor bugs
 #>
