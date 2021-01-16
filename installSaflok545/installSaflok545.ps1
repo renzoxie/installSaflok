@@ -2,31 +2,34 @@
 .Synopsis
    Helper Script to install SAFLOK SYSTEM 6000 automaticlly
 .DESCRIPTION
-   This script fully installation for SAFLOK System 6000 automatically
+   This script fully installation of SAFLOK Lodging Systems for Marriott projects automatically
 .EXAMPLE
    .\install.ps1 -installRoot [c|d]
 .NOTES
-    Author: renzo.xie@dormakaba.com
+    Author: renzoxie@139.com
     Saflok version: v5.45, Marriott ONLY
     Create Date: 16 April 2019
-    Modified Date: 12 AUG 2019
-    *** New Update ***
-    digital polling config compatible with new Cert
-    add mini requirement for powershell (5.0 or above)
+    Modified Date: 11 JAN 2021
+# current script version is 1.7
+# fix minor bugs
 #>
 # ---------------------------
-# ==> [SECTION 01, VARIALBLES]
-# ---------------------------
+# VARIALBLES
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
   Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Exit 
 }
 
+# Script location
+$scriptPath = $PSScriptRoot
+# ---------------------------
+# Customized color
 Function Write-Colr {
     Param ([String[]]$Text,[ConsoleColor[]]$Colour,[Switch]$NoNewline=$false)
     For ([int]$i = 0; $i -lt $Text.Length; $i++) { Write-Host $Text[$i] -Foreground $Colour[$i] -NoNewLine }
     If ($NoNewline -eq $false) { Write-Host '' }
 }
-
+# ---------------------------
+# Customized loggings
 Function Logging ($state, $message) {
     $part1 = $cname;$part2 = ' ';$part3 = $state;$part4 = ": ";$part5 = "$message"
     Switch ($state)
@@ -34,50 +37,47 @@ Function Logging ($state, $message) {
         ERROR {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
         WARN  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
         INFO  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
+        PROGRESS  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
         ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
         default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
     }
 }
 Function Stop-Script {
-    Start-Sleep -Second 300   
+    Start-Sleep -Seconds 300   
     exit
 }
-
+# ---------------------------
+# Mini Powershell version requirement
 If ($PSVersionTable.PSVersion.Major -lt 5) {
     Logging "WARN" "Your PowerShell installation is not version 5.0 or greater."
     Logging "WARN" "This script requires PowerShell version 5.0 or greater to function."
     Logging "WARN" "You can download PowerShell version 5.0 at: https://www.microsoft.com/en-us/download/details.aspx?id=50395"
     Stop-Script
-} # Mini Powershell version requirement
-# ----------------------------------------------------------------------------------------------
+} 
+# ---------------------------
 # GENERAL
 $cname = '[dormakaba]'
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
-$hotelChain = 'Marriott Projects ONLY'
+$hotelChain = 'MARRIOTT PROJECTS ONLY'
 [double]$winOS = [string][environment]::OSVersion.Version.major + '.' + [environment]::OSVersion.Version.minor
-# ----------------------------------------------------------------------------------------------
-# SCRIPT LOCATION
-$scriptPath = $PSScriptRoot
-# ----------------------------------------------------------------------------------------------
-# OBJECT for saflokVersions
-$saflokVersions = @(
-    [pscustomobject]@{name='scriptVersion'; version='1.6'}
-    [pscustomobject]@{name='mainVersion'; version='5.45'}
-    [pscustomobject]@{name='progVersion'; version='5.4.0.0'}
-    [pscustomobject]@{name='pmsVersion'; version='5.1.0.0'}
-    [pscustomobject]@{name='msgrVersion'; version='5.2.0.0'}
-    [pscustomobject]@{name='lensVersion'; version='4.7.0.0'}
-    [pscustomobject]@{name='wsPmsExeBeforePathVersion'; version='4.7.1.15707'}
-    [pscustomobject]@{name='gatewayExeVersion'; version='4.7.2.22694'}
-    [pscustomobject]@{name='hmsExeVersion'; version='4.7.1.22400'}
-    [pscustomobject]@{name='kdsExeVersion'; version='4.7.0.26769'}
-    [pscustomobject]@{name='wsPmsExeVersion'; version='4.7.2.22767'}
-    [pscustomobject]@{name='pollingExeVersion'; version='4.5.0.28705'}
-)
-$scriptVersion = $saflokVersions[0].version
-$saflokVersion = $saflokVersions[1].version
-$installDrive
+# ---------------------------
+# VERSIONS
+    $scriptVersion = '1.7'
+    $saflokVersion = '5.45'
+    $progVersion = '5.4.0.0'
+    $pmsVersion = '5.1.0.0'
+    $msgrVersion= '5.2.0.0'
+    $lensVersion = '4.7.0.0'
+    $wsPmsExeBeforePathVersionn = '4.7.1.15707'
+    $gatewayExeVersion = '4.7.2.22694'
+    $hmsExeVersion = '4.7.1.22400'
+    $kdsExeVersion = '4.7.0.26769'
+    $wsPmsExeVersion = '4.7.2.22767'
+    $pollingExeVersion = '4.5.0.28705'
+# ---------------------------
+# MENU OPTION
+$driveLetter
 $menuOption = 99
 Clear-Host
 Logging "" "+---------------------------------------------------------"
@@ -98,36 +98,64 @@ Logging " " ""
 $menuOption = Read-Host "$cname Please select option from above list"
 Logging "" "+---------------------------------------------------------"
 Switch ($menuOption) {
-	1 {$script:installDrive = 'C';$menuOption = 99}
-	2 {$script:installDrive = 'D';$menuOption = 99}
+	1 {$script:driveLetter = 'C';$menuOption = 99}
+	2 {$script:driveLetter = 'D';$menuOption = 99}
 	0 {Clear-Host;Exit}
-	Default {
-		Logging " " "Please enter a valid option."
-	}
+	Default {Logging " " "Please enter a valid option."}
 }
-# ----------------------------------------------------------------------------------------------
+# ---------------------------
 # DRIVE INFO
-$installDrive = $installDrive.ToUpper()
-$driveLetter = $installDrive
 $installDrive = $driveLetter + ':\'
+# ---------------------------
+# VALID DRIVE CHARACTER INPUT
 $deviceID = $driveLetter + ':'
 $cdDrive = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 5} | Select-Object DeviceID
 If ($cdDrive -match $deviceID) {
     Write-Host ''
     Logging "ERROR" "The drive $driveLetter is not a valid location."
-    Write-Host ''
-    Stop-Script
+    Logging "WARN" 'Please re-run the script again to select the correct dirve.'
+    Start-Sleep -Seconds 5
+    Exit
 }
-
-# ----------------------------------------------------------------------------------------------
-# packageFolders
-$packageFolders =  Get-ChildItem ($scriptPath) | Select-Object Name | Sort-Object -Property Name
+# ---------------------------
+# SOURCE FOLDER - INSTALL SCRIPT
+$installScriptFolder = $scriptPath 
+$packageFolders =  Get-ChildItem ($installScriptFolder) | Select-Object Name | Sort-Object -Property Name
 $absPackageFolders = @()
-For ($i=0; $i -lt ($packageFolders.Length -1); $i++) {
-    $absPackageFolders += $scriptPath + '\' + $packageFolders[$i].Name
+For ($i=0; $i -lt ($packageFolders.Length); $i++) {
+    $absPackageFolders += Join-Path $installScriptFolder $packageFolders[$i].Name
 }
-# [01/02] ISS_FOR_Drive & files
-# ----------------------------------------------------------------------------------------------
+# $absPackageFolders[0]   ==>  00.hotelData
+# $absPackageFolders[1]   ==>  01.ISS_FOR_C
+# $absPackageFolders[2]   ==>  02.ISS_FOR_D
+# $absPackageFolders[3]   ==>  03.saflokProgram
+# $absPackageFolders[4]   ==>  04.saflokPMS
+# $absPackageFolders[5]   ==>  05.saflokMessenger
+# $absPackageFolders[6]   ==>  06.saflokLENS
+# $absPackageFolders[7]   ==>  07.patch
+# $absPackageFolders[8]   ==>  08.Web_Service_PMS_Tester
+# $absPackageFolders[9]   ==>  09.configFiles
+# $absPackageFolders[10] ==>  10.TestPorts
+# ---------------------------
+# Program
+$progExe = Join-Path $absPackageFolders[3] 'setup.exe'
+# PMS
+$pmsExe = Join-Path $absPackageFolders[4] 'setup.exe'
+# Messenger
+$msgrExe = Join-Path $absPackageFolders[5] 'setup.exe'
+# saflokLENS 
+$lensSrcFolder = $absPackageFolders[6]
+$lensExe = Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en/setup.exe'
+# ---------------------------
+# SQL 2012 express 
+$sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' | `
+                                   Join-Path -ChildPath 'ISSetupPrerequisites' | `
+                                   Join-Path -ChildPath '{C38620DE-0463-4522-ADEA-C7A5A47D1FF6}' | `
+                                   Join-Path -ChildPath 'SQLEXPR_x86_ENU.exe'
+# ---------------------------
+# ISS_FOR_Drive & files
+
+# ---------------------------
 If ($driveLetter -eq 'C') {$iss4Drive = '01.ISS_FOR_' + $driveLetter}
 Elseif ($driveLetter -eq 'D') {$iss4Drive = '02.ISS_FOR_' + $driveLetter}
 Else {    Logging "ERROR" "Please input C or D for the drive letter."; Stop-Script}
@@ -137,90 +165,59 @@ Switch ($iss4Drive)
     02.ISS_FOR_D {$issFolder = $absPackageFolders[2]}
 } 
 $issFiles = Get-ChildItem $issFolder | Select-Object Name | Sort-Object -Property Name
-$progISS = $issFolder + '\' + $issFiles[0].Name            # [0] Programsetup.iss
-$pmsISS = $issFolder + '\' + $issFiles[1].Name             # [1] PMSsetup.iss
-$msgrISS = $issFolder + '\' + $issFiles[2].Name            # [2] MSGRsetup.iss
-$lensISS = $issFolder + '\' + $issFiles[3].Name            # [3] LENSsetup.iss
-$patchLensISS = $issFolder + '\' + $issFiles[4].Name       # [4] patchLens474.iss
-$patchPollingISS = $issFolder + '\' + $issFiles[5].Name    # [5] patchPolling450.iss
-# ----------------------------------------------------------------------------------------------
-# [03] saflokProgram
-$progExe = $absPackageFolders[3] + '\' + 'setup.exe'
-# ----------------------------------------------------------------------------------------------
-# [04] saflokPMS
-$pmsExe = $absPackageFolders[4] + '\' + 'setup.exe'
-# ----------------------------------------------------------------------------------------------
-# [05] saflokMessenger
-$msgrExe = $absPackageFolders[5]  + '\' + 'setup.exe'
-# ----------------------------------------------------------------------------------------------
-# [06] saflokLENS [FOLDER]
-$lensExe = $absPackageFolders[6] + '\' + 'AutoPlay\Install Script\Lens\en\setup.exe'
-$sqlExprExe = $absPackageFolders[6] + '\' + 'AutoPlay\Install Script\Lens\en\ISSetupPrerequisites\{C38620DE-0463-4522-ADEA-C7A5A47D1FF6}\SQLEXPR_x86_ENU.exe'
-# ----------------------------------------------------------------------------------------------
-# [07]PATCH FILES
+$progISS = Join-Path $issFolder $issFiles[0].Name            # [0] Programsetup.iss
+$pmsISS = Join-Path $issFolder $issFiles[1].Name             # [1] PMSsetup.iss
+$msgrISS = Join-Path $issFolder $issFiles[2].Name            # [2] MSGRsetup.iss
+$lensISS = Join-Path $issFolder $issFiles[3].Name             # [3] LENSsetup.iss
+$patchLensISS = Join-Path $issFolder $issFiles[4].Name    # [4] patchLens474.iss
+$patchPollingISS = Join-Path $issFolder $issFiles[5].Name  # [5] patchPolling450.iss
+# ---------------------------
+# PATCH FILES
 $patchExeFiles = Get-ChildItem ($absPackageFolders[7]) | Select-Object Name | Sort-Object -Property Name
-$lensPatchExe = $absPackageFolders[7] + '\' + $patchExeFiles[1].Name     # [1] LENSPatch4.7.4
-$pollingPatchExe = $absPackageFolders[7] + '\' + $patchExeFiles[0].Name  # [0] DigitalKeysPollingPatch
-# ----------------------------------------------------------------------------------------------
-# [08] Web service PMS tester [FOLDER]
+$pollingPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name     # [0] DigitalKeysPollingPatch
+$lensPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[1].Name        # [1] LENSPatch4.7.4
+# ---------------------------
+# Web service PMS tester [FOLDER]
 $webServiceTester = $absPackageFolders[8]
-# ----------------------------------------------------------------------------------------------
-# [09] ConfigFiles Folder
+# ---------------------------
+# ConfigFiles Folder & Files
 $configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name | Sort-Object -Property Name
-$pollingConfig = $absPackageFolders[9] + '\' + $configFiles[0].Name     # [0] DigitalKeysPollingService.exe.config
-$lensPmsConfig = $absPackageFolders[9] + '\' + $configFiles[1].Name     # [1] LENS_PMS.exe.config
-# ----------------------------------------------------------------------------------------------
-# Installed Location
-$installedFolder = New-Object -TypeName psobject    # different if version is 6.2 or above
-$installedFolder | Add-Member -MemberType NoteProperty -Name kabaInstFolder -Value 'Program Files (x86)\KABA'
-$installedFolder | Add-Member -MemberType NoteProperty -Name lensInstFolder -Value 'Program Files (x86)\KABA\Messenger Lens'
-$installedFolder | Add-Member -MemberType NoteProperty -Name wsTesterInstFolder -Value 'Program Files (x86)\KABA\08.Web_Service_PMS_Tester'
-$installedFolder | Add-Member -MemberType NoteProperty -Name wsPmsInstFolder -Value 'Program Files (x86)\KABA\Messenger Lens\PMS Service'
-$installedFolder | Add-Member -MemberType NoteProperty -Name saflokV4InstFolder -Value 'SaflokV4'
-$installedFolder | Add-Member -MemberType NoteProperty -Name hubGateWayInstFolder -Value 'Program Files (x86)\KABA\Messenger Lens\HubGatewayService'
-$installedFolder | Add-Member -MemberType NoteProperty -Name hmsInstFolder -Value 'Program Files (x86)\KABA\Messenger Lens\HubManagerService'
-$installedFolder | Add-Member -MemberType NoteProperty -Name kdsInstFolder -Value 'Program Files (x86)\KABA\Messenger Lens\KeyDeliveryService'
-$installedFolder | Add-Member -MemberType NoteProperty -Name digitalKeyPollingInstFolder -Value 'Program Files (x86)\KABA\Messenger Lens\DigitalKeysPollingSoftware'
-$installedFolder | Add-Member -MemberType ScriptMethod -name absLensInstFolder -value {$installDrive + $installedFolder.lensInstFolder}
-$installedFolder | Add-Member -MemberType ScriptMethod -name absWsPmsInstFolder -value {$installDrive + $installedFolder.wsPmsInstFolder}
-$installedFolder | Add-Member -MemberType ScriptMethod -name absSaflokV4InstFolder -value {$installDrive + $installedFolder.saflokV4InstFolder}
-$installedFolder | Add-Member -MemberType ScriptMethod -name absKabaInstFolder -value {$installDrive + $installedFolder.kabaInstFolder}
-$installedFolder | Add-Member -MemberType ScriptMethod -name absHubGateWayInstFolder -value {$installDrive + $installedFolder.hubGateWayInstFolder}
-$installedFolder | Add-Member -MemberType ScriptMethod -name absHmsInstFolder -value {$installDrive + $installedFolder.hmsInstFolder}
-$installedFolder | Add-Member -MemberType ScriptMethod -name absKdsInstFolder -value {$installDrive + $installedFolder.kdsInstFolder}
-$installedFolder | Add-Member -MemberType ScriptMethod -name absDigitalKeyPollingInstFolder -value {$installDrive + $installedFolder.digitalKeyPollingInstFolder}
-# ----------------------------------------------------------------------------------------------
-# Absolute installed folder
-$lensInstFolder = $installDrive + $installedFolder.lensInstFolder
-$wsPmsInstFolder = $installDrive + $installedFolder.wsPmsInstFolder
-$kabaInstFolder = $installDrive + $installedFolder.kabaInstFolder
-$wsTesterInstFolder = $installDrive + $installedFolder.wsTesterInstFolder
-$digitalPollingFolder = $installDrive + $installedFolder.digitalKeyPollingInstFolder
-# ----------------------------------------------------------------------------------------------
+$pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name       # [0] DigitalKeysPollingService.exe.config
+$lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name     # [1] LENS_PMS.exe.config
+# ---------------------------
+# Absolute installed FOLDER
+$kabaInstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'KABA'
+$saflokV4InstFolder = Join-Path $installDrive 'SaflokV4'
+$lensInstFolder = Join-Path $kabaInstFolder 'Messenger Lens'
+$hubGateWayInstFolder = Join-Path $lensInstFolder 'HubGatewayService'
+$hmsInstFolder = Join-Path $lensInstFolder 'HubManagerService'
+$pmsInstFolder = Join-Path $lensInstFolder 'PMS Service'
+$wsTesterInstFolder = Join-Path $kabaInstFolder '08.Web_Service_PMS_Tester'
+$digitalPollingFolder = Join-Path $lensInstFolder 'DigitalKeysPollingSoftware' 
+$kdsInstFolder = Join-Path $lensInstFolder 'KeyDeliveryService'   
+# ---------------------------
 # GUI exe file in SAFLOKV4 FOLDER
-$saflokClient = $installedFolder.absSaflokV4InstFolder() + '\' + 'Saflok_Client.exe'
-$saflokMsgr = $installedFolder.absSaflokV4InstFolder() + '\' + 'Saflok_MsgrServer.exe'
-$saflokIRS = $installedFolder.absSaflokV4InstFolder()  + '\' + 'Saflok_IRS.exe'
-$shareFolder = $installedFolder.absSaflokV4InstFolder() + '\' + 'SaflokData'
-# ----------------------------------------------------------------------------------------------
-# EXE files for version inforamtion
-$gatewayExe = $installedFolder.absHubGateWayInstFolder() + '\' + 'LENS_Gateway.exe'
-$hmsExe = $installedFolder.absHmsInstFolder() + '\' + 'LENS_HMS.exe'
-$wsPmsExe = $installedFolder.absWsPmsInstFolder() + '\' + 'LENS_PMS.exe'
-$kdsExe = $installedFolder.absKdsInstFolder() + '\' +  'Kaba_KDS.exe'
-# ----------------------------------------------------------------------------------------------
-# CONFIG FILES - INSTALLED
-$lensPmsConfigFileInst = $installedFolder.absWsPmsInstFolder() + '\' + 'LENS_PMS.exe.config'
-$hh6ConfigFile = $installedFolder.absSaflokV4InstFolder()  + '\' + 'KabaSaflokHH6.exe.config'
-# digital folder and exe installed
-# ----------------------------------------------------------------------------------------------
-$digitalPollingExe = $installedFolder.absDigitalKeyPollingInstFolder() + '\' + 'DigitalKeysPollingService.exe'
-$pollingConfigInst = $installedFolder.absDigitalKeyPollingInstFolder() + '\' + 'DigitalKeysPollingService.exe.config'
-# ----------------------------------------------------------------------------------------------
+$saflokClient = Join-Path $saflokV4InstFolder 'Saflok_Client.exe'
+$saflokMsgr = Join-Path $saflokV4InstFolder 'Saflok_MsgrServer.exe'
+$saflokIRS = Join-Path $saflokV4InstFolder 'Saflok_IRS.exe'
+$shareFolder = Join-Path $saflokV4InstFolder  'SaflokData'
+# ---------------------------
+# Instaled EXE files for version inforamtion
+$gatewayExe = Join-Path $hubGateWayInstFolder 'LENS_Gateway.exe'
+$hmsExe = Join-Path $hmsInstFolder 'LENS_HMS.exe'
+$wsPmsExe = Join-Path $pmsInstFolder 'LENS_PMS.exe'
+$digitalPollingExe = Join-Path $digitalPollingFolder  'DigitalKeysPollingService.exe'
+$kdsExe = Join-Path $kdsInstFolder  'Kaba_KDS.exe'
+# ---------------------------
+# INSTALLED CONFIG FILES
+$lensPmsConfigFileInst =  Join-Path $pmsInstFolder  'LENS_PMS.exe.config'
+$hh6ConfigFile = Join-Path $saflokV4InstFolder 'KabaSaflokHH6.exe.config'
+$pollingConfigInst  = Join-Path $digitalPollingFolder  'DigitalKeysPollingService.exe.config'
+# ---------------------------
 # Polling log
 $pollingLog = 'C:\ProgramData\DormaKaba\Server\Polling\logs.log'
 # Saflok Services
-# ----------------------------------------------------------------------------------------------
+# ---------------------------
 $serviceNames = [ordered]@{
     deviceMng = 'DeviceManagerService';
     kIpEncoderSrv = 'KIPEncoderService';
@@ -233,45 +230,54 @@ $serviceNames = [ordered]@{
     saflokDHSP2MSGR = 'SAFLOKDHSPtoMSGRTranslator';
     saflokMSGR2DHSP = 'SAFLOKMSGRtoDHSPTranslator';
     hubGatewaySrv = 'MessengerNet_Hub Gateway Service'; #[10]
-    hubManagerSrv = 'MNet_HMS';                         #[11]
-    pmsSrv = 'MNet_PMS Service';                        #[12]
-    utilitySrv = 'MessengerNet_Utility Service';
-    kdsSrv = 'Kaba_KDS';                                #[14]
-    virtualEncoderSrv = 'VirtualEncoderService'
-    pollingSrv = 'Kaba Digital Keys Polling Service'    #[16]
+    hubManagerSrv = 'MNet_HMS';                                     #[11]
+    pmsSrv = 'MNet_PMS Service';                                      #[12]
+    utilitySrv = 'MessengerNet_Utility Service';                      #[13]
+    kdsSrv = 'Kaba_KDS';                                                  #[14]
+    virtualEncoderSrv = 'VirtualEncoderService'                     #[15]
+    pollingSrv = 'Kaba Digital Keys Polling Service'                  #[16]
 }
-# ----------------------------------------------------------------------------------------------
+# ---------------------------
 # Logging Messages
 $mesgNoPkg ="package does not exist, operation exit."
 $mesgInstalled = "has already been installed."
 $mesgDiffVer = "There is another version exist, please uninstall it first."
 $mesgComplete = "installation is complete."
 $mesgFailed = "installation failed!"
-# ----------------------
-# [SECTION 02, FUNCTIONS]
-# ----------------------
-# check installed version
+# ---------------------------
+# TEST FILE OR FOLDER, RETURN BOOLEAN VALUE
 Function Test-Folder ($folder) {
     Test-Path -Path $folder -PathType Any
-} # Test Folder return boolean
+} 
+# ---------------------------
+# GET INSTALLED VERSION 
 Function Get-InstVersion {
     Param ([String[]]$pName)
     [String](Get-Package -ProviderName Programs -IncludeWindowsInstaller | Where-Object {$_.Name -eq $pName}).Version
 }
+# ---------------------------
+# Check file versions
 Function Get-FileVersion ($testFIle) {
     (Get-Item $testFile).VersionInfo.FileVersion
 }
+# ---------------------------
+# INSTALLED? RETURN BOOLEAN VALUE 
 Function Assert-IsInstalled ($pName) {
     $findIntallByName = [String](Get-Package -ProviderName Programs -IncludeWindowsInstaller | Where-Object {$_.Name -eq $pName})
     $condition = ($null -ne $findIntallByName)
     ($true, $false)[!$condition]
-} # return Boolean value
+} 
+# ---------------------------
+# UPDATE INSTALLED STATUS 
 Function Update-Status ($pName) {
-    Assert-IsInstalled $pName | Out-Null; If (Assert-IsInstalled $pName) { $script:isInstalled = $true}
+    Assert-IsInstalled $pName | Out-Null
+    If (Assert-IsInstalled $pName) { $script:isInstalled = $true}
     $packageFolder | Out-Null
     $curVersion | Out-Null
     $exeExist | Out-Null
 } 
+# ---------------------------
+# INSTALL PROGRAM 
 Function Install-Prog ($pName,$packageFolder,$curVersion,$exeExist,$destVersion,$exeFile,$issFile) {
     If ($isInstalled) {
         #check current installed version
@@ -280,13 +286,15 @@ Function Install-Prog ($pName,$packageFolder,$curVersion,$exeExist,$destVersion,
         If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script}
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)){Logging "ERROR" "$mesgDiffVer";Stop-Script}
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
-            Logging " " "Processing installation for $pName, Please wait ..."
+            Logging "PROGRESS" "Installation for $pName, Please wait ..."
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
             $installed = Assert-IsInstalled $pName
-            If ($installed) {Logging " " "$pName $mesgComplete"} Else {Logging "ERROR" "$pName $mesgFailed";Stop-Script}
+            If ($installed) {Logging " " "$pName $mesgComplete";Start-Sleep -S 2} Else {Logging "ERROR" "$pName $mesgFailed";Stop-Script}
         }
     }
 }
+# ---------------------------
+# Update File Version
 Function Update-FileVersion ($targetFile, $verToMatch) {
     If (Test-Folder $targetFile) {
         Get-FileVersion $targetFile | Out-Null
@@ -294,6 +302,8 @@ Function Update-FileVersion ($targetFile, $verToMatch) {
         Else {$script:isInstalled = 0}
     }
 }
+# ---------------------------
+# Install Patches
 Function Install-LensPatch ($targetFile,$destVersion,$pName,$exeFile,$issFile) {
     If ($isInstalled) {
         Logging "INFO" "$pName $mesgInstalled"
@@ -308,7 +318,7 @@ Function Install-LensPatch ($targetFile,$destVersion,$pName,$exeFile,$issFile) {
             Stop-Script
         }
     }
-} # Install Messenger Lens Patch
+} 
 Function Install-DigitalPolling ($pName, $targetFile,$exeFile,$issFile) {
     If (Test-Folder $targetFile) {
         Logging "INFO" "$pName $mesgInstalled"
@@ -318,13 +328,16 @@ Function Install-DigitalPolling ($pName, $targetFile,$exeFile,$issFile) {
         If (Test-Folder $targetFile){Logging " " "$pName $mesgComplete"}
         Else {Logging "Error" "$pName $mesgFailed";Stop-Script}
     }
-}# Install Digital Polling Service
+}
+# ---------------------------
+# Update Copied Flies
 Function Update-Copy ($srcPackage,$instFolder0,$instFolder1) {
     $testSrcPackage  = Test-Folder $srcPackage; $testSrcPackage | Out-Null
     $testInstFolder0 = Test-Folder $instFolder0; $testInstFolder0 | Out-Null
     $testInstFolder1 = Test-Folder $instFolder1; $testInstFolder1 | Out-Null
     If (($testInstFolder0 -eq $false) -and ($testInstFolder1)) { $script:fileCopied = 1 }
 } # Update copied files
+
 Function Install-PmsTester ($srcPackage,$instParent,$instFolder0,$instFolder1) {
     $testSrcPackage  = Test-Folder $srcPackage
     $testInstParent = Test-Folder $instParent
@@ -425,10 +438,10 @@ Function Set-ServiceRecovery{
     $action = $action1 + "/" + $time1 + "/" + $action2 + "/" + $time2 + "/" + $actionLast + "/" + $timeLast
     $output = sc.exe $serverPath failure $service actions= $action reset= $resetCounter | Out-Null
     Return $output
-} # set service recovery
+} 
 
 # -----------------------
-# ==> [SECTION 03, HEADER]
+# HEADER Information 
 Logging "INFO" "You chose drive $driveLetter"
 Logging " " ""
 Logging " " "By installing you accept licenses for the packages."
@@ -445,7 +458,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $packageFolder = Test-Folder ($absPackageFolders[3])
     $curVersion = Get-InstVersion -pName $pName
     $exeExist = Test-Folder $saflokClient
-    $destVersion = ($saflokVersions[2].version)
+    $destVersion = $progVersion
     Update-Status $pName
     Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $progExe $progISS
     # -------------------------------------------------------------------
@@ -455,7 +468,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $packageFolder = Test-Folder ($absPackageFolders[4])
     $curVersion = Get-InstVersion -pName $pName
     $exeExist = Test-Folder $saflokIRS
-    $destVersion = ($saflokVersions[3].version)
+    $destVersion = $pmsVersion
     Update-Status "Saflok PMS"
     Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $pmsExe $pmsISS
     # -------------------------------------------------------------------
@@ -465,7 +478,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $packageFolder = Test-Folder ($absPackageFolders[5])
     $curVersion = Get-InstVersion -pName $pName
     $exeExist = Test-Folder $saflokMsgr
-    $destVersion = ($saflokVersions[4].version)
+    $destVersion = $msgrVersion
     Update-Status "$pName"
     Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $msgrExe $msgrISS
     # -------------------------------------------------------------------
@@ -509,57 +522,64 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     }
     # -------------------------------------------------------------------
     # start firebird service
-    $fbService = $serviceNames['firebirdSrv']
-    $fbSvcStat = (Get-Service | Where-Object {$_.Name -eq $fbService}).Status
-    If ($fbSvcStat -eq "Stopped"){Start-Service -Name $fbService;Start-Sleep -S 2}
+    $fbSvcStat = (Get-Service | Where-Object {$_.Name -eq 'FirebirdGuardianDefaultInstance'}).Status
+    If ($fbSvcStat -eq "Stopped"){Start-Service -Name 'FirebirdGuardianDefaultInstance';Start-Sleep -S 2}
     # -------------------------------------------------------------------
     # start saflok launcher service
-    If (Get-Service | Where-Object {$_.Name -eq $serviceNames['saflokLauncherSrv'] -and $_.Status -eq "Stopped"}){
-        Start-Service -Name ($serviceNames['saflokLauncherSrv'])
+    If (Get-Service | Where-Object {$_.Name -eq 'SaflokServiceLauncher' -and $_.Status -eq "Stopped"}){
+        Start-Service -Name 'SaflokServiceLauncher'
     }
     # -------------------------------------------------------------------
     # IIS FEATURES, requirement for messenger lens
-    $msgrInstalled = Assert-IsInstalled "Saflok Messenger Server"
-    If (!$msgrInstalled) {
-        Logging "WARN" "Please install Saflok messenger first."; Stop-Script
-    }
-    Logging "" "Checking System Environment Parameter ..."
-    If ($winOS -le 6.1) {
-        Logging " " "Configuring IIS features for Messenger LENS, please wait ..."
-        $iisFeatures = 'IIS-WebServerRole','IIS-WebServer','IIS-CommonHttpFeatures','IIS-HttpErrors','IIS-ApplicationDevelopment','IIS-RequestFiltering',`
-            'IIS-NetFxExtensibility','IIS-HealthAndDiagnostics','IIS-HttpLogging','IIS-RequestMonitor','IIS-Performance','WAS-ProcessModel',`
-            'WAS-NetFxEnvironment','WAS-ConfigurationAPI','IIS-ISAPIExtensions','IIS-ISAPIFilter','IIS-StaticContent','IIS-DefaultDocument',`
-            'IIS-DirectoryBrowsing','IIS-ASPNET','IIS-ASP','IIS-HttpCompressionStatic','IIS-ManagementConsole','NetFx3','WCF-HTTP-Activation','WCF-NonHTTP-Activation'
-        For ([int]$i=0; $i -lt ($iisFeatures.Length - 1); $i++) {
-            $feature = $iisFeatures[$i]
-            DISM /online /enable-feature /featurename:$feature | Out-Null
-            Start-Sleep -S 1
-            Logging " " "Enabled features $feature"
-        }
-    } # win7 / win server 2008 R2 or lower
-    Else {
-        $disabledFeatures = @()
-        $iisFeatures = 'NetFx4Extended-ASPNET45','IIS-ASP','IIS-ASPNET45','IIS-NetFxExtensibility45','IIS-WebServerRole','IIS-WebServer', `
-            'IIS-CommonHttpFeatures','IIS-HttpErrors','IIS-ApplicationDevelopment','IIS-HealthAndDiagnostics','IIS-HttpLogging','IIS-Security', `
-            'IIS-RequestFiltering','IIS-Performance','IIS-WebServerManagementTools','IIS-StaticContent','IIS-DefaultDocument','IIS-DirectoryBrowsing', `
-            'IIS-ApplicationInit','IIS-ISAPIExtensions','IIS-ISAPIFilter','IIS-HttpCompressionStatic','IIS-ManagementConsole'
-        For ([int]$i=0; $i -lt ($iisFeatures.Length -1 ); $i++) {
-            $feature = $iisFeatures[$i]
-            If (!((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Enabled")) {
-                $disabledFeatures += $feature
+    $isInstalledMsgr = Assert-IsInstalled "Saflok Messenger Server"
+	If ($isInstalledMsgr -ne $True) {
+		Logging "WARN" "Please install Saflok messenger first."; Stop-Script
+	    } Else {
+            $featureState = dism /online /get-featureinfo /featurename:IIS-WebServerRole | findstr /C:'State : '
+            If ($featureState -match 'Disabled') {
+                Logging "" "Configuring IIS features for Messenger LENS, please wait..."
+                Switch ($winOS) {
+                    {$winOS -le 6.1} 
+                    {
+            $iisFeatures = 'IIS-WebServerRole','IIS-WebServer','IIS-CommonHttpFeatures','IIS-HttpErrors','IIS-ApplicationDevelopment','IIS-RequestFiltering',`
+                'IIS-NetFxExtensibility','IIS-HealthAndDiagnostics','IIS-HttpLogging','IIS-RequestMonitor','IIS-Performance','WAS-ProcessModel',`
+                'WAS-NetFxEnvironment','WAS-ConfigurationAPI','IIS-ISAPIExtensions','IIS-ISAPIFilter','IIS-StaticContent','IIS-DefaultDocument',`
+                'IIS-DirectoryBrowsing','IIS-ASPNET','IIS-ASP','IIS-HttpCompressionStatic','IIS-ManagementConsole','NetFx3','WCF-HTTP-Activation','WCF-NonHTTP-Activation'
+            For ([int]$i=0; $i -lt ($iisFeatures.Length - 1); $i++) {
+                $feature = $iisFeatures[$i]
+                DISM /online /enable-feature /featurename:$feature | Out-Null
+                Start-Sleep -S 1
+                Logging " " "Enabled features $feature"
+            }
+        } 
+        {$winOS -ge 6.1}
+        {
+            $disabledFeatures = @()
+            $iisFeatures = 'NetFx4Extended-ASPNET45','IIS-ASP','IIS-ASPNET45','IIS-NetFxExtensibility45','IIS-WebServerRole','IIS-WebServer', `
+                'IIS-CommonHttpFeatures','IIS-HttpErrors','IIS-ApplicationDevelopment','IIS-HealthAndDiagnostics','IIS-HttpLogging','IIS-Security', `
+                'IIS-RequestFiltering','IIS-Performance','IIS-WebServerManagementTools','IIS-StaticContent','IIS-DefaultDocument','IIS-DirectoryBrowsing', `
+                'IIS-ApplicationInit','IIS-ISAPIExtensions','IIS-ISAPIFilter','IIS-HttpCompressionStatic','IIS-ManagementConsole'
+            For ([int]$i=0; $i -lt ($iisFeatures.Length -1 ); $i++) {
+                $feature = $iisFeatures[$i]
+                If (!((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Enabled")) {
+                    $disabledFeatures += $feature
+                }
+            }
+            If ($disabledFeatures.Count-1 -gt 0){
+                Logging "INFO" "Configuring IIS features for Messenger LENS, please wait ..."
+                Foreach ($disabled In $disabledFeatures) {
+                    Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
+                    Logging " " "Enabled features $disabled"
+                }
+            } Else {
+                Logging "INFO" "ALL required IIS features have been enabled."
+            } 
+                    }
+                }
+            } Else {
+                Logging "INFO" "ALL IIS features that Messenger LENS requires have been enabled."
             }
         }
-        If ($disabledFeatures.Count-1 -gt 0){
-            Logging "INFO" "Configuring IIS features for Messenger LENS, please wait ..."
-            Foreach ($disabled In $disabledFeatures) {
-                Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All | Out-Null
-                Logging " " "Enabled features $disabled"
-            }
-        } Else {
-            Logging "INFO" "ALL required IIS features have been enabled."
-        }
-        Start-Sleep -Seconds 1
-    } # win10 / win server 2016 or above
     # -------------------------------------------------------------------
     # Microsoft SQL Server 2012
     $pName = 'Microsoft SQL Server 2012'
@@ -580,7 +600,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $packageFolder = Test-Folder ($absPackageFolders[6])
     $curVersion = Get-InstVersion -pName $pName
     $exeExist = Test-Folder $wsPmsExe
-    $destVersion = ($saflokVersions[5].version)
+    $destVersion = $wsPmsExeBeforePathVersionn
     Update-Status $pName
     Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $lensExe $lensISS
     # -------------------------------------------------------------------
@@ -588,7 +608,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $pName = "Messenger Lens Patch"  
     $isInstalled = 0
     $targetFile = $wsPmsExe
-    $destVersion = $saflokVersions[10].Version
+    $destVersion = $wsPmsExeVersion
     Update-FileVersion $wsPmsExe $destVersion
     Install-LensPatch $wsPmsExe $destVersion $pName $lensPatchExe $patchLensISS
     # -------------------------------------------------------------------
@@ -624,7 +644,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         $Shortcut.IconLocation = "C:\Windows\System32\SHELL32.dll, 12" 
         $Shortcut.Save()
         Start-Sleep -S 1
-    } # shotcut for web service pms tester
+    } # shortcut for web service PMS tester
     # [SECTION 06, CHECK SERVICES STATUS]
     # ----------------------------------------------------------------
     [string[]]$servicesCheck = $serviceNames[0],$serviceNames[1],$serviceNames[14],$serviceNames[10],$serviceNames[11],$serviceNames[12],$serviceNames[13],$serviceNames[15],$serviceNames[16]
@@ -639,8 +659,8 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 If ($serviceStatus.Status -eq "running") { Logging " " "$service has been started."}
                 Start-Sleep -S 1
             } Else {Logging " " "$service is in running state.";Start-Sleep -S 1}
-        } # check service status
-        # [SECTION 7, OPEN GUI AND CONFIG FILE]
+        } 
+        # OPEN GUI AND CONFIG FILE
         # ----------------------------------------------------------------
         Logging "" "+---------------------------------------------------------"
         Logging "" "The following files need to be checked or configure: "
@@ -676,14 +696,14 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "" "+---------------------------------------------------------"
         Start-Sleep -Seconds 1
         # ----------------------------------------------------------------
-        # [SECTION 08, SET SERVICE RECOVERY]
+        # SET SERVICE RECOVERY
         [string[]]$recoveryServices = $serviceNames[10],$serviceNames[11],$serviceNames[12],$serviceNames[14],$serviceNames[16]
         Foreach ($service In $recoveryServices){
             If (Get-service -Name $service | where-object {$_.StartType -ne 'Automatic'}) { Set-Service $service -StartupType "Automatic" }
             Set-ServiceRecovery -ServiceDisplayName $service
         } # service recovery 
         # ----------------------------------------------------------------
-        # [SECTION 09, FOOTER]
+        # FOOTER
         Logging "" "Installed Version Infomation: " 
         Logging "" "+---------------------------------------------------------"
         $gatewayVer = Get-FileVersion $gatewayExe;$hmsVer = Get-FileVersion $hmsExe;$wsPmsVer = Get-FileVersion $wsPmsExe;$kdsVer = Get-FileVersion $kdsExe;$pollingVer = Get-FileVersion $digitalPollingExe
@@ -702,7 +722,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1,*.lnk -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }   
         Start-Sleep -Second 300
-    } # end of MessengerLens is installed 
+    } 
 } # END OF YES
 If ($confirmation -eq 'N' -or $confirmation -eq 'NO') {
     Logging " " ""
