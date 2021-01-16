@@ -218,13 +218,13 @@ $serviceNames = [ordered]@{
     saflokMSGRSrv = 'SaflokMSGR';
     saflokDHSP2MSGR = 'SAFLOKDHSPtoMSGRTranslator';
     saflokMSGR2DHSP = 'SAFLOKMSGRtoDHSPTranslator';
-    hubGatewaySrv = 'MessengerNet_Hub Gateway Service'; #[10]
-    hubManagerSrv = 'MNet_HMS';                                     #[11]
-    pmsSrv = 'MNet_PMS Service';                                      #[12]
-    utilitySrv = 'MessengerNet_Utility Service';                      #[13]
-    kdsSrv = 'Kaba_KDS';                                                  #[14]
-    virtualEncoderSrv = 'VirtualEncoderService'                     #[15]
-    pollingSrv = 'Kaba Digital Keys Polling Service'                  #[16]
+    hubGatewaySrv = 'MessengerNet_Hub Gateway Service'; 
+    hubManagerSrv = 'MNet_HMS';                        
+    pmsSrv = 'MNet_PMS Service';                      
+    utilitySrv = 'MessengerNet_Utility Service';     
+    kdsSrv = 'Kaba_KDS';                            
+    virtualEncoderSrv = 'VirtualEncoderService'    
+    pollingSrv = 'Kaba Digital Keys Polling Service'
 }
 # ---------------------------
 # Logging Messages
