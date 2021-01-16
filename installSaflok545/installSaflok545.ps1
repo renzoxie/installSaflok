@@ -125,17 +125,6 @@ $absPackageFolders = @()
 For ($i=0; $i -lt ($packageFolders.Length); $i++) {
     $absPackageFolders += Join-Path $installScriptFolder $packageFolders[$i].Name
 }
-# $absPackageFolders[0]   ==>  00.hotelData
-# $absPackageFolders[1]   ==>  01.ISS_FOR_C
-# $absPackageFolders[2]   ==>  02.ISS_FOR_D
-# $absPackageFolders[3]   ==>  03.saflokProgram
-# $absPackageFolders[4]   ==>  04.saflokPMS
-# $absPackageFolders[5]   ==>  05.saflokMessenger
-# $absPackageFolders[6]   ==>  06.saflokLENS
-# $absPackageFolders[7]   ==>  07.patch
-# $absPackageFolders[8]   ==>  08.Web_Service_PMS_Tester
-# $absPackageFolders[9]   ==>  09.configFiles
-# $absPackageFolders[10] ==>  10.TestPorts
 # ---------------------------
 # Program
 $progExe = Join-Path $absPackageFolders[3] 'setup.exe'
