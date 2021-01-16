@@ -143,8 +143,6 @@ $sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' | `
                                    Join-Path -ChildPath 'SQLEXPR_x86_ENU.exe'
 # ---------------------------
 # ISS_FOR_Drive & files
-
-# ---------------------------
 If ($driveLetter -eq 'C') {$iss4Drive = '01.ISS_FOR_' + $driveLetter}
 Elseif ($driveLetter -eq 'D') {$iss4Drive = '02.ISS_FOR_' + $driveLetter}
 Else {    Logging "ERROR" "Please input C or D for the drive letter."; Stop-Script}
@@ -633,11 +631,10 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         $Shortcut.IconLocation = "C:\Windows\System32\SHELL32.dll, 12" 
         $Shortcut.Save()
         Start-Sleep -S 1
-    } # shortcut for web service PMS tester
-    # [SECTION 06, CHECK SERVICES STATUS]
+    }
     # ----------------------------------------------------------------
+    # [SECTION 06, CHECK SERVICES STATUS]
     [string[]]$servicesCheck = $serviceNames[0],$serviceNames[1],$serviceNames[14],$serviceNames[10],$serviceNames[11],$serviceNames[12],$serviceNames[13],$serviceNames[15],$serviceNames[16]
-    # [0] DeviceManagerService,[1] KIPEncoderService,[14] Kaba_KDS,[10] MessengerNet_Hub Gateway Service,[11] MNet_HMS,[12] MNet_PMS Service,[13] MessengerNet_Utility Service,[15] VirtualEncoderService, [16] digitalPolling
     If (Assert-IsInstalled "Messenger LENS") {
         Foreach ($service In $servicesCheck) { 
             $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
@@ -648,9 +645,9 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 If ($serviceStatus.Status -eq "running") { Logging " " "$service has been started."}
                 Start-Sleep -S 1
             } Else {Logging " " "$service is in running state.";Start-Sleep -S 1}
-        } 
-        # OPEN GUI AND CONFIG FILE
+        }
         # ----------------------------------------------------------------
+        # OPEN GUI AND CONFIG FILE
         Logging "" "+---------------------------------------------------------"
         Logging "" "The following files need to be checked or configure: "
         Logging "" "+---------------------------------------------------------"
@@ -680,7 +677,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             $Shortcut.TargetPath = $TargetFile
             $Shortcut.Save()
             Start-Sleep -S 1
-        } # shotcut for polling log
+        }
         Write-Colr -Text "$cname ","Please check those config files openning in taksbar area." -Colour White,Magenta
         Logging "" "+---------------------------------------------------------"
         Start-Sleep -Seconds 1
@@ -690,7 +687,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Foreach ($service In $recoveryServices){
             If (Get-service -Name $service | where-object {$_.StartType -ne 'Automatic'}) { Set-Service $service -StartupType "Automatic" }
             Set-ServiceRecovery -ServiceDisplayName $service
-        } # service recovery 
+        } 
         # ----------------------------------------------------------------
         # FOOTER
         Logging "" "Installed Version Information: " 
