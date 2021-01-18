@@ -1,7 +1,7 @@
 >
 > compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7<br />
 > for win2008R2, need powershell version 5 or above<br />
-> important! folder name  MUST NOT have any space
+> IMPORTANT! Do NOT have any space in the working derictory path name. 
 
 # features
 <ul>
