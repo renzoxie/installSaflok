@@ -23,6 +23,7 @@
 </div>
 
 # change log
+1.7 - fix mior bug for installing on drive c. <br />
 1.6 - final release, more functions less lines <br />
 1.5 - add functions, prompt version installed <br />
 1.4 - with SQL Server Express 2012 for version 5.x <br />
