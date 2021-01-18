@@ -5,7 +5,6 @@
 > important! folder name  MUST NOT have any space
 
 # features
-# ----------------------
 <ul>
   <li> with desination install drive option </li>
   <li> share folder in backend  </li>
@@ -16,7 +15,6 @@
 </ul>
 
 # instruction
-# ----------------------
 <ol>
     <li>Unzip and place to the root of package folder -- for version 5.x <br />
     Unzip and place to the .\Autoplay\Plugins folder -- for version 6.x</li>
@@ -28,7 +26,6 @@
 </div>
 
 # change log
-# ----------------------
 1.6 - final release, more functions less lines <br />
 1.5 - add functions, prompt version installed <br />
 1.4 - with SQL Server Express 2012 for version 5.x <br />
@@ -37,7 +34,7 @@
 1.1 - compatible with win7/win2008R2 or lower <br />
 
 # contributing workflow
-# ----------------------
+# 
 Here's how we suggest you go about proposing a change to this project:<br />
 <ol>
   <li><a href="https://help.github.com/articles/fork-a-repo/">Fork this project</a> to your account. </li>
