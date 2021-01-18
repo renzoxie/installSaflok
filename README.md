@@ -15,8 +15,6 @@
 
 # instruction
 <ol>
-    <li>Unzip and place to the root of package folder -- for version 5.x <br />
-    Unzip and place to the .\Autoplay\Plugins folder -- for version 6.x</li>
     <li>Double click "autorun.lnk" to start installation -- for verion 5.x <br />
     Double click "install.lnk" to start installation and run "config.lnk" after first reboot -- for verion 6.x</li>
 </ol>
