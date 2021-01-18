@@ -15,8 +15,8 @@
 
 # instruction
 <ol>
-    <li>Double click "autorun.lnk" to start installation -- for verion 5.x <br />
-    Double click "install.lnk" to start installation and run "config.lnk" after first reboot -- for verion 6.x</li>
+    <li>Double click "autorun.lnk" to start installation -- for verion 5.x </li>
+    <li>Double click "install.lnk" to start installation and run "config.lnk" after first reboot -- for verion 6.x</li>
 </ol>
 <div stlye="flex: 9;">
 
