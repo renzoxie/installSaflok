@@ -22,8 +22,8 @@
     Double click "install.lnk" to start installation and run "config.lnk" after first reboot -- for verion 6.x</li>
 </ol>
 <div stlye="flex: 9;">
-  <img src="https://gitee.com/renzoxie/saflok-auto-powershell/tree/main/img/pluginFolder.png" data-canonical-src="https://gitee.com/renzoxie/saflok-auto-powershell/tree/main/img/pluginFolder.png" width="450" />
-  <img src="https://gitee.com/renzoxie/saflok-auto-powershell/tree/main/img/install02.png" data-canonical-src="https://gitee.com/renzoxie/saflok-auto-powershell/tree/main/img/install02.png" width="400" /> 
+  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0118/131411_5d34763e_5250465.jpeg "Snipaste_2021-01-18_11-55-06.jpg")
+  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0118/131429_c1aa7c9c_5250465.jpeg "Snipaste_2021-01-18_11-54-31.jpg")
 </div>
 
 # change log
