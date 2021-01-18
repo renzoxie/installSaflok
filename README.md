@@ -39,5 +39,3 @@ Here's how we suggest you go about proposing a change to this project:<br />
   <li>Make your changes to your fork.</li>
     <li><a href="https://help.github.com/articles/using-pull-requests/">Send a pull request</a> from your fork’s branch to our master branch.</li>
 </ol>
-Using the web-based interface to make changes is fine too, and will help you by automatically forking the project and prompting to send a pull request too. 
-<br/>
