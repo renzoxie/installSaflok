@@ -1,3 +1,5 @@
+# brief
+# ----------------------
 > compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7<br />
 > for win2008R2, need powershell version 5 or above<br />
 > important! folder name  MUST NOT have any space
@@ -22,8 +24,7 @@
     Double click "install.lnk" to start installation and run "config.lnk" after first reboot -- for verion 6.x</li>
 </ol>
 <div stlye="flex: 9;">
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0118/131411_5d34763e_5250465.jpeg "Snipaste_2021-01-18_11-55-06.jpg")
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0118/131429_c1aa7c9c_5250465.jpeg "Snipaste_2021-01-18_11-54-31.jpg")
+
 </div>
 
 # change log
