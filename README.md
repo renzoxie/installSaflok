@@ -1,5 +1,4 @@
-# brief
-# ----------------------
+>
 > compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7<br />
 > for win2008R2, need powershell version 5 or above<br />
 > important! folder name  MUST NOT have any space
@@ -34,7 +33,6 @@
 1.1 - compatible with win7/win2008R2 or lower <br />
 
 # contributing workflow
-# 
 Here's how we suggest you go about proposing a change to this project:<br />
 <ol>
   <li><a href="https://help.github.com/articles/fork-a-repo/">Fork this project</a> to your account. </li>
