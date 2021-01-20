@@ -13,8 +13,9 @@
 # current script version: 1.7
 # fix minor bugs
 #>
+
 # ---------------------------
-# VARIALBLES
+# Execute the script as administrator
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
   Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Exit 
 }
@@ -29,7 +30,7 @@ Function Write-Colr {
     If ($NoNewline -eq $false) { Write-Host '' }
 }
 # ---------------------------
-# Customized loggings
+# Customized logging
 Function Logging ($state, $message) {
     $part1 = $cname;$part2 = ' ';$part3 = $state;$part4 = ": ";$part5 = "$message"
     Switch ($state)
@@ -323,8 +324,9 @@ Function Update-Copy ($srcPackage,$instFolder0,$instFolder1) {
     $testInstFolder0 = Test-Folder $instFolder0; $testInstFolder0 | Out-Null
     $testInstFolder1 = Test-Folder $instFolder1; $testInstFolder1 | Out-Null
     If (($testInstFolder0 -eq $false) -and ($testInstFolder1)) { $script:fileCopied = 1 }
-} # Update copied files
-
+} 
+# ---------------------------
+# Install Web Service PMS Tester
 Function Install-PmsTester ($srcPackage,$instParent,$instFolder0,$instFolder1) {
     $testSrcPackage  = Test-Folder $srcPackage
     $testInstParent = Test-Folder $instParent
@@ -350,15 +352,21 @@ Function Install-PmsTester ($srcPackage,$instParent,$instFolder0,$instFolder1) {
             Logging " " "Web Service PMS Tester $mesgComplete."
         }
     }
-} # Install Web Service PMS Tester
+} 
+# ---------------------------
+# Share Folder for windows 2008 R2 or lower
 Function New-Share {
     param([string]$shareName,[string]$shareFolder)
 	net share $shareName=$shareFolder "/GRANT:Everyone,FULL" /REMARK:"Saflok Database Folder Share"
-} # Share Folder for windows 2008 R2 or lower
+} 
+# ---------------------------
+# Install SC
 Function Install-SC {
     Param([String]$exeFile,[String]$agrFile,[String]$service)
     Start-Process -NoNewWindow -FilePath $exeFile $service -ArgumentList " $argFile" -Wait -RedirectStandardOutput Out-Null
-} # Install SC
+} 
+# ---------------------------
+# Install SQL
 Function Install-Sql ($pName,$packageFolder,$exeFile,$argFile) {
     If ($isInstalled -eq $true) {
         Logging "INFO" "$pName $mesgInstalled"
@@ -379,7 +387,9 @@ Function Install-Sql ($pName,$packageFolder,$exeFile,$argFile) {
 			}
         }
     }
-} # Install SQL
+} 
+# ---------------------------
+# update SQL password
 Function Update-SqlPasswd {
     Param([string]$login,[string]$passwd)
     $ServerNameList = 'localhost\lenssql'
@@ -407,7 +417,10 @@ Function Update-SqlPasswd {
         $SQLUser.Alter();
         $SQLUser.Refresh();
     }
-} # update SQL password
+}
+
+# -----------------------
+#$recoveryServices
 Function Set-ServiceRecovery{
     [alias('Set-Recovery')]
     param
@@ -421,7 +434,7 @@ Function Set-ServiceRecovery{
         [int] $timeLast = 50000, # in milliseconds
         [int] $resetCounter = 86400 # in seconds
     )
-    #$recoveryServices
+    
     $action = $action1 + "/" + $time1 + "/" + $action2 + "/" + $time2 + "/" + $actionLast + "/" + $timeLast
     $output = sc.exe $serverPath failure $service actions= $action reset= $resetCounter | Out-Null
     Return $output
