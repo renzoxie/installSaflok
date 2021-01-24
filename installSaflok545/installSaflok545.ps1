@@ -15,7 +15,7 @@
 #>
 
 # ---------------------------
-# Execute the script as administrator
+# Execute as an administrator
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
   Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Exit 
 }
@@ -38,16 +38,7 @@ Function Logging ($state, $message) {
         ERROR {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
         WARN  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
         INFO  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
-        PROGRESS  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
-        ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
-        default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
-    }
-}
-Function Stop-Script {
-    Start-Sleep -Seconds 300   
-    exit
-}
-# ---------------------------
+        PROGRESS  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White} ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan} default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White} } } Function Stop-Script { Start-Sleep -Seconds 300   exit } # ---------------------------
 # Mini Powershell version requirement
 If ($PSVersionTable.PSVersion.Major -lt 5) {
     Logging "WARN" "Your PowerShell installation is not version 5.0 or greater."
