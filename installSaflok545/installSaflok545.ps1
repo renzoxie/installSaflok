@@ -24,6 +24,7 @@ Param (
     [String]$hotelChain
 )
 # ---------------------------
+
 # Script location
 $scriptPath = $PSScriptRoot
 # ---------------------------
