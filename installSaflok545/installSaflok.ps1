@@ -18,7 +18,10 @@
 Param (
     [Parameter(Mandatory=$TRUE,HelpMessage="Input drive letter to install")]
     [String]$inputDrive,
-    
+
+    [Parameter(Mandatory=$TRUE)]
+    [String]$saflokVersion,
+
     [String]$company,
     
     [String]$hotelChain
@@ -78,7 +81,6 @@ $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
 # ---------------------------
 # VERSIONS
     $scriptVersion = '2.0'
-    $saflokVersion = '5.45'
     $progVersion = '5.4.0.0'
     $pmsVersion = '5.1.0.0'
     $msgrVersion= '5.2.0.0'
