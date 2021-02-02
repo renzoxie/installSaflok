@@ -16,7 +16,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess)]
 Param (
-    [Parameter(Mandatory=$TRUE,HelpMessage="Input drive letter to install")]
+    [Parameter(Mandatory=$TRUE)]
     [String]$inputDrive,
 
     [Parameter(Mandatory=$TRUE)]
@@ -91,6 +91,21 @@ $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
     $kdsExeVersion = '4.7.0.26769'
     $wsPmsExeVersion = '4.7.2.22767'
     $pollingExeVersion = '4.5.0.28705'
+# hashtable
+    $versions545 = @{
+        scriptVersion = '2.0';
+        progVersion = '5.4.0.0';
+        pmsVersion = '5.1.0.0';
+        msgrVersion = '5.2.0.0';
+        lensVersion = '4.7.0.0';
+        wsPmsExeBeforePathVersion = '4.7.1.15707';
+        gatewayExeVersion = '4.7.2.22694';
+        hmsExeVersion = '4.7.1.22400';
+        kdsExeVersion = '4.7.0.26769';
+        wsPmsExeVersion = '4.7.2.22767';
+        pollingExeVersion = '4.5.0.28705'
+    }
+
 # ---------------------------
 # MENU OPTION
 Clear-Host
@@ -103,8 +118,8 @@ Logging "" "+---------------------------------------------------------"
 Logging "" "| $time"
 Write-Colr -Text $cname, " |"," $hotelName" -Colour White,cyan,Yellow
 Logging "" "| SAFLOK VERSION: $saflokVersion"
-IF ($winOS -le 6.1) {Logging "" "| INSTALLING ON OS: WINDOWS 7 / SERVER 2008 R2 OR LOWER"}
-				Else {Logging "" "| INSTALLING ON OS: $osDetail"}
+IF ($winOS -le 6.1) {Logging "" "| INSTALLING ON: WINDOWS 7 / SERVER 2008 R2 OR LOWER"}
+				Else {Logging "" "| INSTALLING ON: $osDetail"}
 Logging "" "+---------------------------------------------------------"
 Logging "" "| AUTHUR: renzoxie@gmail.com"
 Logging "" "| SCRIPT VERSION: $scriptVersion" 
@@ -206,6 +221,7 @@ $hubGateWayInstFolder = Join-Path $lensInstFolder 'HubGatewayService'
 $hmsInstFolder = Join-Path $lensInstFolder 'HubManagerService'
 $pmsInstFolder = Join-Path $lensInstFolder 'PMS Service'
 $wsTesterInstFolder = Join-Path $kabaInstFolder '08.Web_Service_PMS_Tester'
+
 $digitalPollingFolder = Join-Path $lensInstFolder 'DigitalKeysPollingSoftware' 
 $kdsInstFolder = Join-Path $lensInstFolder 'KeyDeliveryService'   
 # ---------------------------
@@ -294,7 +310,21 @@ Function Update-Status ($pName) {
 Function Install-Prog ($pName,$packageFolder,$curVersion,$exeExist,$destVersion,$exeFile,$issFile) {
     If ($isInstalled) {
         #check current installed version
-        If ($curVersion -eq $destVersion) {Logging "INFO" "$pName $mesgInstalled"} Else {Logging "ERROR" "$mesgDiffVer - $pName";Stop-Script}
+        If ($pName -ne 'Messenger LENS') {
+            Switch ($curVersion -eq $destVersion) {
+                $True  {Logging "INFO" "$pName $mesgInstalled"}
+                $False {Logging "ERROR" "$mesgDiffVer - $pName";Stop-Script}       
+            }
+            <#
+            If ($curVersion -eq $destVersion) {
+                Logging "INFO" "$pName $mesgInstalled"
+            } Else {
+                Logging "ERROR" "$mesgDiffVer - $pName";Stop-Script
+            }
+            #>
+        } Else {
+            Logging "INFO" "$pName $mesgInstalled"
+        }
     } Else {
         If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script}
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)){Logging "ERROR" "$mesgDiffVer";Stop-Script}
@@ -332,6 +362,8 @@ Function Install-LensPatch ($targetFile,$destVersion,$pName,$exeFile,$issFile) {
         }
     }
 } 
+# ---------------------------
+# Install digitalPolling
 Function Install-DigitalPolling ($pName, $targetFile,$exeFile,$issFile) {
     If (Test-Folder $targetFile) {
         Logging "INFO" "$pName $mesgInstalled"
@@ -650,9 +682,9 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     }
     # -------------------------------------------------------------------
     # copy config files
-    Copy-Item -Path $lensPmsConfig -Destination $wsPmsInstFolder -Force
+    Copy-Item -Path $lensPmsConfig -Destination $pmsInstFolder -Force
     Copy-Item -Path $pollingConfig -Destination $digitalPollingFolder -Force
-    # SECTION 05, INSTALL WEB SERVICE PMS TESTER
+    # INSTALL WEB SERVICE PMS TESTER
     # -------------------------------------------------------------------
     $fileCopied = 0 
     $newFolder0 = $kabaInstFolder + '\' + $wsTesterInstFolder.Substring($wsTesterInstFolder.Length - 25,25)
@@ -671,7 +703,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Start-Sleep -S 1
     }
     # ----------------------------------------------------------------
-    # [SECTION 06, CHECK SERVICES STATUS]
+    # CHECK SERVICES STATUS
     [string[]]$servicesCheck =  $serviceNames[0],
                                 $serviceNames[1],
                                 $serviceNames[14],
@@ -755,7 +787,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "WARN" "The recent program changes indicate a reboot is necessary."
         Write-Host ''
         # clean up script files and SAFLOK folder
-        If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1,*.lnk -Force -ErrorAction SilentlyContinue}
+        # If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1,*.lnk -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }   
         Start-Sleep -Second 300
     } 
