@@ -11,6 +11,7 @@
     Create Date: 16 April 2019
     Modified Date: 12 AUG 2019
 #>
+
 # ---------------------------
 # Execute as an administrator
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
