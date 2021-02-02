@@ -12,17 +12,22 @@
     Modified Date: 12 AUG 2019
 #>
 # ---------------------------
-# ==> [SECTION 01, VARIALBLES]
-# ---------------------------
+# Execute as an administrator
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
   Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Exit
 }
-
+# ---------------------------
+# Script location
+$scriptPath = $PSScriptRoot
+# ---------------------------
+# Customized color
 Function Write-Colr {
     Param ([String[]]$Text,[ConsoleColor[]]$Colour,[Switch]$NoNewline=$false)
     For ([int]$i = 0; $i -lt $Text.Length; $i++) { Write-Host $Text[$i] -Foreground $Colour[$i] -NoNewLine }
     If ($NoNewline -eq $false) { Write-Host '' }
 }
+# ---------------------------
+# Customized logging
 Function Logging ($state, $message) {
     $part1 = $cname;$part2 = ' ';$part3 = $state;$part4 = ": ";$part5 = "$message"
     Switch ($state)
@@ -30,6 +35,7 @@ Function Logging ($state, $message) {
         ERROR {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
         WARN  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
         INFO  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
+        PROGRESS  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
         ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
         default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
     }
@@ -38,36 +44,30 @@ Function Stop-Script {
     Start-Sleep -Seconds 300 
     exit
 }
+# ---------------------------
+# Mini Powershell version requirement
 If ($PSVersionTable.PSVersion.Major -lt 5) {
     Logging "WARN" "Your PowerShell installation is not version 5.0 or greater."
     Logging "WARN" "This script requires PowerShell version 5.0 or greater to function."
     Logging "WARN" "You can download PowerShell version 5.0 at: https://www.microsoft.com/en-us/download/details.aspx?id=50395"
     Stop-Script
-} # Mini Powershell version requirement
-# ----------------------------------------------------------------------------------------------
+}
+# ---------------------------
 # GENERAL
 $cname = '[dormakaba]'
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
 $hotelChain = ''
 [double]$winOS = [string][environment]::OSVersion.Version.major + '.' + [environment]::OSVersion.Version.minor
-# ----------------------------------------------------------------------------------------------
-# SCRIPT LOCATION
-$scriptPath = $PSScriptRoot
-# ----------------------------------------------------------------------------------------------
-# OBJECT for saflokVersions
-$saflokVersions = @(
-    [pscustomobject]@{name='scriptVersion'; version='1.6'}
-    [pscustomobject]@{name='mainVersion'; version='5.68'}
-    [pscustomobject]@{name='ver1'; version='5.6.0.0'}
-    [pscustomobject]@{name='ver2'; version='5.6.8.0'}
-)
-$scriptVersion = $saflokVersions[0].version
-$saflokVersion = $saflokVersions[1].version
-$ver1 = $saflokVersions[2].version
-$ver2 = $saflokVersions[3].version
-$installDrive
-
+# ---------------------------
+# VERSIONS
+$scriptVersion='1.6'
+$saflokVersion = '5.68'
+$ver1 = '5.6.0.0'
+$ver2 = '5.6.8.0'
+# ---------------------------
+# MENU OPTION
+$driveLetter
 $menuOption = 99
 Clear-Host
 Logging "" "+---------------------------------------------------------"
@@ -85,43 +85,35 @@ Logging " " "1 - Install to drive C"
 Logging " " "2 - Install to drive D"
 Logging " " "0 - Exit"
 Logging " " ""
-$menuOption = Read-Host "$cname Please select option from above"
+$menuOption = Read-Host "$cname Please select option from above list"
 Logging "" "+---------------------------------------------------------"
 Switch ($menuOption) {
-	1 {
-		$script:installDrive = 'C'
-		$menuOption = 99
-	}
-	2 {
-		$script:installDrive = 'D'
-		$menuOption = 99
-	}
-	0 {
-		Clear-Host
-		Exit
-	}
-	Default {
-		Logging " " "Please enter a valid option."
-	}
+	1 {$script:driveLetter = 'C';$menuOption = 99}
+	2 {$script:driveLetter = 'D';$menuOption = 99}
+	0 {Clear-Host;Exit}
+	Default {Logging " " "Please enter a valid option."}
 }
-
-# ----------------------------------------------------------------------------------------------
+# ---------------------------
 # DRIVE INFO
-$driveLetter = $installDrive
 $installDrive = $driveLetter + ':\'
+# ---------------------------
+# VALID DRIVE CHARACTER INPUT
 $deviceID = $driveLetter + ':'
 $cdDrive = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 5} | Select-Object DeviceID
 If ($cdDrive -match $deviceID) {
-    Logging "ERROR" "The drive $driveLetter is not a valid location."
     Write-Host ''
+    Logging "ERROR" "The drive $driveLetter is not a valid location."
+    Logging "WARN" 'Please re-run the script again to select the correct dirve.'
+    Start-Sleep -Seconds 5
     Exit
 }
-# ----------------------------------------------------------------------------------------------
-# packageFolders
-$packageFolders =  Get-ChildItem ($scriptPath) | Select-Object Name | Sort-Object -Property Name
+# ---------------------------
+# SOURCE FOLDER - INSTALL SCRIPT
+$installScriptFolder = $scriptPath 
+$packageFolders =  Get-ChildItem ($installScriptFolder) | Select-Object Name | Sort-Object -Property Name
 $absPackageFolders = @()
-For ($i=0; $i -lt ($packageFolders.Length -1); $i++) {
-    $absPackageFolders += $scriptPath + '\' + $packageFolders[$i].Name
+For ($i=0; $i -lt ($packageFolders.Length); $i++) {
+    $absPackageFolders += Join-Path $installScriptFolder $packageFolders[$i].Name
 }
 # ----------------------------------------------------------------------------------------------
 # [00] hotelData
@@ -130,7 +122,7 @@ For ($i=0; $i -lt ($packageFolders.Length -1); $i++) {
 # ----------------------------------------------------------------------------------------------
 If ($driveLetter -eq 'C') {$iss4Drive = '01.ISS_FOR_' + $driveLetter}
 Elseif ($driveLetter -eq 'D') {$iss4Drive = '02.ISS_FOR_' + $driveLetter}
-Else {    Logging "ERROR" "Please input C or D for the drive letter.";Exit}
+Else {    Logging "ERROR" "Please input C or D for the drive letter."; Stop-Script}
 Switch ($iss4Drive)
 {
     01.ISS_FOR_C {$issFolder = $absPackageFolders[1]}
