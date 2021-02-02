@@ -1,24 +1,29 @@
 <#
-.Synopsis
-   Helper Script to install SAFLOK SYSTEM 6000 automatically
+ Execute as an administrator
+.SYNOPSIS
+   PS script helps to install SAFLOK Lodging systems
 .DESCRIPTION
    This script fully installation of SAFLOK Lodging Systems for Marriott projects automatically
 .EXAMPLE
-   .\install.ps1 -installRoot [c|d]
+   .\install.ps1 -inputDrive c 
+   .\install.ps1 -inputDrive c -company 'xxx' -hotailChain 'Marriott'
 .NOTES
     Author: renzoxie@139.com
     Saflok version: v5.45, Marriott ONLY
     Create Date: 16 April 2019
     Modified Date: 16 JAN 2021
-# current script version: 1.7
-# fix minor bugs
+# Current script version: 2.0
 #>
-
+[CmdletBinding(SupportsShouldProcess)]
+Param (
+    [Parameter(Mandatory=$TRUE,HelpMessage="Input drive letter to install")]
+    [String]$inputDrive,
+    
+    [String]$company,
+    
+    [String]$hotelChain
+)
 # ---------------------------
-# Execute as an administrator
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
-  Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Exit 
-}
 
 # Script location
 $scriptPath = $PSScriptRoot
@@ -32,13 +37,28 @@ Function Write-Colr {
 # ---------------------------
 # Customized logging
 Function Logging ($state, $message) {
-    $part1 = $cname;$part2 = ' ';$part3 = $state;$part4 = ": ";$part5 = "$message"
+    $part1 = $cname;
+    $part2 = ' ';
+    $part3 = $state;
+    $part4 = ": ";
+    $part5 = "$message"
     Switch ($state)
     {
         ERROR {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
         WARN  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
         INFO  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
-        PROGRESS  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White} ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan} default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White} } } Function Stop-Script { Start-Sleep -Seconds 300   exit } # ---------------------------
+        PROGRESS  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
+        ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan} 
+       default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
+   } 
+} 
+# ---------------------------
+# Stop Script
+Function Stop-Script {
+    Start-Sleep -Seconds 60 
+    exit
+}
+# ---------------------------
 # Mini Powershell version requirement
 If ($PSVersionTable.PSVersion.Major -lt 5) {
     Logging "WARN" "Your PowerShell installation is not version 5.0 or greater."
@@ -48,14 +68,16 @@ If ($PSVersionTable.PSVersion.Major -lt 5) {
 } 
 # ---------------------------
 # GENERAL
-$cname = '[dormakaba]'
+$cname = "[$company]"
+$hotelName = 'Property: ' + $hotelChain.toUpper()
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
-$hotelChain = 'MARRIOTT PROJECTS ONLY'
 [double]$winOS = [string][environment]::OSVersion.Version.major + '.' + [environment]::OSVersion.Version.minor
+$osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption 
+
 # ---------------------------
 # VERSIONS
-    $scriptVersion = '1.7'
+    $scriptVersion = '2.0'
     $saflokVersion = '5.45'
     $progVersion = '5.4.0.0'
     $pmsVersion = '5.1.0.0'
@@ -69,46 +91,52 @@ $hotelChain = 'MARRIOTT PROJECTS ONLY'
     $pollingExeVersion = '4.5.0.28705'
 # ---------------------------
 # MENU OPTION
-$driveLetter
-$menuOption = 99
 Clear-Host
 Logging "" "+---------------------------------------------------------"
+Logging "" "| WELCOME TO SAFLOK LODGING SYSTEMS INSTALLATION"
+Logging "" "+---------------------------------------------------------"
+Write-Colr -Text $cname, " |"," # IMPORTANT"  -Colour White,cyan,Red
+Write-Colr -Text $cname, " |"," # THIS SCRIPT MUST BE RUN AS ADMINISTRATOR" -Colour White,cyan,red
+Logging "" "+---------------------------------------------------------"
 Logging "" "| $time"
-Write-Colr -Text $cname, " |"," $hotelChain" -Colour White,cyan,Yellow
-Logging "" "| SCRIPT VERSON: $scriptVersion" 
-IF ($winOS -le 6.1) {Logging "" "| INSTALLING ON OS: WINDOWS 7 / SERVER 2008 R2 OR LOWER"}
-				Else {Logging "" "| INSTALLING ON OS: WINDOWS 10 / SERVER 2012 or GREATER"}
-Logging "" "+---------------------------------------------------------"
-Logging "" "| WELCOME TO SAFLOK SYSTEMS INSTALL SCRIPT"
+Write-Colr -Text $cname, " |"," $hotelName" -Colour White,cyan,Yellow
 Logging "" "| SAFLOK VERSION: $saflokVersion"
+IF ($winOS -le 6.1) {Logging "" "| INSTALLING ON OS: WINDOWS 7 / SERVER 2008 R2 OR LOWER"}
+				Else {Logging "" "| INSTALLING ON OS: $osDetail"}
+Logging "" "+---------------------------------------------------------"
+Logging "" "| AUTHUR: renzoxie@gmail.com"
+Logging "" "| SCRIPT VERSION: $scriptVersion" 
 Logging "" "+---------------------------------------------------------"
 Logging " " ""
-Logging " " "1 - Install to drive C"
-Logging " " "2 - Install to drive D"
-Logging " " "0 - Exit"
-Logging " " ""
-$menuOption = Read-Host "$cname Please select option from above list"
-Logging "" "+---------------------------------------------------------"
-Switch ($menuOption) {
-	1 {$script:driveLetter = 'C';$menuOption = 99}
-	2 {$script:driveLetter = 'D';$menuOption = 99}
-	0 {Clear-Host;Exit}
-	Default {Logging " " "Please enter a valid option."}
-}
+
 # ---------------------------
 # DRIVE INFO
-$installDrive = $driveLetter + ':\'
+$inputDrive = $inputDrive.Trim().ToUpper()
+$driveLetterPattern = "(\w{1})"
+# Get drive IDs from localhost, driveType 3="Fixed local disk"
+$driveIDs = (Get-WmiObject -class Win32_LogicalDisk -computername localhost -filter "drivetype=3").DeviceID
+$driveLetters = @()
+for ($i=0; $i -lt $driveIDs.Length; $i++) {
+    if ($driveIds[$i] -match $driveLetterPattern) {
+        $driveLetters += $matches[0]
+    }
+}
 # ---------------------------
 # VALID DRIVE CHARACTER INPUT
-$deviceID = $driveLetter + ':'
-$cdDrive = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 5} | Select-Object DeviceID
-If ($cdDrive -match $deviceID) {
-    Write-Host ''
-    Logging "ERROR" "The drive $driveLetter is not a valid location."
-    Logging "WARN" 'Please re-run the script again to select the correct dirve.'
-    Start-Sleep -Seconds 5
-    Exit
+if ($inputDrive -IN $driveLetters) {
+    $driveIDExist = $True
+} else {
+    $driveIDExist = $False
 }
+
+switch ($driveIDExist) {
+    $True {Logging "INFO" "You selected drive $inputDrive"}
+    $False {
+              Logging "WARN" 'Please re-run the script again to select the correct drive.'
+              Stop-Script
+           }
+}
+$installDrive = $inputDrive + ':'
 # ---------------------------
 # SOURCE FOLDER - INSTALL SCRIPT
 $installScriptFolder = $scriptPath 
@@ -129,19 +157,23 @@ $lensSrcFolder = $absPackageFolders[6]
 $lensExe = Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en/setup.exe'
 # ---------------------------
 # SQL 2012 express 
-$sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' | `
-                                   Join-Path -ChildPath 'ISSetupPrerequisites' | `
-                                   Join-Path -ChildPath '{C38620DE-0463-4522-ADEA-C7A5A47D1FF6}' | `
+$sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' | 
+                                   Join-Path -ChildPath 'ISSetupPrerequisites' | 
+                                   Join-Path -ChildPath '{C38620DE-0463-4522-ADEA-C7A5A47D1FF6}' | 
                                    Join-Path -ChildPath 'SQLEXPR_x86_ENU.exe'
 # ---------------------------
 # ISS_FOR_Drive & files
-If ($driveLetter -eq 'C') {$iss4Drive = '01.ISS_FOR_' + $driveLetter}
-Elseif ($driveLetter -eq 'D') {$iss4Drive = '02.ISS_FOR_' + $driveLetter}
-Else {    Logging "ERROR" "Please input C or D for the drive letter."; Stop-Script}
+If ($inputDrive -eq 'C') {
+    $iss4Drive = '01.ISS_FOR_' + 'C'
+    } Elseif ($inputDrive -eq 'D') {
+        $iss4Drive = '02.ISS_FOR_' + 'D'
+    } Else {    Logging "ERROR" "Please input correct drive to install, the script is going to exit."; Start-Sleep 5; Exit}
+
 Switch ($iss4Drive)
 {
     01.ISS_FOR_C {$issFolder = $absPackageFolders[1]}
     02.ISS_FOR_D {$issFolder = $absPackageFolders[2]}
+    default {$issFolder = $absPackageFolders[1]}
 } 
 $issFiles = Get-ChildItem $issFolder | Select-Object Name | Sort-Object -Property Name
 $progISS = Join-Path $issFolder $issFiles[0].Name            # [0] Programsetup.iss
@@ -433,7 +465,6 @@ Function Set-ServiceRecovery{
 
 # -----------------------
 # HEADER Information 
-Logging "INFO" "You chose drive $driveLetter"
 Logging " " ""
 Logging " " "By installing you accept licenses for the packages."
 $confirmation = Read-Host "$cname Do you want to run the script? [Y] Yes  [N] No"
@@ -520,6 +551,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     If (Get-Service | Where-Object {$_.Name -eq 'SaflokServiceLauncher' -and $_.Status -eq "Stopped"}){
         Start-Service -Name 'SaflokServiceLauncher'
     }
+
     # -------------------------------------------------------------------
     # IIS FEATURES, requirement for messenger lens
     $isInstalledMsgr = Assert-IsInstalled "Saflok Messenger Server"
@@ -638,7 +670,15 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     }
     # ----------------------------------------------------------------
     # [SECTION 06, CHECK SERVICES STATUS]
-    [string[]]$servicesCheck = $serviceNames[0],$serviceNames[1],$serviceNames[14],$serviceNames[10],$serviceNames[11],$serviceNames[12],$serviceNames[13],$serviceNames[15],$serviceNames[16]
+    [string[]]$servicesCheck =  $serviceNames[0],
+                                $serviceNames[1],
+                                $serviceNames[14],
+                                $serviceNames[10],
+                                $serviceNames[11],
+                                $serviceNames[12],
+                                $serviceNames[13],
+                                $serviceNames[15],
+                                $serviceNames[16]
     If (Assert-IsInstalled "Messenger LENS") {
         Foreach ($service In $servicesCheck) { 
             $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
@@ -682,7 +722,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             $Shortcut.Save()
             Start-Sleep -S 1
         }
-        Write-Colr -Text "$cname ","Please check those config files openning in taksbar area." -Colour White,Magenta
+        Write-Colr -Text "$cname ","Please check those config files opening in taskbar area." -Colour White,Magenta
         Logging "" "+---------------------------------------------------------"
         Start-Sleep -Seconds 1
         # ----------------------------------------------------------------
@@ -696,7 +736,11 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         # FOOTER
         Logging "" "Installed Version Information: " 
         Logging "" "+---------------------------------------------------------"
-        $gatewayVer = Get-FileVersion $gatewayExe;$hmsVer = Get-FileVersion $hmsExe;$wsPmsVer = Get-FileVersion $wsPmsExe;$kdsVer = Get-FileVersion $kdsExe;$pollingVer = Get-FileVersion $digitalPollingExe
+        $gatewayVer = Get-FileVersion $gatewayExe;
+        $hmsVer = Get-FileVersion $hmsExe;
+        $wsPmsVer = Get-FileVersion $wsPmsExe;
+        $kdsVer = Get-FileVersion $kdsExe;
+        $pollingVer = Get-FileVersion $digitalPollingExe
         If (Test-Path $gatewayExe -PathType Leaf) { Logging " " "Gateway: $gatewayVer"; Start-Sleep -Seconds 1 } 
         If (Test-Path $hmsExe -PathType Leaf) { Logging " " "HMS:     $hmsVer"; Start-Sleep -Seconds 1 }
         If (Test-Path $wsPmsExe -PathType Leaf) { Logging " " "PMS:     $wsPmsVer"; Start-Sleep -Seconds 1 }
@@ -713,6 +757,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }   
         Start-Sleep -Second 300
     } 
+
 } # END OF YES
 If ($confirmation -eq 'N' -or $confirmation -eq 'NO') {
     Logging " " ""
@@ -720,3 +765,4 @@ If ($confirmation -eq 'N' -or $confirmation -eq 'NO') {
     Write-Host ''
     Stop-Script
 } # END OF NO
+
