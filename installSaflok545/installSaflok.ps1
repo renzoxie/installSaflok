@@ -184,7 +184,10 @@ If ($inputDrive -eq 'C') {
     $iss4Drive = '01.ISS_FOR_' + 'C'
     } Elseif ($inputDrive -eq 'D') {
         $iss4Drive = '02.ISS_FOR_' + 'D'
-    } Else {    Logging "ERROR" "Please input correct drive to install, the script is going to exit."; Start-Sleep 5; Exit}
+    } Else {
+        Logging "ERROR" "Please input correct drive to install, the script is going to exit."; Start-Sleep 5
+        Exit
+    }
 
 Switch ($iss4Drive)
 {
