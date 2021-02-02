@@ -185,7 +185,8 @@ If ($inputDrive -eq 'C') {
     } Elseif ($inputDrive -eq 'D') {
         $iss4Drive = '02.ISS_FOR_' + 'D'
     } Else {
-        Logging "ERROR" "Please input correct drive to install, the script is going to exit."; Start-Sleep 5
+        Logging "ERROR" "Please input correct drive to install, the script is going to exit."
+        Start-Sleep 5
         Exit
     }
 
@@ -318,13 +319,6 @@ Function Install-Prog ($pName,$packageFolder,$curVersion,$exeExist,$destVersion,
                 $True  {Logging "INFO" "$pName $mesgInstalled"}
                 $False {Logging "ERROR" "$mesgDiffVer - $pName";Stop-Script}       
             }
-            <#
-            If ($curVersion -eq $destVersion) {
-                Logging "INFO" "$pName $mesgInstalled"
-            } Else {
-                Logging "ERROR" "$mesgDiffVer - $pName";Stop-Script
-            }
-            #>
         } Else {
             Logging "INFO" "$pName $mesgInstalled"
         }
