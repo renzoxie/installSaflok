@@ -15,8 +15,8 @@
 
 # instruction
 
-How to use: <br />
-````powershell
+[^How to use:] <br />
+````Powershell
 get-help ./installSaflok.ps1 -example
 ````
 
