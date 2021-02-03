@@ -4,12 +4,12 @@
 
 
 # features
-- with destination install drive option 
-- share folder in back end  
-- enable IIS features in back end  
-- prompt file version after installation  
-- with web service tester installed in default  
-- with pre-defined config files  
+-- with destination install drive option 
+-- share folder in back end  
+-- enable IIS features in back end  
+-- prompt file version after installation  
+-- with web service tester installed in default  
+-- with pre-defined config files  
 
 # instruction
 ````Powershell
@@ -22,14 +22,14 @@ get-help ./installSaflok.ps1 -example
 ````
 
 # change log
-2.0 - rebuild script structure <br />
-1.7 - fix mior bug for installing on drive c <br />
-1.6 - final release, more functions less lines <br />
-1.5 - add functions, prompt version installed <br />
-1.4 - with SQL Server Express 2012 for version 5.x <br />
-1.3 - drive letter validation <br />
-1.2 - compatible with 32Bit OS <br />
-1.1 - compatible with win7/win2008R2 or lower <br />
+V2.0 - rebuild script structure <br />
+V1.7 - fix mior bug for installing on drive c <br />
+V1.6 - final release, more functions less lines <br />
+V1.5 - add functions, prompt version installed <br />
+V1.4 - with SQL Server Express 2012 for version 5.x <br />
+V1.3 - drive letter validation <br />
+V1.2 - compatible with 32Bit OS <br />
+V1.1 - compatible with win7/win2008R2 or lower <br />
 
 # contributing workflow
 Here's how we suggest you go about proposing a change to this project:<br />
