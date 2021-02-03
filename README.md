@@ -4,6 +4,7 @@
 
 
 # features
+-- support install on drive C or drive D
 -- with destination install drive option 
 -- share folder in back end  
 -- enable IIS features in back end  
