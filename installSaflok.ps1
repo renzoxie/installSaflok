@@ -4,9 +4,9 @@
 .DESCRIPTION
    This script fully installation of SAFLOK Lodging Systems for Marriott projects automatically
 .EXAMPLE
-   .\install.ps1 -inputDrive c 
+   .\install.ps1 -inputDrive c -version 5.45 -propertyCode 1
 .EXAMPLE
-   .\install.ps1 -inputDrive c -company 'dormakaba' -hotailChain 'Marriott'
+   .\install.ps1 -inputDrive c -version 5.45 -propertyCode 1 -company 'dormakaba' 
 .NOTES
     Author: renzoxie@139.com
     Saflok version: v5.45, Marriott ONLY
@@ -16,18 +16,29 @@
 [CmdletBinding(SupportsShouldProcess)]
 Param (
     [Parameter(Mandatory=$TRUE)]
+    [ValidateSet('c','d')]
     [String]$inputDrive,
 
     [Parameter(Mandatory=$TRUE)]
+    [ValidateSet('5.45')]
     [String]$version,
-
-    [String]$vendor,
     
-    [String]$property
+    [Parameter(Mandatory=$TRUE)]
+    [int]$propertyCode,
+    
+    [String]$vendor
 )
 # ---------------------------
 # Script location
 $scriptPath = $PSScriptRoot
+# ---------------------------
+# Logging Messages
+$mesgNoPkg ="package does not exist, operation exit."
+$mesgInstalled = "has already been installed."
+$mesgDiffVer = "There is another version exist, please uninstall it first."
+$mesgComplete = "installation is complete."
+$mesgFailed = "installation failed!"
+$mesgNoSource = "Missing source installation folder."
 # ---------------------------
 # Functions 
 # ---------------------------
@@ -287,7 +298,7 @@ If ($PSVersionTable.PSVersion.Major -lt 5) {
 # ---------------------------
 # Header variables
 $cname = "[$vendor]"
-$hotelName = 'Property: ' + $property.toUpper()
+$hotelName = 'Property: ' + $propertyCode
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
 [double]$winOS = [string][environment]::OSVersion.Version.major + '.' + [environment]::OSVersion.Version.minor
@@ -336,7 +347,6 @@ IF ($winOS -le 6.1) {Logging "" "| INSTALLING ON: WINDOWS 7 / SERVER 2008 R2 OR 
 				Else {Logging "" "| INSTALLING ON: $osDetail"}
 Logging "" "+---------------------------------------------------------"
 Logging "" "| SCRIPT VERSION: $scriptVersion" 
-Logging "" "| renzoxie@gmail.com"
 Logging "" "+---------------------------------------------------------"
 Logging " " ""
 
@@ -359,7 +369,6 @@ if ($inputDrive -IN $driveLetters) {
 } else {
     $driveIDExist = $False
 }
-
 switch ($driveIDExist) {
     $True {Logging "INFO" "You selected drive $inputDrive"}
     $False {
@@ -367,11 +376,34 @@ switch ($driveIDExist) {
               Stop-Script
            }
 }
+# ---------------------------
+# Driver letter + :
 $installDrive = $inputDrive + ':'
 # ---------------------------
 # SOURCE FOLDER - INSTALL SCRIPT
 $installScriptFolder = $scriptPath 
 $packageFolders =  Get-ChildItem ($installScriptFolder) | Select-Object Name | Sort-Object -Property Name
+# ---------------------------
+# validate if source folder exist
+
+$len = $installScriptFolder.Length
+$sFolderName = $installScriptFolder.Substring($len-35) 
+Switch (-NOT($sFolderName -match 'MARRIOTT_MESSENGER_LENS_545_SQL2012')) {
+    $False  {
+                # -----------------------
+                # HEADER Information 
+                Logging " " ""
+                Logging " " "By installing you accept licenses for the packages."
+                $confirmation = Read-Host "$cname Do you want to run the script? [Y] Yes  [N] No"
+                $confirmation = $confirmation.ToUpper()
+            }
+    $True  {
+                Logging "ERROR" "$mesgNoSource"
+                Stop-Script
+            }
+}
+
+
 $absPackageFolders = @()
 For ($i=0; $i -lt ($packageFolders.Length); $i++) {
     $absPackageFolders += Join-Path $installScriptFolder $packageFolders[$i].Name
@@ -408,7 +440,6 @@ Switch ($iss4Drive)
 {
     01.ISS_FOR_C {$issFolder = $absPackageFolders[1]}
     02.ISS_FOR_D {$issFolder = $absPackageFolders[2]}
-    default {$issFolder = $absPackageFolders[1]}
 } 
 $issFiles = Get-ChildItem $issFolder | Select-Object Name | Sort-Object -Property Name
 $progISS = Join-Path $issFolder $issFiles[0].Name            # [0] Programsetup.iss
@@ -463,8 +494,8 @@ $pollingConfigInst  = Join-Path $digitalPollingFolder  'DigitalKeysPollingServic
 # ---------------------------
 # Polling log
 $pollingLog = 'C:\ProgramData\DormaKaba\Server\Polling\logs.log'
-# Saflok Services
 # ---------------------------
+# Saflok Services
 $serviceNames = [ordered]@{
     deviceMng = 'DeviceManagerService';
     kIpEncoderSrv = 'KIPEncoderService';
@@ -485,19 +516,7 @@ $serviceNames = [ordered]@{
     pollingSrv = 'Kaba Digital Keys Polling Service'
 }
 # ---------------------------
-# Logging Messages
-$mesgNoPkg ="package does not exist, operation exit."
-$mesgInstalled = "has already been installed."
-$mesgDiffVer = "There is another version exist, please uninstall it first."
-$mesgComplete = "installation is complete."
-$mesgFailed = "installation failed!"
-
-# -----------------------
-# HEADER Information 
-Logging " " ""
-Logging " " "By installing you accept licenses for the packages."
-$confirmation = Read-Host "$cname Do you want to run the script? [Y] Yes  [N] No"
-$confirmation = $confirmation.ToUpper()
+# Start to install
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     Logging " " ""
     $psDrive = Get-Psdrive | Where-Object {$_.Name -eq $driveLetter -and ($_.Free -eq $null -or $_.Free -eq 0)}
