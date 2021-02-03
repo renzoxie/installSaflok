@@ -4,13 +4,13 @@
 
 
 # features
--- support install on drive C or drive D
--- with destination install drive option 
--- share folder in back end  
--- enable IIS features in back end  
--- prompt file version after installation  
--- with web service tester installed in default  
--- with pre-defined config files  
+* support install on drive C or drive D
+* with destination install drive option 
+* share folder in back end  
+* enable IIS features in back end  
+* prompt file version after installation  
+* with web service tester installed in default  
+* with pre-defined config files  
 
 # instruction
 ````Powershell
