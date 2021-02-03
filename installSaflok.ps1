@@ -385,11 +385,9 @@ $installScriptFolder = $scriptPath
 $packageFolders =  Get-ChildItem ($installScriptFolder) | Select-Object Name | Sort-Object -Property Name
 # ---------------------------
 # validate if source folder exist
-
-$len = $installScriptFolder.Length
-$sFolderName = $installScriptFolder.Substring($len-35) 
-Switch (-NOT($sFolderName -match 'MARRIOTT_MESSENGER_LENS_545_SQL2012')) {
-    $False  {
+$pattern = "([A-Z]{7}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"
+Switch ($installScriptFolder -match $pattern) {
+    $True  {
                 # -----------------------
                 # HEADER Information 
                 Logging " " ""
@@ -397,7 +395,7 @@ Switch (-NOT($sFolderName -match 'MARRIOTT_MESSENGER_LENS_545_SQL2012')) {
                 $confirmation = Read-Host "$cname Do you want to run the script? [Y] Yes  [N] No"
                 $confirmation = $confirmation.ToUpper()
             }
-    $True  {
+    $False  {
                 Logging "ERROR" "$mesgNoSource"
                 Stop-Script
             }
