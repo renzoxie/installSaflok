@@ -4,12 +4,12 @@
 
 
 # features
-* with destination install drive option 
-* share folder in back end  
-* enable IIS features in back end  
-* prompt file version after installation  
-* with web service tester installed in default  
-* with pre-defined config files  
+- with destination install drive option 
+- share folder in back end  
+- enable IIS features in back end  
+- prompt file version after installation  
+- with web service tester installed in default  
+- with pre-defined config files  
 
 # instruction
 ````Powershell
@@ -18,7 +18,7 @@ get-help ./installSaflok.ps1 -example
 
 # example
 ````Powershell
-./installSaflok.ps1 -inputDrive c -version 5.45 -vendor 'dormakaba' -property 'training'
+./installSaflok.ps1 -inputDrive 'c' -version '5.45' -vendor 'dormakaba' -property 'training'
 ````
 
 # change log
