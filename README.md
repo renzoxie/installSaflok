@@ -1,7 +1,7 @@
 >
-> compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7<br />
+> compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7 yet<br />
 > for win2008R2, need powershell version 5 or above<br />
-> IMPORTANT! Do NOT have any space in the working derictory path name. 
+
 
 # features
 <ul>
@@ -14,12 +14,8 @@
 </ul>
 
 # instruction
-<ol>
-    <li>get-help ./installSaflok.ps1 -example</li>
-</ol>
-<div stlye="flex: 9;">
-
-</div>
+> How to use: 
+get-help ./installSaflok.ps1 -example
 
 # change log
 2.0 - rebuild script structure. <br />
