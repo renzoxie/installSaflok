@@ -14,7 +14,8 @@
 </ul>
 
 # instruction
-> How to use: <br />
+
+How to use: <br />
 get-help ./installSaflok.ps1 -example
 
 # change log
