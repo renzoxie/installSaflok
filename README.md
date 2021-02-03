@@ -16,11 +16,13 @@
 # instruction
 
 How to use: <br />
+````powershell
 get-help ./installSaflok.ps1 -example
+````
 
 # change log
-2.0 - rebuild script structure. <br />
-1.7 - fix mior bug for installing on drive c. <br />
+2.0 - rebuild script structure <br />
+1.7 - fix mior bug for installing on drive c <br />
 1.6 - final release, more functions less lines <br />
 1.5 - add functions, prompt version installed <br />
 1.4 - with SQL Server Express 2012 for version 5.x <br />
