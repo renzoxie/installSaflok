@@ -14,20 +14,21 @@
     Modified Date: 16 JAN 2021
 #>
 [CmdletBinding(SupportsShouldProcess)]
+
 Param (
     [Parameter(Mandatory=$TRUE)]
     [ValidateSet('c','d')]
     [String]$inputDrive,
 
     [Parameter(Mandatory=$TRUE)]
-    [ValidateSet('5.45')]
     [String]$version,
     
-    [Parameter(Mandatory=$TRUE)]
+    #[Parameter(Mandatory=$TRUE)]
     [int]$propertyCode,
     
     [String]$vendor
 )
+
 # ---------------------------
 # Script location
 $scriptPath = $PSScriptRoot
@@ -303,9 +304,9 @@ $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
 [double]$winOS = [string][environment]::OSVersion.Version.major + '.' + [environment]::OSVersion.Version.minor
 $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption 
-
 # ---------------------------
-# VERSIONS
+# Versions
+If ($version -eq '5.45') {
     $scriptVersion = '2.0'
     $progVersion = '5.4.0.0'
     $pmsVersion = '5.1.0.0'
@@ -317,20 +318,8 @@ $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
     $kdsExeVersion = '4.7.0.26769'
     $wsPmsExeVersion = '4.7.2.22767'
     $pollingExeVersion = '4.5.0.28705'
-# hashtable
-    $versions545 = @{
-        scriptVersion = '2.0';
-        progVersion = '5.4.0.0';
-        pmsVersion = '5.1.0.0';
-        msgrVersion = '5.2.0.0';
-        lensVersion = '4.7.0.0';
-        wsPmsExeBeforePathVersion = '4.7.1.15707';
-        gatewayExeVersion = '4.7.2.22694';
-        hmsExeVersion = '4.7.1.22400';
-        kdsExeVersion = '4.7.0.26769';
-        wsPmsExeVersion = '4.7.2.22767';
-        pollingExeVersion = '4.5.0.28705'
-    }
+}
+
 # ---------------------------
 # MENU OPTION
 Clear-Host
@@ -346,7 +335,7 @@ Logging "" "| SAFLOK VERSION: $version"
 IF ($winOS -le 6.1) {Logging "" "| INSTALLING ON: WINDOWS 7 / SERVER 2008 R2 OR LOWER"}
 				Else {Logging "" "| INSTALLING ON: $osDetail"}
 Logging "" "+---------------------------------------------------------"
-Logging "" "| SCRIPT VERSION: $scriptVersion" 
+Logging "" "| SCRIPT VERSION: $scriptVersion"
 Logging "" "+---------------------------------------------------------"
 Logging " " ""
 
@@ -383,115 +372,120 @@ $installDrive = $inputDrive + ':'
 # SOURCE FOLDER - INSTALL SCRIPT
 $installScriptFolder = $scriptPath 
 $packageFolders =  Get-ChildItem ($installScriptFolder) | Select-Object Name | Sort-Object -Property Name
-# ---------------------------
-# validate if source folder exist
-$pattern = "([A-Z]{7}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"
-Switch ($installScriptFolder -match $pattern) {
-    $True  {
-                # -----------------------
-                # HEADER Information 
-                Logging " " ""
-                Logging " " "By installing you accept licenses for the packages."
-                $confirmation = Read-Host "$cname Do you want to run the script? [Y] Yes  [N] No"
-                $confirmation = $confirmation.ToUpper()
-            }
-    $False  {
-                Logging "ERROR" "$mesgNoSource"
-                Stop-Script
-            }
-}
 
-
-$absPackageFolders = @()
-For ($i=0; $i -lt ($packageFolders.Length); $i++) {
-    $absPackageFolders += Join-Path $installScriptFolder $packageFolders[$i].Name
-}
-# ---------------------------
-# Program
-$progExe = Join-Path $absPackageFolders[3] 'setup.exe'
-# PMS
-$pmsExe = Join-Path $absPackageFolders[4] 'setup.exe'
-# Messenger
-$msgrExe = Join-Path $absPackageFolders[5] 'setup.exe'
-# saflokLENS 
-$lensSrcFolder = $absPackageFolders[6]
-$lensExe = Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en/setup.exe'
-# ---------------------------
-# SQL 2012 express 
-$sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' | 
-                                   Join-Path -ChildPath 'ISSetupPrerequisites' | 
-                                   Join-Path -ChildPath '{C38620DE-0463-4522-ADEA-C7A5A47D1FF6}' | 
-                                   Join-Path -ChildPath 'SQLEXPR_x86_ENU.exe'
-# ---------------------------
-# ISS_FOR_Drive & files
-If ($inputDrive -eq 'C') {
-    $iss4Drive = '01.ISS_FOR_' + 'C'
-    } Elseif ($inputDrive -eq 'D') {
-        $iss4Drive = '02.ISS_FOR_' + 'D'
-    } Else {
-        Logging "ERROR" "Please input correct drive to install, the script is going to exit."
-        Start-Sleep 5
-        Exit
+# For Version 5.45
+If ($version -eq '5.45') {
+    # ---------------------------
+    # validate if source folder exist
+    $pattern = "([A-Z]{7}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"
+    Switch ($installScriptFolder -match $pattern) {
+        $True  {
+                    # -----------------------
+                    # HEADER Information 
+                    Logging " " ""
+                    Logging " " "By installing you accept licenses for the packages."
+                    $confirmation = Read-Host "$cname Do you want to run the script? [Y] Yes  [N] No"
+                    $confirmation = $confirmation.ToUpper()
+                }
+        $False  {
+                    Logging "ERROR" "$mesgNoSource"
+                    Stop-Script
+                }
     }
+    $absPackageFolders = @()
+    For ($i=0; $i -lt ($packageFolders.Length); $i++) {
+        $absPackageFolders += Join-Path $installScriptFolder $packageFolders[$i].Name
+    }
+    # ---------------------------
+    # Program
+    $progExe = Join-Path $absPackageFolders[3] 'setup.exe'
+    # PMS
+    $pmsExe = Join-Path $absPackageFolders[4] 'setup.exe'
+    # Messenger
+    $msgrExe = Join-Path $absPackageFolders[5] 'setup.exe'
+    # saflokLENS 
+    $lensSrcFolder = $absPackageFolders[6]
+    $lensExe = Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en/setup.exe'
+    # ---------------------------
+    # SQL 2012 express 
+    $sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' | 
+                                       Join-Path -ChildPath 'ISSetupPrerequisites' | 
+                                       Join-Path -ChildPath '{C38620DE-0463-4522-ADEA-C7A5A47D1FF6}' | 
+                                       Join-Path -ChildPath 'SQLEXPR_x86_ENU.exe'
+    # ---------------------------
+    # ISS_FOR_Drive & files
+    If ($inputDrive -eq 'C') {
+        $iss4Drive = '01.ISS_FOR_' + 'C'
+        } Elseif ($inputDrive -eq 'D') {
+            $iss4Drive = '02.ISS_FOR_' + 'D'
+        } Else {
+            Logging "ERROR" "Please input correct drive to install, the script is going to exit."
+            Start-Sleep 5
+            Exit
+        }
+    Switch ($iss4Drive)
+    {
+        01.ISS_FOR_C {$issFolder = $absPackageFolders[1]}
+        02.ISS_FOR_D {$issFolder = $absPackageFolders[2]}
+    } 
+    $issFiles = Get-ChildItem $issFolder | Select-Object Name | Sort-Object -Property Name
+    $progISS = Join-Path $issFolder $issFiles[0].Name            # [0] Programsetup.iss
+    $pmsISS = Join-Path $issFolder $issFiles[1].Name             # [1] PMSsetup.iss
+    $msgrISS = Join-Path $issFolder $issFiles[2].Name            # [2] MSGRsetup.iss
+    $lensISS = Join-Path $issFolder $issFiles[3].Name             # [3] LENSsetup.iss
+    $patchLensISS = Join-Path $issFolder $issFiles[4].Name    # [4] patchLens474.iss
+    $patchPollingISS = Join-Path $issFolder $issFiles[5].Name  # [5] patchPolling450.iss
+    # ---------------------------
+    # PATCH FILES
+    $patchExeFiles = Get-ChildItem ($absPackageFolders[7]) | Select-Object Name | Sort-Object -Property Name
+    $pollingPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name     # [0] DigitalKeysPollingPatch
+    $lensPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[1].Name        # [1] LENSPatch4.7.4
+    # ---------------------------
+    # Web service PMS tester [FOLDER]
+    $webServiceTester = $absPackageFolders[8]
+    # ---------------------------
+    # ConfigFiles Folder & Files
+    $configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name | Sort-Object -Property Name
+    $pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name       # [0] DigitalKeysPollingService.exe.config
+    $lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name     # [1] LENS_PMS.exe.config
+    # ---------------------------
+    # Absolute installed FOLDER
+    $kabaInstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'KABA'
+    $saflokV4InstFolder = Join-Path $installDrive 'SaflokV4'
+    $lensInstFolder = Join-Path $kabaInstFolder 'Messenger Lens'
+    $hubGateWayInstFolder = Join-Path $lensInstFolder 'HubGatewayService'
+    $hmsInstFolder = Join-Path $lensInstFolder 'HubManagerService'
+    $pmsInstFolder = Join-Path $lensInstFolder 'PMS Service'
+    $wsTesterInstFolder = Join-Path $kabaInstFolder '08.Web_Service_PMS_Tester'
 
-Switch ($iss4Drive)
-{
-    01.ISS_FOR_C {$issFolder = $absPackageFolders[1]}
-    02.ISS_FOR_D {$issFolder = $absPackageFolders[2]}
-} 
-$issFiles = Get-ChildItem $issFolder | Select-Object Name | Sort-Object -Property Name
-$progISS = Join-Path $issFolder $issFiles[0].Name            # [0] Programsetup.iss
-$pmsISS = Join-Path $issFolder $issFiles[1].Name             # [1] PMSsetup.iss
-$msgrISS = Join-Path $issFolder $issFiles[2].Name            # [2] MSGRsetup.iss
-$lensISS = Join-Path $issFolder $issFiles[3].Name             # [3] LENSsetup.iss
-$patchLensISS = Join-Path $issFolder $issFiles[4].Name    # [4] patchLens474.iss
-$patchPollingISS = Join-Path $issFolder $issFiles[5].Name  # [5] patchPolling450.iss
-# ---------------------------
-# PATCH FILES
-$patchExeFiles = Get-ChildItem ($absPackageFolders[7]) | Select-Object Name | Sort-Object -Property Name
-$pollingPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name     # [0] DigitalKeysPollingPatch
-$lensPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[1].Name        # [1] LENSPatch4.7.4
-# ---------------------------
-# Web service PMS tester [FOLDER]
-$webServiceTester = $absPackageFolders[8]
-# ---------------------------
-# ConfigFiles Folder & Files
-$configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name | Sort-Object -Property Name
-$pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name       # [0] DigitalKeysPollingService.exe.config
-$lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name     # [1] LENS_PMS.exe.config
-# ---------------------------
-# Absolute installed FOLDER
-$kabaInstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'KABA'
-$saflokV4InstFolder = Join-Path $installDrive 'SaflokV4'
-$lensInstFolder = Join-Path $kabaInstFolder 'Messenger Lens'
-$hubGateWayInstFolder = Join-Path $lensInstFolder 'HubGatewayService'
-$hmsInstFolder = Join-Path $lensInstFolder 'HubManagerService'
-$pmsInstFolder = Join-Path $lensInstFolder 'PMS Service'
-$wsTesterInstFolder = Join-Path $kabaInstFolder '08.Web_Service_PMS_Tester'
+    $digitalPollingFolder = Join-Path $lensInstFolder 'DigitalKeysPollingSoftware' 
+    $kdsInstFolder = Join-Path $lensInstFolder 'KeyDeliveryService'   
+    # ---------------------------
+    # GUI exe file in SAFLOKV4 FOLDER
+    $saflokClient = Join-Path $saflokV4InstFolder 'Saflok_Client.exe'
+    $saflokMsgr = Join-Path $saflokV4InstFolder 'Saflok_MsgrServer.exe'
+    $saflokIRS = Join-Path $saflokV4InstFolder 'Saflok_IRS.exe'
+    $shareFolder = Join-Path $saflokV4InstFolder  'SaflokData'
+    # ---------------------------
+    # Installed EXE files for version information
+    $gatewayExe = Join-Path $hubGateWayInstFolder 'LENS_Gateway.exe'
+    $hmsExe = Join-Path $hmsInstFolder 'LENS_HMS.exe'
+    $wsPmsExe = Join-Path $pmsInstFolder 'LENS_PMS.exe'
+    $digitalPollingExe = Join-Path $digitalPollingFolder  'DigitalKeysPollingService.exe'
+    $kdsExe = Join-Path $kdsInstFolder  'Kaba_KDS.exe'
+    # ---------------------------
+    # INSTALLED CONFIG FILES
+    $lensPmsConfigFileInst =  Join-Path $pmsInstFolder  'LENS_PMS.exe.config'
+    $hh6ConfigFile = Join-Path $saflokV4InstFolder 'KabaSaflokHH6.exe.config'
+    $pollingConfigInst  = Join-Path $digitalPollingFolder  'DigitalKeysPollingService.exe.config'
+    # ---------------------------
+    # Polling log
+    $pollingLog = 'C:\ProgramData\DormaKaba\Server\Polling\logs.log'
+} Else {
+    Logging "ERROR" "Installation terminated, as the version you input is NOT correct."
+    Stop-Script
+}
 
-$digitalPollingFolder = Join-Path $lensInstFolder 'DigitalKeysPollingSoftware' 
-$kdsInstFolder = Join-Path $lensInstFolder 'KeyDeliveryService'   
-# ---------------------------
-# GUI exe file in SAFLOKV4 FOLDER
-$saflokClient = Join-Path $saflokV4InstFolder 'Saflok_Client.exe'
-$saflokMsgr = Join-Path $saflokV4InstFolder 'Saflok_MsgrServer.exe'
-$saflokIRS = Join-Path $saflokV4InstFolder 'Saflok_IRS.exe'
-$shareFolder = Join-Path $saflokV4InstFolder  'SaflokData'
-# ---------------------------
-# Installed EXE files for version information
-$gatewayExe = Join-Path $hubGateWayInstFolder 'LENS_Gateway.exe'
-$hmsExe = Join-Path $hmsInstFolder 'LENS_HMS.exe'
-$wsPmsExe = Join-Path $pmsInstFolder 'LENS_PMS.exe'
-$digitalPollingExe = Join-Path $digitalPollingFolder  'DigitalKeysPollingService.exe'
-$kdsExe = Join-Path $kdsInstFolder  'Kaba_KDS.exe'
-# ---------------------------
-# INSTALLED CONFIG FILES
-$lensPmsConfigFileInst =  Join-Path $pmsInstFolder  'LENS_PMS.exe.config'
-$hh6ConfigFile = Join-Path $saflokV4InstFolder 'KabaSaflokHH6.exe.config'
-$pollingConfigInst  = Join-Path $digitalPollingFolder  'DigitalKeysPollingService.exe.config'
-# ---------------------------
-# Polling log
-$pollingLog = 'C:\ProgramData\DormaKaba\Server\Polling\logs.log'
 # ---------------------------
 # Saflok Services
 $serviceNames = [ordered]@{
