@@ -1,6 +1,6 @@
 >
-> compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7 yet<br />
-> for win2008R2, need powershell version 5 or above<br />
+> Compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7 yet<br />
+> For win2008R2, need powershell version 5 or above<br />
 
 
 # features
@@ -14,7 +14,7 @@
 </ul>
 
 # instruction
-> How to use: 
+> How to use: <br />
 get-help ./installSaflok.ps1 -example
 
 # change log
