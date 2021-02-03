@@ -783,7 +783,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "WARN" "The recent program changes indicate a reboot is necessary."
         Write-Host ''
         # clean up script files and SAFLOK folder
-        # If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1,*.lnk -Force -ErrorAction SilentlyContinue}
+        If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1,*.lnk -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }   
         Start-Sleep -Second 300
     } 
