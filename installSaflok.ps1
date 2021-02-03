@@ -26,7 +26,7 @@ Param (
     #[Parameter(Mandatory=$TRUE)]
     [int]$propertyCode,
     
-    [String]$vendor
+    [String]$vendor = 'dormakaba'
 )
 
 # ---------------------------
