@@ -22,7 +22,7 @@ Param (
     [Parameter(Mandatory=$TRUE)]
     [String]$version,
 
-    [String]$vender,
+    [String]$vendor,
     
     [String]$property
 )
@@ -287,7 +287,7 @@ If ($PSVersionTable.PSVersion.Major -lt 5) {
 } 
 # ---------------------------
 # Header variables
-$cname = "[$vender]"
+$cname = "[$vendor]"
 $hotelName = 'Property: ' + $property.toUpper()
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
