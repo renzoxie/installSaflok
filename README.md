@@ -13,12 +13,12 @@
 
 # instruction
 ````Powershell
-get-help ./installSaflok.ps1 -example
+get-help ./installSaflok.ps1 -full
 ````
 
 # example
 ````Powershell
-./installSaflok.ps1 -inputDrive 'c' -version '5.45' -vendor 'dormakaba' -property 'training'
+./installSaflok.ps1 -inputDrive 'c' -version '5.45' -propertyCode '1' -vendor 'dormakaba'
 ````
 
 # change log
