@@ -1,18 +1,17 @@
 <#
- Execute as an administrator
 .SYNOPSIS
    PS script helps to install SAFLOK Lodging systems
 .DESCRIPTION
    This script fully installation of SAFLOK Lodging Systems for Marriott projects automatically
 .EXAMPLE
    .\install.ps1 -inputDrive c 
-   .\install.ps1 -inputDrive c -company 'xxx' -hotailChain 'Marriott'
+.EXAMPLE
+   .\install.ps1 -inputDrive c -company 'dormakaba' -hotailChain 'Marriott'
 .NOTES
     Author: renzoxie@139.com
     Saflok version: v5.45, Marriott ONLY
     Create Date: 16 April 2019
     Modified Date: 16 JAN 2021
-# Current script version: 2.0
 #>
 [CmdletBinding(SupportsShouldProcess)]
 Param (
