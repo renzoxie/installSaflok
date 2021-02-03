@@ -5,24 +5,24 @@
 
 # features
 <ul>
-  <li> with desination install drive option </li>
-  <li> share folder in backend  </li>
-  <li> enable IIS features in backend  </li>
+  <li> with destination install drive option </li>
+  <li> share folder in back end  </li>
+  <li> enable IIS features in back end  </li>
   <li> prompt file version after installation  </li>
-  <li> with ws pms tester installed in default  </li>
+  <li> with web service tester installed in default  </li>
   <li> with pre-defined config files  </li>
 </ul>
 
 # instruction
 <ol>
-    <li>Double click "autorun.lnk" to start installation -- for verion 5.x </li>
-    <li>Double click "install.lnk" to start installation and run "config.lnk" after first reboot -- for verion 6.x</li>
+    <li>get-help ./installSaflok.ps1 -example</li>
 </ol>
 <div stlye="flex: 9;">
 
 </div>
 
 # change log
+2.0 - rebuild script structure. <br />
 1.7 - fix mior bug for installing on drive c. <br />
 1.6 - final release, more functions less lines <br />
 1.5 - add functions, prompt version installed <br />
@@ -37,5 +37,5 @@ Here's how we suggest you go about proposing a change to this project:<br />
   <li><a href="https://help.github.com/articles/fork-a-repo/">Fork this project</a> to your account. </li>
   <li><a href="https://help.github.com/articles/creating-and-deleting-branches-within-your-repository">Create a branch</a> for the change you intend to make.</li>
   <li>Make your changes to your fork.</li>
-    <li><a href="https://help.github.com/articles/using-pull-requests/">Send a pull request</a> from your fork’s branch to our master branch.</li>
+    <li><a href="https://help.github.com/articles/using-pull-requests/">Send a pull request</a> from your forkâ€™s branch to our master branch.</li>
 </ol>
