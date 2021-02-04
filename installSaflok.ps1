@@ -45,14 +45,12 @@ Switch ($version) {
         $pollingExeVersion = '4.5.0.28705'  
         $wsPmsExeBeforePatchVersion = '4.7.1.15707'
         $wsPmsExeVersion = '4.7.2.22767'
-
-   
     }
     '5.68' {
         $ver1 = '5.6.0.0'
         $ver2 = '5.6.8.0'
-        # $wsPmsExeBeforePatchVersion = ''
-        # $wsPmsExeVersion = ''
+        $wsPmsExeBeforePatchVersion = '5.6.0.0'
+        $wsPmsExeVersion = '5.6.8.0'
         $msgrVersion = '5.6.0.0'
     }
 }
