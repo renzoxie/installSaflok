@@ -43,14 +43,17 @@ Switch ($version) {
         $hmsExeVersion = '4.7.1.22400'
         $kdsExeVersion = '4.7.0.26769'
         $pollingExeVersion = '4.5.0.28705'  
-        $ver1 = '4.7.1.15707'
-        $ver2 = '4.7.2.22767'
-  
+        $wsPmsExeBeforePatchVersion = '4.7.1.15707'
+        $wsPmsExeVersion = '4.7.2.22767'
+
+   
     }
     '5.68' {
         $ver1 = '5.6.0.0'
         $ver2 = '5.6.8.0'
-        $msgrVersion = $ver1
+        # $wsPmsExeBeforePatchVersion = ''
+        # $wsPmsExeVersion = ''
+        $msgrVersion = '5.6.0.0'
     }
 }
 # Logging Messages
@@ -185,6 +188,24 @@ Function Install-ProgPlusPatch ($pName,$packageFolder,$curVersion,$exeExist,$ver
         }
     }
 }
+
+# ---------------------------
+# Install Lens Patches 5.45
+Function Install-LensPatch ($targetFile,$destVersion,$pName,$exeFile,$issFile) {
+    If ($isInstalled) {
+        Logging "INFO" "$pName $mesgInstalled"
+    } Else {
+        Logging " " "Processing $pName, Please wait ..."
+        Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait; Start-Sleep 3
+        Update-FileVersion $targetFile $destVersion
+        If ((Get-FileVersion $targetFile) -eq $destVersion) {
+            Logging " " "$pName $mesgComplete"
+        } Else {
+            Logging "ERROR" "$pName $mesgFailed"
+            Stop-Script
+        }
+    }
+} 
 
 # ---------------------------
 # Update File Version
@@ -465,12 +486,12 @@ Switch ($version) {
             $patchPollingISS = Join-Path $issFolder $issFiles[5].Name 
     }
     '5.68' {
-            $patchProgISS = $issFolder + '\' + $issFiles[1].Name      
-            $pmsISS = $issFolder + '\' + $issFiles[2].Name            
-            $patchPmsISS = $issFolder + '\' + $issFiles[3].Name       
-            $msgrISS = $issFolder + '\' + $issFiles[4].Name           
-            $lensISS = $issFolder + '\' + $issFiles[5].Name          
-            $patchLensISS = $issFolder + '\' + $issFiles[6].Name 
+            $patchProgISS = Join-Path $issFolder $issFiles[1].Name      
+            $pmsISS = Join-Path $issFolder $issFiles[2].Name            
+            $patchPmsISS = Join-Path $issFolder $issFiles[3].Name       
+            $msgrISS = Join-Path $issFolder $issFiles[4].Name           
+            $lensISS = Join-Path $issFolder $issFiles[5].Name          
+            $patchLensISS = Join-Path $issFolder $issFiles[6].Name 
     }
 
 }
@@ -564,10 +585,10 @@ $serviceNames = [System.Collections.ArrayList]@(
     'MessengerNet_Utility Service', 
     'Kaba_KDS',                            
     'VirtualEncoderService',    
-    'Kaba Digital Keys Polling Service' #[16]
+    'Kaba Digital Keys Polling Service'
 )
 # ---------------------------
-# Start to install
+# Start to install ==>
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     Logging " " ""
     # -------------------------------------------------------------------
@@ -722,21 +743,19 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             Logging "INFO" "ALL IIS features that Messenger LENS requires have been enabled."
         }
     }
-    If (($version -eq  '5.45') -or ($version -eq '5.68')) {
-        # -------------------------------------------------------------------
-        # Microsoft SQL Server 2012
-        $pName = 'Microsoft SQL Server 2012'
-        $isInstalled = 0
-        $packageFolder = Test-Folder ($sqlExprExe)
-        $argFile = '/qs /INSTANCENAME="LENSSQL" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
-        $argFile += '/FEATURES=SQLENGINE,SSMS /HELP="False" /INDICATEPROGRESS="True" /QUIETSIMPLE="True" /X86="True" /ERRORREPORTING="False" '
-        $argFile += '/SQMREPORTING="False" /SQLSVCSTARTUPTYPE="Automatic" /FILESTREAMLEVEL="0" /FILESTREAMLEVEL="0" /ENABLERANU="True" '
-        $argFile += '/SQLCOLLATION="Latin1_General_CI_AS" /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
-        $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="S@flok2018"'
-        Update-Status $pName
-        Install-Sql $pName $packageFolder $sqlExprExe $argFile
-        If (Assert-IsInstalled 'Microsoft SQL Server 2012') {Update-SqlPasswd -login 'sa' -passwd 'Lens2014'}
-    } 
+    # -------------------------------------------------------------------
+    # Microsoft SQL Server 2012
+    $pName = 'Microsoft SQL Server 2012'
+    $isInstalled = 0
+    $packageFolder = Test-Folder ($sqlExprExe)
+    $argFile = '/qs /INSTANCENAME="LENSSQL" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
+    $argFile += '/FEATURES=SQLENGINE,SSMS /HELP="False" /INDICATEPROGRESS="True" /QUIETSIMPLE="True" /X86="True" /ERRORREPORTING="False" '
+    $argFile += '/SQMREPORTING="False" /SQLSVCSTARTUPTYPE="Automatic" /FILESTREAMLEVEL="0" /FILESTREAMLEVEL="0" /ENABLERANU="True" '
+    $argFile += '/SQLCOLLATION="Latin1_General_CI_AS" /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
+    $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="S@flok2018"'
+    Update-Status $pName
+    Install-Sql $pName $packageFolder $sqlExprExe $argFile
+    If (Assert-IsInstalled 'Microsoft SQL Server 2012') {Update-SqlPasswd -login 'sa' -passwd 'Lens2014'}
     # -------------------------------------------------------------------
     # install Messenger Lens 
     $pName = "Messenger LENS"
@@ -744,9 +763,20 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $packageFolder = Test-Folder ($absPackageFolders[6])
     $curVersion = Get-InstVersion -pName $pName
     $exeExist = Test-Folder $wsPmsExe
+    $destVersion = $wsPmsExeBeforePatchVersion
     Update-Status $pName
-    Install-ProgPlusPatch $pName $packageFolder $curVersion $exeExist $ver1 $ver2 $lensExe $lensISS $lensPatchExe $patchLensISS
-    
+    If (Assert-IsInstalled $pName) {
+        # -------------------------------------------------------------------
+        # install Messenger Lens Patch 
+        $pName = "Messenger Lens Patch"  
+        $isInstalled = 0
+        $targetFile = $wsPmsExe
+        $destVersion = $wsPmsExeVersion
+        Update-FileVersion $wsPmsExe $destVersion
+        Install-LensPatch $wsPmsExe $destVersion $pName $lensPatchExe $patchLensISS
+    } Else {
+        Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $lensExe $lensISS
+    }
     # -------------------------------------------------------------------
     # install digital polling service
     If ($version -eq  '5.45') {
@@ -893,7 +923,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "WARNING" "The recent program changes indicate a reboot is necessary."
         Write-Host ''
         # clean up script files and SAFLOK folder
-        If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
+        #If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }   
         Start-Sleep -Second 300
     } Else {
