@@ -50,7 +50,7 @@ Switch ($version) {
         $ver1 = '5.6.0.0'
         $ver2 = '5.6.8.0'
         $wsPmsExeBeforePatchVersion = '5.6.0.0'
-        $wsPmsExeVersion = '5.6.8.0'
+        $wsPmsExeVersion = '5.6.7.22261'
         $msgrVersion = '5.6.0.0'
     }
 }
