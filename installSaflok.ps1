@@ -684,7 +684,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $fbSvcStat = (Get-Service | Where-Object {$_.Name -eq 'FirebirdGuardianDefaultInstance'}).Status
     If ($fbSvcStat -eq "Stopped"){Start-Service -Name 'FirebirdGuardianDefaultInstance';Start-Sleep -S 2}
     # -------------------------------------------------------------------
-    # start saflok launcher service
+    # start Saflok launcher service
     If (Get-Service | Where-Object {$_.Name -eq 'SaflokServiceLauncher' -and $_.Status -eq "Stopped"}){
         Start-Service -Name 'SaflokServiceLauncher'
     }
@@ -710,7 +710,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                         $feature = $iisFeatures[$i]
                         DISM /online /enable-feature /featurename:$feature | Out-Null
                         Start-Sleep -S 1
-                        Logging " " "Enabled features $feature"
+                        Logging " " "Enabled feature $feature"
                     }
                 } 
                 {$winOS -ge 6.1}{ $disabledFeatures = @()
@@ -730,7 +730,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                         Logging "INFO" "Configuring IIS features for Messenger LENS, please wait ..."
                         Foreach ($disabled In $disabledFeatures) {
                             Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
-                            Logging " " "Enabled features $disabled"
+                            Logging " " "Enabled feature $disabled"
                         }
                     } Else {
                         Logging "INFO" "ALL required IIS features have been enabled."
