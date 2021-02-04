@@ -757,24 +757,27 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # -------------------------------------------------------------------
     # install Messenger Lens 
     $pName = "Messenger LENS"
-    $isInstalled = 0
-    $packageFolder = Test-Folder ($absPackageFolders[6])
-    $curVersion = Get-InstVersion -pName $pName
-    $exeExist = Test-Folder $wsPmsExe
-    $destVersion = $wsPmsExeBeforePatchVersion
     Update-Status $pName
     If (Assert-IsInstalled $pName) {
         # -------------------------------------------------------------------
         # install Messenger Lens Patch 
         $pName = "Messenger Lens Patch"  
-        $isInstalled = 0
-        $targetFile = $wsPmsExe
         $destVersion = $wsPmsExeVersion
         Update-FileVersion $wsPmsExe $destVersion
         Install-LensPatch $wsPmsExe $destVersion $pName $lensPatchExe $patchLensISS
     } Else {
+        $pName = "Messenger LENS"
+        $isInstalled = 0
+        $packageFolder = Test-Folder ($absPackageFolders[6])
+        $curVersion = Get-InstVersion -pName $pName
+        $exeExist = Test-Folder $wsPmsExe
+        $destVersion = $wsPmsExeBeforePatchVersion
         Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $lensExe $lensISS
-        Start-Sleep 5
+        $pName = "Messenger Lens Patch"  
+        $isInstalled = 0
+        $targetFile = $wsPmsExe
+        $destVersion = $wsPmsExeVersion
+        Update-FileVersion $wsPmsExe $destVersion
         Install-LensPatch $wsPmsExe $destVersion $pName $lensPatchExe $patchLensISS
     }
     # -------------------------------------------------------------------
