@@ -19,12 +19,12 @@ get-help ./installSaflok.ps1 -full
 
 # example
 ````Powershell
-./installSaflok.ps1 -inputDrive 'c' -version '5.45' -propertyCode '1' -vendor 'dormakaba'
+./installSaflok.ps1 -inputDrive 'c' -version '5.45' -property 'Hotel Name' -vendor 'dormakaba'
 ````
 
 # change log
 V2.0 - rebuild script structure <br />
-V1.7 - fix mior bug for installing on drive c <br />
+V1.7 - fix minor bug for installing on drive c <br />
 V1.6 - final release, more functions less lines <br />
 V1.5 - add functions, prompt version installed <br />
 V1.4 - with SQL Server Express 2012 for version 5.x <br />
