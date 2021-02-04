@@ -39,12 +39,13 @@ Switch ($version) {
         $pmsVersion = '5.1.0.0'
         $msgrVersion= '5.2.0.0'
         $lensVersion = '4.7.0.0'
-        $wsPmsExeBeforePatchVersion = '4.7.1.15707'
         $gatewayExeVersion = '4.7.2.22694'
         $hmsExeVersion = '4.7.1.22400'
         $kdsExeVersion = '4.7.0.26769'
-        $wsPmsExeVersion = '4.7.2.22767'
-        $pollingExeVersion = '4.5.0.28705'    
+        $pollingExeVersion = '4.5.0.28705'  
+        $ver1 = '4.7.1.15707'
+        $ver2 = '4.7.2.22767'
+  
     }
     '5.68' {
         $ver1 = '5.6.0.0'
@@ -749,7 +750,6 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # -------------------------------------------------------------------
     # install digital polling service
     If ($version -eq  '5.45') {
-
         $isInstalled = 0
         $pName = "Marriott digital polling service"
         Install-DigitalPolling $pName $digitalPollingExe $pollingPatchExe $patchPollingISS
@@ -893,7 +893,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "WARNING" "The recent program changes indicate a reboot is necessary."
         Write-Host ''
         # clean up script files and SAFLOK folder
-        #If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
+        If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }   
         Start-Sleep -Second 300
     } Else {
