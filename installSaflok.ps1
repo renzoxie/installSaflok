@@ -4,17 +4,16 @@
 .DESCRIPTION
    This script fully installation of SAFLOK Lodging Systems for Marriott projects automatically
 .EXAMPLE
-   .\install.ps1 -inputDrive c -version 5.45 -propertyCode 1
+   .\install.ps1 -inputDrive c -version 5.45
 .EXAMPLE
-   .\install.ps1 -inputDrive c -version 5.45 -propertyCode 1 -company 'dormakaba' 
+   .\install.ps1 -inputDrive c -version 5.45 -vendor 'dormakaba' -property 'Hotel Name'
 .NOTES
     Author: renzoxie@139.com
-    Saflok version: v5.45, Marriott ONLY
+    Version Option: 5.45, 5.68
     Create Date: 16 April 2019
     Modified Date: 16 JAN 2021
 #>
 [CmdletBinding(SupportsShouldProcess)]
-
 Param (
     [Parameter(Mandatory=$TRUE)]
     [ValidateSet('c','d')]
@@ -61,9 +60,10 @@ Function Logging ($state, $message) {
         ERROR {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
         WARN  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
         INFO  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
-        PROGRESS  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
+        PROGRESS {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
+        WARNING  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
         ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan} 
-       default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
+        default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
    } 
 } 
 # ---------------------------
@@ -290,9 +290,10 @@ Function Set-ServiceRecovery{
 # ---------------------------
 # Mini Powershell version requirement
 If ($PSVersionTable.PSVersion.Major -lt 5) {
-    Logging "WARN" "Your PowerShell installation is not version 5.0 or greater."
-    Logging "WARN" "This script requires PowerShell version 5.0 or greater to function."
-    Logging "WARN" "You can download PowerShell version 5.0 at: https://www.microsoft.com/en-us/download/details.aspx?id=50395"
+    Logging "WARNING" "Your PowerShell installation is not version 5.0 or greater."
+    Logging "WARNING" "This script requires PowerShell version 5.0 or above."
+    Logging "WARNING" "You can download PowerShell version 5.0 at: https://www.microsoft.com/en-us/download/details.aspx?id=50395"
+    Logging "WARNING" "Reboot server after installing Powershell 5 or above, try this script again."
     Stop-Script
 } 
 # ---------------------------
