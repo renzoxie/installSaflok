@@ -61,7 +61,9 @@ $mesgDiffVer = "There is another version exist, please uninstall it first."
 $mesgComplete = "installation is complete."
 $mesgFailed = "installation failed!"
 $mesgNoSource = "Missing source installation folder."
-$mesgToInstall = "will now be installed, Please wait…"
+$mesgToInstall = "will now be installed, Please wait..."
+$mesgConfigIIS = "Configuring IIS features for Messenger LENS, please wait..." 
+$mesgIISEnabled = "ALL IIS features  Messenger LENS requires have been enabled."
 # ---------------------------
 # Functions 
 # ---------------------------
@@ -422,7 +424,7 @@ Function Install-Sql {
         If ($packageFolder -eq $true) {
             Logging "PROGRESS" "$pName $mesgToInstall"
             Logging "INFO" "The installer is 116M+, this could take a while, please wait... "
-            ogging "INFO" "This will take around 5 minutes."
+            Logging "INFO" "This will take around 5 minutes."
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
             $installed = Assert-IsInstalled $pName
             If ($installed) {
@@ -836,15 +838,43 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # -------------------------------------------------------------------
     # IIS FEATURES, requirement for messenger lens
     $isInstalledMsgr = Assert-IsInstalled "Saflok Messenger Server"
+    $featuresLt61 = [System.Collections.ArrayList]@(
+        'IIS-WebServerRole',
+        'IIS-WebServer',
+        'IIS-CommonHttpFeatures',
+        'IIS-HttpErrors',
+        'IIS-ApplicationDevelopment',
+        'IIS-RequestFiltering',
+        'IIS-NetFxExtensibility',
+        'IIS-HealthAndDiagnostics',
+        'IIS-HttpLogging',
+        'IIS-RequestMonitor',
+        'IIS-Performance',
+        'WAS-ProcessModel',
+        'WAS-NetFxEnvironment',
+        'WAS-ConfigurationAPI',
+        'IIS-ISAPIExtensions',
+        'IIS-ISAPIFilter',
+        'IIS-StaticContent',
+        'IIS-DefaultDocument',
+        'IIS-DirectoryBrowsing',
+        'IIS-ASPNET',
+        'IIS-ASP',
+        'IIS-HttpCompressionStatic',
+        'IIS-ManagementConsole',
+        'NetFx3',
+        'WCF-HTTP-Activation',
+        'WCF-NonHTTP-Activation'
+    )
 	If ($isInstalledMsgr -ne $True) {
 		Logging "WARN" "Please install Saflok messenger before Lens."
 		Stop-Script
 	} Else {
         $featureState = dism /online /get-featureinfo /featurename:IIS-WebServerRole | findstr /C:'State : '
         If ($featureState -match 'Disabled') {
-            Logging "" "Configuring IIS features for Messenger LENS, please wait..."
+            Logging "" "$mesgConfigIIS"
             Switch ($winOS) {
-                {$winOS -le 6.1} {$iisFeatures = 'IIS-WebServerRole','IIS-WebServer','IIS-CommonHttpFeatures',
+                {$winOS -lt 6.1} {$iisFeatures = 'IIS-WebServerRole','IIS-WebServer','IIS-CommonHttpFeatures',
                     'IIS-HttpErrors','IIS-ApplicationDevelopment','IIS-RequestFiltering','IIS-NetFxExtensibility',
                     'IIS-HealthAndDiagnostics','IIS-HttpLogging','IIS-RequestMonitor','IIS-Performance','WAS-ProcessModel',
                     'WAS-NetFxEnvironment','WAS-ConfigurationAPI','IIS-ISAPIExtensions','IIS-ISAPIFilter','IIS-StaticContent',
@@ -857,7 +887,8 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                         Logging " " "Enabled feature $feature"
                     }
                 } 
-                {$winOS -ge 6.1}{ $disabledFeatures = @()
+                {$winOS -ge 6.1}{ 
+                    $disabledFeatures = @()
                     $iisFeatures = 'NetFx4Extended-ASPNET45','IIS-ASP','IIS-ASPNET45','IIS-NetFxExtensibility45',
                     'IIS-WebServerRole','IIS-WebServer', 'IIS-CommonHttpFeatures','IIS-HttpErrors',
                     'IIS-ApplicationDevelopment','IIS-HealthAndDiagnostics','IIS-HttpLogging','IIS-Security', 
@@ -871,18 +902,18 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                         }
                     }
                     If ($disabledFeatures.Count-1 -gt 0){
-                        Logging "INFO" "Configuring IIS features for Messenger LENS, please wait ..."
+                        Logging "INFO" "$mesgConfigIIS"
                         Foreach ($disabled In $disabledFeatures) {
                             Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
                             Logging " " "Enabled feature $disabled"
                         }
                     } Else {
-                        Logging "INFO" "ALL required IIS features have been enabled."
+                        Logging "INFO" "$mesgIISEnabled"
                     } 
                 }
             }
         } Else {
-            Logging "INFO" "ALL IIS features that Messenger LENS requires have been enabled."
+            Logging "INFO" "$mesgIISEnabled"
         }
     }
     # -------------------------------------------------------------------
@@ -953,7 +984,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $newFolder1 = $kabaInstFolder + '\' + $wsTesterInstFolder.Substring($wsTesterInstFolder.Length - 22,22)
     Update-Copy $webServiceTester $newFolder0 $newFolder1
     Install-PmsTester $webServiceTester $kabaInstFolder $newFolder0 $newFolder1
-    $wsTesterExe = $newFolder1 + '\' + 'MessengerNet WSTestPMS.exe'
+    $wsTesterExe = Join-Path $newFolder1 'MessengerNet WSTestPMS.exe'
     If ((Test-Folder $wsTesterExe)) {
         $TargetFile = $wsTesterExe
         $ShortcutFile = "$env:Public\Desktop\WS_PMS_TESTER.lnk"
