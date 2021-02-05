@@ -61,6 +61,7 @@ $mesgDiffVer = "There is another version exist, please uninstall it first."
 $mesgComplete = "installation is complete."
 $mesgFailed = "installation failed!"
 $mesgNoSource = "Missing source installation folder."
+$mesgToInstall = "will now be installed, Please wait…"
 # ---------------------------
 # Functions 
 # ---------------------------
@@ -207,7 +208,7 @@ Function Install-Prog {
         If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script}
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)){Logging "ERROR" "$mesgDiffVer";Stop-Script}
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
-            Logging "PROGRESS" "Installation for $pName, Please wait ..."
+            Logging "PROGRESS" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
             $installed = Assert-IsInstalled $pName
             If ($installed) {Logging " " "$pName $mesgComplete";Start-Sleep -S 2} Else {Logging "ERROR" "$pName $mesgFailed";Stop-Script}
@@ -237,7 +238,7 @@ Function Install-ProgPlusPatch {
         If ($curVersion -eq $ver2) {
             Logging "INFO" "$pName $mesgInstalled"
         } Elseif ($curVersion -eq $ver1) {
-            Logging " " "Processing installation for $pName patch, Please wait ..."
+            Logging "PROGRESS" "$pName patch $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             $getVersion = Get-InstVersion -pName $pName
             If ($getVersion -eq $ver2) { 
@@ -254,7 +255,7 @@ Function Install-ProgPlusPatch {
         If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script}
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)){Logging "ERROR" "$mesgDiffVer";Stop-Script}
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
-            Logging " " "Processing installation for $pName, Please wait ..."
+            Logging "PROGRESS" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
             Start-Sleep -Seconds 2
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
@@ -284,7 +285,7 @@ Function Install-LensPatch {
     If ($isInstalled) {
         Logging "INFO" "$pName $mesgInstalled"
     } Else {
-        Logging " " "Processing $pName, Please wait ..."
+        Logging "PROGRESS" "$pName $mesgToInstall"
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait; Start-Sleep 3
         Update-FileVersion $targetFile $destVersion
         If ((Get-FileVersion $targetFile) -eq $destVersion) {
@@ -325,7 +326,7 @@ Function Install-DigitalPolling {
     If (Test-Folder $targetFile) {
         Logging "INFO" "$pName $mesgInstalled"
     } Else {
-        Logging " " "Processing installation for $pName, Please wait ..."
+        Logging "PROGRESS" "$pName $mesgToInstall"
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
         If (Test-Folder $targetFile){Logging " " "$pName $mesgComplete"}
         Else {Logging "Error" "$pName $mesgFailed";Stop-Script}
@@ -356,7 +357,7 @@ Function Install-PmsTester {
         [String]$instFolder0,
         [String]$instFolder1
     )
-    
+    $pName = 'Web Service PMS Tester'
     $testSrcPackage  = Test-Folder $srcPackage
     $testInstParent = Test-Folder $instParent
     $testInstFolder0 = Test-Folder $instFolder0
@@ -364,21 +365,21 @@ Function Install-PmsTester {
     If ($testSrcPackage -eq $False) { Logging "ERROR" "Package files missing!"; Stop-Script } 
     If ($testInstParent -eq $False) { Logging "ERROR" "Messenger LENS has not been installed yet!" ; Stop-Script } 
     If ($fileCopied) {
-        Logging "INFO" "Web Service PMS Tester $mesgInstalled."
+        Logging "INFO" "$pName $mesgInstalled."
     } Else {
-        If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging " " "Installing Web Service PMS Tester ..." }
+        If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging "PROGRESS" "$pName $mesgToInstall" }
         If (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $false))  { 
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-            Logging " " "Web Service PMS Tester $mesgComplete."
+            Logging " " "$pName $mesgComplete."
         } Elseif (($testInstFolder0 -eq $false) -and ($testInstFolder1 -eq $false)) {
             Copy-Item $srcPackage -Destination $instParent -Recurse -Force -ErrorAction SilentlyContinue
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-            Logging " " "Web Service PMS Tester $mesgComplete."
+            Logging " " "$pName $mesgComplete."
         } Elseif (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $true))  {
             Remove-Item -Path $instFolder0 -Force -Recurse
-            Logging " " "Web Service PMS Tester $mesgComplete."
+            Logging " " "$pName $mesgComplete."
         } Else {
-            Logging " " "Web Service PMS Tester $mesgComplete."
+            Logging " " "$pName $mesgComplete."
         }
     }
 } 
@@ -419,8 +420,9 @@ Function Install-Sql {
     } Else {
         If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script}
         If ($packageFolder -eq $true) {
-            Logging " " "Processing installation for $pName."
+            Logging "PROGRESS" "$pName $mesgToInstall"
             Logging "INFO" "The installer is 116M+, this could take a while, please wait... "
+            ogging "INFO" "This will take around 5 minutes."
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
             $installed = Assert-IsInstalled $pName
             If ($installed) {
@@ -429,7 +431,7 @@ Function Install-Sql {
 				Logging "ERROR" "$pName $mesgFailed"
 				Logging "ERROR" "Reboot system and try the script again"
 				Logging "ERROR" "If still same, please contact your SAFLOK representative."
-				Stop-Script
+				Stop-Script 10
 			}
         }
     }
@@ -656,7 +658,8 @@ Switch ($version) {
     '5.45' { 
             # ---------------------------
             # ConfigFiles Folder & Files
-            $configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name | Sort-Object -Property Name
+            $configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name | 
+            Sort-Object -Property Name
             $pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name      
             $lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name   
     }
