@@ -66,13 +66,21 @@ $mesgNoSource = "Missing source installation folder."
 # ---------------------------
 # Customized color
 Function Write-Colr {
+    [CmdletBinding()]
     Param ([String[]]$Text,[ConsoleColor[]]$Colour,[Switch]$NoNewline=$false)
+
     For ([int]$i = 0; $i -lt $Text.Length; $i++) { Write-Host $Text[$i] -Foreground $Colour[$i] -NoNewLine }
     If ($NoNewline -eq $false) { Write-Host '' }
 }
 # ---------------------------
 # Customized logging
-Function Logging ($state, $message) {
+Function Logging {
+    [CmdletBinding()]
+    Param(
+        [string]$state,
+        [string[]]$message
+    )
+
     $part1 = $cname;
     $part2 = ' ';
     $part3 = $state;
@@ -92,35 +100,80 @@ Function Logging ($state, $message) {
 # ---------------------------
 # Stop Script
 Function Stop-Script {
-    Start-Sleep -Seconds 60 
+    [CmdletBinding()]
+    Param(
+        [int]$seconds = 60
+    )
+
+    Start-Sleep -Seconds $seconds
     exit
 }
 # ---------------------------
 # TEST FILE OR FOLDER, RETURN BOOLEAN VALUE
-Function Test-Folder ($folder) {
+Function Test-Folder {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$True)]
+        [string]$folder
+    )
+
     Test-Path -Path $folder -PathType Any
 } 
 # ---------------------------
 # GET INSTALLED VERSION 
 Function Get-InstVersion {
-    Param ([String[]]$pName)
-    [String](Get-Package -ProviderName Programs -IncludeWindowsInstaller | Where-Object {$_.Name -eq $pName}).Version
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$True)]
+        [String]$pName
+    )
+
+    [String](Get-Package -ProviderName Programs -IncludeWindowsInstaller | 
+    Where-Object {$_.Name -eq $pName}).Version
 }
 # ---------------------------
 # Check file versions
-Function Get-FileVersion ($testFIle) {
-    (Get-Item $testFile).VersionInfo.FileVersion
+Function Get-FileVersion {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$True)]
+        [String]$testFile
+    )
+
+    Switch (Test-Path $testFile) {
+        $True {
+            If ($testFile -like "*.exe") {
+                (Get-Item $testFile).VersionInfo.FileVersion
+            } Else {
+                Logging "ERROR" "Can not get file version as it is not an executive file."
+            }
+        }
+        $False {
+            Logging "WARNING" "This file does not exist!"}
+    }
 }
 # ---------------------------
 # INSTALLED? RETURN BOOLEAN VALUE 
-Function Assert-IsInstalled ($pName) {
-    $findIntallByName = [String](Get-Package -ProviderName Programs -IncludeWindowsInstaller | Where-Object {$_.Name -eq $pName})
+Function Assert-IsInstalled {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$True)]
+        [String]$pName
+    )
+
+    $findIntallByName = [String](Get-Package -ProviderName Programs -IncludeWindowsInstaller | 
+    Where-Object {$_.Name -eq $pName})
     $condition = ($null -ne $findIntallByName)
     ($true, $false)[!$condition]
 } 
 # ---------------------------
 # UPDATE INSTALLED STATUS 
-Function Update-Status ($pName) {
+Function Update-Status {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$True)]
+        [String]$pName
+    )
     Assert-IsInstalled $pName | Out-Null
     If (Assert-IsInstalled $pName) { $script:isInstalled = $true}
     $packageFolder | Out-Null
@@ -129,7 +182,20 @@ Function Update-Status ($pName) {
 } 
 # ---------------------------
 # INSTALL PROGRAM 
-Function Install-Prog ($pName,$packageFolder,$curVersion,$exeExist,$destVersion,$exeFile,$issFile) {
+Function Install-Prog {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$True)]
+        [String]$pName,
+
+        [String]$packageFolder,
+        [String]$curVersion,
+        [String]$exeExist,
+        [String]$destVersion,
+        [String]$exeFile,
+        [String]$issFile
+    )
+
     If ($isInstalled) {
         If ($curVersion -eq $destVersion) {
             Logging "INFO" "$pName $mesgInstalled"
@@ -150,7 +216,23 @@ Function Install-Prog ($pName,$packageFolder,$curVersion,$exeExist,$destVersion,
 
 }
 
-Function Install-ProgPlusPatch ($pName,$packageFolder,$curVersion,$exeExist,$ver1,$ver2,$exeFile,$issFile,$patchExeFile,$patchIssFile) {
+Function Install-ProgPlusPatch {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$True)]
+        [String]$pName,
+
+        [String]$packageFolder,
+        [String]$curVersion,
+        [String]$exeExist,
+        [String]$ver1,
+        [String]$ver2,
+        [String]$exeFile,
+        [String]$issFile,
+        [String]$patchExeFile,
+        [String]$patchIssFile
+    )
+
     If ($isInstalled) {
         If ($curVersion -eq $ver2) {
             Logging "INFO" "$pName $mesgInstalled"
@@ -188,8 +270,17 @@ Function Install-ProgPlusPatch ($pName,$packageFolder,$curVersion,$exeExist,$ver
 }
 
 # ---------------------------
-# Install Lens Patches 5.45
-Function Install-LensPatch ($targetFile,$destVersion,$pName,$exeFile,$issFile) {
+# Install Lens Patch
+Function Install-LensPatch {
+    [CmdletBinding()]
+    Param (
+        [String]$targetFile,
+        [String]$destVersion,
+        [String]$pName,
+        [String]$exeFile,
+        [String]$issFile
+    )
+
     If ($isInstalled) {
         Logging "INFO" "$pName $mesgInstalled"
     } Else {
@@ -207,7 +298,13 @@ Function Install-LensPatch ($targetFile,$destVersion,$pName,$exeFile,$issFile) {
 
 # ---------------------------
 # Update File Version
-Function Update-FileVersion ($targetFile, $verToMatch) {
+Function Update-FileVersion {
+    [CmdletBinding()]
+    Param (
+        [String]$targetFile,
+        [String]$verToMatch
+    )
+
     If (Test-Folder $targetFile) {
         Get-FileVersion $targetFile | Out-Null
         If ((Get-FileVersion $targetFile) -eq $verToMatch) {$script:isInstalled = 1}
@@ -216,7 +313,15 @@ Function Update-FileVersion ($targetFile, $verToMatch) {
 }
 # ---------------------------
 # Install digitalPolling
-Function Install-DigitalPolling ($pName, $targetFile,$exeFile,$issFile) {
+Function Install-DigitalPolling {
+    [CmdletBinding()]
+    Param (
+        [String]$pName,
+        [String]$targetFile,
+        [String]$exeFile,
+        [String]$issFile
+    )
+
     If (Test-Folder $targetFile) {
         Logging "INFO" "$pName $mesgInstalled"
     } Else {
@@ -228,7 +333,14 @@ Function Install-DigitalPolling ($pName, $targetFile,$exeFile,$issFile) {
 }
 # ---------------------------
 # Update Copied Flies
-Function Update-Copy ($srcPackage,$instFolder0,$instFolder1) {
+Function Update-Copy {
+    [CmdletBinding()]
+    Param (
+        [String]$srcPackage,
+        [String]$instFolder0,
+        [String]$instFolder1
+    )
+
     $testSrcPackage  = Test-Folder $srcPackage; $testSrcPackage | Out-Null
     $testInstFolder0 = Test-Folder $instFolder0; $testInstFolder0 | Out-Null
     $testInstFolder1 = Test-Folder $instFolder1; $testInstFolder1 | Out-Null
@@ -236,7 +348,15 @@ Function Update-Copy ($srcPackage,$instFolder0,$instFolder1) {
 } 
 # ---------------------------
 # Install Web Service PMS Tester
-Function Install-PmsTester ($srcPackage,$instParent,$instFolder0,$instFolder1) {
+Function Install-PmsTester {
+    [CmdletBinding()]
+    Param (
+        [String]$srcPackage,
+        [String]$instParent,
+        [String]$instFolder0,
+        [String]$instFolder1
+    )
+    
     $testSrcPackage  = Test-Folder $srcPackage
     $testInstParent = Test-Folder $instParent
     $testInstFolder0 = Test-Folder $instFolder0
@@ -265,18 +385,35 @@ Function Install-PmsTester ($srcPackage,$instParent,$instFolder0,$instFolder1) {
 # ---------------------------
 # Share Folder for windows 2008 R2 or lower
 Function New-Share {
-    param([string]$shareName,[string]$shareFolder)
+    param(
+        [string]$shareName,
+        [string]$shareFolder
+    )
+
 	net share $shareName=$shareFolder "/GRANT:Everyone,FULL" /REMARK:"Saflok Database Folder Share"
 } 
 # ---------------------------
 # Install SC
 Function Install-SC {
-    Param([String]$exeFile,[String]$agrFile,[String]$service)
+    Param(
+        [String]$exeFile,
+        [String]$agrFile,
+        [String]$service
+    )
+
     Start-Process -NoNewWindow -FilePath $exeFile $service -ArgumentList " $argFile" -Wait -RedirectStandardOutput Out-Null
 } 
 # ---------------------------
 # Install SQL
-Function Install-Sql ($pName,$packageFolder,$exeFile,$argFile) {
+Function Install-Sql {
+    [CmdletBinding()]
+    Param (
+        [String]$pName,
+        [String]$packageFolder,
+        [String]$exeFile,
+        [String]$argFile
+    )
+
     If ($isInstalled -eq $true) {
         Logging "INFO" "$pName $mesgInstalled"
     } Else {
@@ -300,7 +437,11 @@ Function Install-Sql ($pName,$packageFolder,$exeFile,$argFile) {
 # ---------------------------
 # update SQL password
 Function Update-SqlPasswd {
-    Param([string]$login,[string]$passwd)
+    Param(
+        [string]$login,
+        [string]$passwd
+    )
+
     $ServerNameList = 'localhost\lenssql'
     [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
     $objSQLConnection = New-Object System.Data.SqlClient.SqlConnection
@@ -354,7 +495,7 @@ If ($PSVersionTable.PSVersion.Major -lt 5) {
     Logging "WARNING" "This script requires PowerShell version 5.0 or above."
     Logging "WARNING" "You can download PowerShell version 5.0 at: https://www.microsoft.com/en-us/download/details.aspx?id=50395"
     Logging "WARNING" "Reboot server after installing Powershell 5 or above, try this script again."
-    Stop-Script
+    Stop-Script 5
 } 
 # ---------------------------
 # Header variables
