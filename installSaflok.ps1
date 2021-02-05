@@ -148,7 +148,7 @@ Function Get-FileVersion {
             If ($testFile -like "*.exe") {
                 (Get-Item $testFile).VersionInfo.FileVersion
             } Else {
-                Logging "ERROR" "Can not get file version as it is not an executive file."
+                Logging "ERROR" "Can not get file version as it is not an executable file."
             }
         }
         $False {
@@ -207,13 +207,22 @@ Function Install-Prog {
             Stop-Script
         }
     } Else {
-        If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script}
-        If (($packageFolder -eq $true) -and ($exeExist -eq $true)){Logging "ERROR" "$mesgDiffVer";Stop-Script}
+        If ($packageFolder -eq $false) {
+            Logging "ERROR" "$pName $mesgNoPkg"
+        }
+        If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
+            Logging "ERROR" "$mesgDiffVer"
+            Stop-Script
+        }
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
             Logging "PROGRESS" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
-            $installed = Assert-IsInstalled $pName
-            If ($installed) {Logging " " "$pName $mesgComplete";Start-Sleep -S 2} Else {Logging "ERROR" "$pName $mesgFailed";Stop-Script}
+            If (Assert-IsInstalled $pName) {
+                Logging " " "$pName $mesgComplete"
+            } Else {
+                Logging "ERROR" "$pName $mesgFailed"
+                Stop-Script
+            }
         }
     }
 
@@ -254,12 +263,17 @@ Function Install-ProgPlusPatch {
             Stop-Script
         }
     } Else {
-        If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script}
-        If (($packageFolder -eq $true) -and ($exeExist -eq $true)){Logging "ERROR" "$mesgDiffVer";Stop-Script}
+        If ($packageFolder -eq $false) {
+            Logging "ERROR" "$pName $mesgNoPkg"
+            Stop-Script
+        }
+        If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
+            Logging "ERROR" "$mesgDiffVer"
+            Stop-Script
+        }
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
             Logging "PROGRESS" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
-            Start-Sleep -Seconds 2
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             $getVersion = Get-InstVersion -pName $pName
             If ($getVersion -eq $ver2) { 
@@ -364,7 +378,7 @@ Function Install-PmsTester {
     $testInstParent = Test-Folder $instParent
     $testInstFolder0 = Test-Folder $instFolder0
     $testInstFolder1 = Test-Folder $instFolder1
-    If ($testSrcPackage -eq $False) { Logging "ERROR" "Package files missing!"; Stop-Script } 
+    If ($testSrcPackage -eq $False) { Logging "ERROR" "$mesgNoSource"; Stop-Script } 
     If ($testInstParent -eq $False) { Logging "ERROR" "Messenger LENS has not been installed yet!" ; Stop-Script } 
     If ($fileCopied) {
         Logging "INFO" "$pName $mesgInstalled."
