@@ -1,7 +1,8 @@
 # Know the mini requirements
-> Windows 8+ / windows Server 2003+ <br />
-> PowerShell V5+ <br />
-
+<ol>
+    <li> Windows 8+ / windows Server 2003+ </li>
+    <li> PowerShell V5+ </li>
+</ol>
 
 # Features
 <ol>
