@@ -4,7 +4,7 @@
 
 
 # Features
-<ul>
+<ol>
     <li> support install on drive C or drive D </li>
     <li> with destination install drive option </li>
     <li> share folder in back end  </li>
@@ -12,7 +12,7 @@
     <li> prompt file version after installation  </li>
     <li> with web service tester installed in default  </li>
     <li> with pre-defined config files  </li>
-</ul>
+</ol>
 
 # Instruction
 ````Powershell
