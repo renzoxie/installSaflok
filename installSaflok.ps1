@@ -1,26 +1,35 @@
 <#
-.SYNOPSIS
-   PS script helps to install SAFLOK Lodging systems
-.DESCRIPTION
-   This script fully installation of SAFLOK Lodging Systems for Marriott projects automatically
-.EXAMPLE
-   .\install.ps1 -inputDrive c -version 5.45
-.EXAMPLE
-   .\install.ps1 -inputDrive c -version 5.45 -vendor 'dormakaba' -property 'Hotel Name'
-.NOTES
+    .SYNOPSIS
+    Installs SAFLOK Lodging systems on local server
+
+    .DESCRIPTION
+    This script fully installation of SAFLOK Lodging Systems for projects with online and BLE systems automatically
+
+    .EXAMPLE
+    .\install.ps1 -inputDrive c -version 5.45
+
+    .EXAMPLE
+    .\install.ps1 -inputDrive c -version 5.45 -vendor 'dormakaba' -property 'Hotel Name'
+
+    .NOTES
+    =========================================================================
     Author: renzoxie@139.com
     Version Option: 5.45, 5.68
     Create Date: 16 April 2019
     Modified Date: 1st Feb 2021
-#>
-[CmdletBinding(SupportsShouldProcess)]
-Param (
-    [Parameter(Mandatory=$TRUE)]
-    [ValidateSet('c','d')]
-    [String]$inputDrive,
+    =========================================================================
 
-    [Parameter(Mandatory=$TRUE)]
-    [String]$version,
+    .LINK
+    For deployments of this script, please see https://github.com/renzoxie/installSaflok
+#>
+[CmdletBinding(DefaultParameterSetName = 'Default')]
+Param (
+    [Parameter(Mandatory=$false)]
+    [ValidateSet('c','d')]
+    [String]$inputDrive = 'c'',
+
+    [Parameter(Mandatory=$False)]
+    [String]$version = '5.68',
     
     [String]$property = 'vagrant',
     
