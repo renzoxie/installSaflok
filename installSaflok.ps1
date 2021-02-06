@@ -29,7 +29,7 @@ Param (
     [String]$inputDrive = 'c',
 
     [Parameter(Mandatory=$False)]
-    $version = '5.68',
+    [String]$version = '5.68',
     
     [Parameter(Mandatory=$False)]
     [String]$property = 'vagrant',
@@ -49,11 +49,6 @@ Switch ($version) {
         $progVersion = '5.4.0.0'
         $pmsVersion = '5.1.0.0'
         $msgrVersion= '5.2.0.0'
-        $lensVersion = '4.7.0.0'
-        $gatewayExeVersion = '4.7.2.22694'
-        $hmsExeVersion = '4.7.1.22400'
-        $kdsExeVersion = '4.7.0.26769'
-        $pollingExeVersion = '4.5.0.28705'  
         $wsPmsExeBeforePatchVersion = '4.7.1.15707'
         $wsPmsExeVersion = '4.7.2.22767'
     }
@@ -644,7 +639,7 @@ Switch ($iss4Drive)
     02.ISS_FOR_D {$issFolder = $absPackageFolders[2]}
 } 
 $issFiles = Get-ChildItem $issFolder | Select-Object Name | Sort-Object -Property Name
-$progISS = Join-Path $issFolder $issFiles[0].Name            # [0] Programsetup.iss
+$progISS = Join-Path $issFolder $issFiles[0].Name            
 Switch ($version) {
     '5.45' {    
             $pmsISS = Join-Path $issFolder $issFiles[1].Name
@@ -673,9 +668,9 @@ Switch ($version) {
             $lensPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[1].Name       
     }
     '5.68' {
-            $progPatchExe = $absPackageFolders[7] + '\' + $patchExeFiles[0].Name     
-            $pmsPatchExe = $absPackageFolders[7] + '\' + $patchExeFiles[1].Name     
-            $lensPatchExe = $absPackageFolders[7] + '\' + $patchExeFiles[2].Name    
+            $progPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name     
+            $pmsPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[1].Name     
+            $lensPatchExe = Join-Path $absPackageFolders[7] $patchExeFiles[2].Name    
     }
 }
 # ---------------------------
@@ -736,28 +731,7 @@ Switch ($version) {
     }
 }
 # ---------------------------
-# Saflok Services
-$serviceNames = [System.Collections.ArrayList]@(
-    'DeviceManagerService',
-    'KIPEncoderService',
-    'FirebirdGuardianDefaultInstance'
-    'SaflokServiceLauncher',
-    'SaflokCRS',
-    'SaflokScheduler',
-    'SaflokIRS',
-    'SaflokMSGR',
-    'SAFLOKDHSPtoMSGRTranslator',
-    'SAFLOKMSGRtoDHSPTranslator',
-    'MessengerNet_Hub Gateway Service',
-    'MNet_HMS',                       
-    'MNet_PMS Service',                     
-    'MessengerNet_Utility Service', 
-    'Kaba_KDS',                            
-    'VirtualEncoderService',    
-    'Kaba Digital Keys Polling Service'
-)
-# ---------------------------
-# Start to install ==>
+# Start to install
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     Logging " " ""
     # -------------------------------------------------------------------
@@ -863,48 +837,43 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # -------------------------------------------------------------------
     # IIS FEATURES, requirement for messenger lens
     $isInstalledMsgr = Assert-IsInstalled "Saflok Messenger Server"
-    $featuresLt61 = [System.Collections.ArrayList]@(
-        'IIS-WebServerRole',
-        'IIS-WebServer',
-        'IIS-CommonHttpFeatures',
-        'IIS-HttpErrors',
-        'IIS-ApplicationDevelopment',
-        'IIS-RequestFiltering',
-        'IIS-NetFxExtensibility',
-        'IIS-HealthAndDiagnostics',
-        'IIS-HttpLogging',
-        'IIS-RequestMonitor',
-        'IIS-Performance',
-        'WAS-ProcessModel',
-        'WAS-NetFxEnvironment',
-        'WAS-ConfigurationAPI',
-        'IIS-ISAPIExtensions',
-        'IIS-ISAPIFilter',
-        'IIS-StaticContent',
-        'IIS-DefaultDocument',
-        'IIS-DirectoryBrowsing',
-        'IIS-ASPNET',
-        'IIS-ASP',
-        'IIS-HttpCompressionStatic',
-        'IIS-ManagementConsole',
-        'NetFx3',
-        'WCF-HTTP-Activation',
-        'WCF-NonHTTP-Activation'
-    )
 	If ($isInstalledMsgr -ne $True) {
 		Logging "WARN" "Please install Saflok messenger before Lens."
 		Stop-Script
 	} Else {
         $featureState = dism /online /get-featureinfo /featurename:IIS-WebServerRole | findstr /C:'State : '
+        $features = [System.Collections.ArrayList]@(
+            'IIS-WebServerRole',
+            'IIS-WebServer', 
+            'IIS-CommonHttpFeatures',
+            'IIS-HttpErrors',
+            'IIS-ApplicationDevelopment',
+            'IIS-RequestFiltering',
+            'IIS-HealthAndDiagnostics',
+            'IIS-HttpLogging',
+            'IIS-Performance',
+            'IIS-ISAPIExtensions',
+            'IIS-ISAPIFilter',
+            'IIS-StaticContent',
+            'IIS-DefaultDocument',
+            'IIS-DirectoryBrowsing',
+            'IIS-ASP',
+            'IIS-ManagementConsole'
+            'IIS-HttpCompressionStatic' 
+        )
         If ($featureState -match 'Disabled') {
             Logging "" "$mesgConfigIIS"
             Switch ($winOS) {
-                {$winOS -lt 6.1} {$iisFeatures = 'IIS-WebServerRole','IIS-WebServer','IIS-CommonHttpFeatures',
-                    'IIS-HttpErrors','IIS-ApplicationDevelopment','IIS-RequestFiltering','IIS-NetFxExtensibility',
-                    'IIS-HealthAndDiagnostics','IIS-HttpLogging','IIS-RequestMonitor','IIS-Performance','WAS-ProcessModel',
-                    'WAS-NetFxEnvironment','WAS-ConfigurationAPI','IIS-ISAPIExtensions','IIS-ISAPIFilter','IIS-StaticContent',
-                    'IIS-DefaultDocument','IIS-DirectoryBrowsing','IIS-ASPNET','IIS-ASP','IIS-HttpCompressionStatic',
-                    'IIS-ManagementConsole','NetFx3','WCF-HTTP-Activation','WCF-NonHTTP-Activation'
+                {$winOS -lt 6.1} {
+                    $features.Add('IIS-NetFxExtensibility') | Out-Null
+                    $features.Add('IIS-RequestMonitor') | Out-Null
+                    $features.Add('WAS-ProcessModel') | Out-Null
+                    $features.Add('WAS-NetFxEnvironment') | Out-Null
+                    $features.Add('WAS-ConfigurationAPI') | Out-Null
+                    $features.Add('IIS-ASPNET') | Out-Null
+                    $features.Add('NetFx3') | Out-Null
+                    $features.Add('WCF-HTTP-Activation') | Out-Null
+                    $features.Add('WCF-NonHTTP-Activation') | Out-Null
                     For ([int]$i=0; $i -lt ($iisFeatures.Length - 1); $i++) {
                         $feature = $iisFeatures[$i]
                         DISM /online /enable-feature /featurename:$feature | Out-Null
@@ -914,12 +883,12 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 } 
                 {$winOS -ge 6.1}{ 
                     $disabledFeatures = @()
-                    $iisFeatures = 'NetFx4Extended-ASPNET45','IIS-ASP','IIS-ASPNET45','IIS-NetFxExtensibility45',
-                    'IIS-WebServerRole','IIS-WebServer', 'IIS-CommonHttpFeatures','IIS-HttpErrors',
-                    'IIS-ApplicationDevelopment','IIS-HealthAndDiagnostics','IIS-HttpLogging','IIS-Security', 
-                    'IIS-RequestFiltering','IIS-Performance','IIS-WebServerManagementTools','IIS-StaticContent',
-                    'IIS-DefaultDocument','IIS-DirectoryBrowsing', 'IIS-ApplicationInit','IIS-ISAPIExtensions',
-                    'IIS-ISAPIFilter','IIS-HttpCompressionStatic','IIS-ManagementConsole'
+                    $features.Add('NetFx4Extended-ASPNET45') | Out-Null
+                    $features.Add('IIS-ASPNET45') | Out-Null
+                    $features.Add('IIS-NetFxExtensibility45') | Out-Null
+                    $features.Add('IIS-Security') | Out-Null    
+                    $features.Add('IIS-WebServerManagementTools') | Out-Null
+                    $features.Add('IIS-ApplicationInit') | Out-Null                   
                     For ([int]$i=0; $i -lt ($iisFeatures.Length -1 ); $i++) {
                         $feature = $iisFeatures[$i]
                         If (!((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Enabled")) {
@@ -1141,4 +1110,3 @@ If ($confirmation -eq 'N' -or $confirmation -eq 'NO') {
     Write-Host ''
     Stop-Script
 }
-
