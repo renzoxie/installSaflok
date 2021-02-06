@@ -29,7 +29,7 @@ Param (
     [String]$inputDrive = 'c'',
 
     [Parameter(Mandatory=$False)]
-    [String]$version = '5.68',
+    $version = '5.68',
     
     [String]$property = 'vagrant',
     
@@ -1132,11 +1132,11 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Stop-Script
     }
 
-} # END OF YES
+} 
 If ($confirmation -eq 'N' -or $confirmation -eq 'NO') {
     Logging " " ""
     Write-Colr -Text $cname," Thank you, Bye!" -Colour White,Gray
     Write-Host ''
     Stop-Script
-} # END OF NO
+}
 
