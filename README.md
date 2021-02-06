@@ -38,8 +38,8 @@ V1.1 - compatible with win7/win2008R2 or lower <br />
 # Contributing workflow
 Here's how we suggest you go about proposing a change to this project:<br />
 <ol>
-  <li><a href="https://help.github.com/articles/fork-a-repo/">Fork this project</a> to your account. </li>
-  <li><a href="https://help.github.com/articles/creating-and-deleting-branches-within-your-repository">Create a branch</a> for the change you intend to make.</li>
-  <li>Make your changes to your fork.</li>
+    <li><a href="https://help.github.com/articles/fork-a-repo/">Fork this project</a> to your account. </li>
+    <li><a href="https://help.github.com/articles/creating-and-deleting-branches-within-your-repository">Create a branch</a> for the change you intend to make.</li>
+    <li>Make your changes to your fork.</li>
     <li><a href="https://help.github.com/articles/using-pull-requests/">Send a pull request</a> from your fork's branch to our master branch.</li>
 </ol>
