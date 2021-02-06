@@ -1,6 +1,6 @@
->
-> Compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7 yet<br />
-> For win2008R2, need Powershell version 5 or above<br />
+# Know the Requirements
+> Windows 8+ / windows Server 2003+ <br />
+> PowerShell V5+ <br />
 
 
 # features
