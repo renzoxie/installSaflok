@@ -1,6 +1,6 @@
 >
 > Compatible with win8*,win10*, win2012*,win2016*, have not be tested on win7 yet<br />
-> For win2008R2, need powershell version 5 or above<br />
+> For win2008R2, need Powershell version 5 or above<br />
 
 
 # features
@@ -38,5 +38,5 @@ Here's how we suggest you go about proposing a change to this project:<br />
   <li><a href="https://help.github.com/articles/fork-a-repo/">Fork this project</a> to your account. </li>
   <li><a href="https://help.github.com/articles/creating-and-deleting-branches-within-your-repository">Create a branch</a> for the change you intend to make.</li>
   <li>Make your changes to your fork.</li>
-    <li><a href="https://help.github.com/articles/using-pull-requests/">Send a pull request</a> from your forkâ€™s branch to our master branch.</li>
+    <li><a href="https://help.github.com/articles/using-pull-requests/">Send a pull request</a> from your fork's branch to our master branch.</li>
 </ol>
