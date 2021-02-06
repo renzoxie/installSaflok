@@ -24,15 +24,17 @@
 #>
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 Param (
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$False)]
     [ValidateSet('c','d')]
-    [String]$inputDrive = 'c'',
+    [String]$inputDrive = 'c',
 
     [Parameter(Mandatory=$False)]
     $version = '5.68',
     
+    [Parameter(Mandatory=$False)]
     [String]$property = 'vagrant',
     
+    [Parameter(Mandatory=$False)]
     [String]$vendor = 'dormakaba'
 )
 
