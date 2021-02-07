@@ -43,7 +43,7 @@ $scriptPath = $PSScriptRoot
 # ---------------------------
 # Versions
 $scriptVersion = '2.0'
-[float]$miniPsRequire = '5.1'
+[decimal]$miniPsRequire = '5.1'
 Switch ($version) {
     '5.45' {
         $progVersion = '5.4.0.0'
@@ -510,11 +510,11 @@ Function Set-ServiceRecovery{
 } 
 # ---------------------------
 # Mini Powershell version requirement
-[float]$psVerion = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor
+[Decimal]$psVerion = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor
 If ($psVerion -lt $miniPsRequire) {  
-    Logging "INFO" "Your current PowerShell version is $psVerion"   
-    Logging "WARN" "This script requires PowerShell version 5.0 or above."
-    Logging "WARN" "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
+    Logging "INFO" "Your current PowerShell version is v$psVerion."   
+    Logging "ERROR" "This script requires PowerShell version $miniPsRequire or above."
+    Logging "WARN" "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/."
     Logging "WARN" "Reboot server after installing Powershell 5 or above, run this script again."
     Stop-Script 5
 } 
