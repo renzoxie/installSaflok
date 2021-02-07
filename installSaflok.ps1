@@ -199,13 +199,13 @@ Function Install-Prog {
 
         [String]$packageFolder,
         [String]$curVersion,
-        [String]$exeExist,
+        [bool]$exeExist,
         [String]$destVersion,
         [String]$exeFile,
         [String]$issFile
     )
 
-    If ($isInstalled) {
+    If ([bool]$isInstalled) {
         If ($curVersion -eq $destVersion) {
             Logging "INFO" "$pName $mesgInstalled"
         } Else {
@@ -242,7 +242,7 @@ Function Install-ProgPlusPatch {
 
         [String]$packageFolder,
         [String]$curVersion,
-        [String]$exeExist,
+        [bool]$exeExist,
         [String]$ver1,
         [String]$ver2,
         [String]$exeFile,
@@ -590,14 +590,23 @@ Switch ($version) {
     '5.45' {$pattern = "([A-Z]{7}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
     '5.68' {$pattern = "([A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
 }
+
+$ver2Int = $version.Replace(".", "")
+$verNoFromRootPath = $scriptPath.Substring($scriptPath.Length -11,3)
+
 Switch ($scriptPath -match $pattern) {
     $True  {
-                # -----------------------
-                # HEADER Information 
-                Logging " " ""
-                Logging " " "By installing you accept licenses for the packages."
-                $confirmation = Read-Host "$cname Do you want to run the script? [Y] Yes  [N] No"
-                $confirmation = $confirmation.ToUpper()
+                If ([int]$ver2Int -ne [int]$verNoFromRootPath) {
+                    Logging "ERROR" "Version input do NOT match corresponding source package "
+                    Stop-Script 5
+                } Else {
+                    # -----------------------
+                    # HEADER Information 
+                    Logging " " ""
+                    Logging " " "By installing you accept licenses for the packages."
+                    $confirmation = Read-Host "$cname Do you want to run the script? [Y] Yes  [N] No"
+                    $confirmation = $confirmation.ToUpper()
+                }
             }
     $False  {
                 Logging "ERROR" "$mesgNoSource"
