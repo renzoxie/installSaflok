@@ -69,12 +69,12 @@ $versionOptions = [System.Collections.ArrayList]@(
 $mesgNoPkg ="package does not exist, operation exit."
 $mesgInstalled = "already installed."
 $mesgDiffVer = "There is another version exist, please uninstall it first."
-$mesgComplete = "The install of $pName was successful."
 $mesgFailed = "installation failed!"
 $mesgNoSource = "Missing source installation folder."
 $mesgToInstall = "will now be installed, Please wait..."
 $mesgConfigIIS = "Checking IIS features Status for Messenger LENS..." 
 $mesgIISEnabled = "ALL IIS features  Messenger LENS requires have been enabled."
+
 # ---------------------------
 # Functions 
 # ---------------------------
@@ -111,6 +111,17 @@ Function Logging {
         default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
    } 
 } 
+
+# ---------------------------
+# Logging for installation complete
+Function Write-Complete {
+    Param (
+        [Parameter(Mandatory=$true)]
+        [string]
+        $pName
+    )
+    Logging " " "The install of $pName was successful."
+}
 # ---------------------------
 # Stop Script
 Function Stop-Script {
@@ -230,7 +241,7 @@ Function Install-Prog {
             Logging "PROGRESS" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
             If (Assert-IsInstalled $pName) {
-                Logging " " "$mesgComplete"
+                Write-Complete $pName
             } Else {
                 Logging "ERROR" "$pName $mesgFailed"
                 Stop-Script 5
@@ -289,7 +300,7 @@ Function Install-ProgPlusPatch {
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             $getVersion = Get-InstVersion -pName $pName
             If ($getVersion -eq $ver2) { 
-                Logging " " "$mesgComplete"
+                Write-Complete $pName
             } Else {
                 Logging "ERROR" "$pName $mesgFailed"
                 Stop-Script 5
@@ -317,7 +328,7 @@ Function Install-LensPatch {
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait; Start-Sleep 3
         Update-FileVersion $targetFile $destVersion
         If ((Get-FileVersion $targetFile) -eq $destVersion) {
-            Logging " " "$mesgComplete"
+            Write-Complete $pName
         } Else {
             Logging "ERROR" "$pName $mesgFailed"
             Stop-Script 5
@@ -356,7 +367,7 @@ Function Install-DigitalPolling {
     } Else {
         Logging "PROGRESS" "$pName $mesgToInstall"
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
-        If (Test-Folder $targetFile){Logging " " "$mesgComplete"}
+        If (Test-Folder $targetFile){Write-Complete $pName}
         Else {Logging "Error" "$pName $mesgFailed";Stop-Script 5}
     }
 }
@@ -398,16 +409,16 @@ Function Install-PmsTester {
         If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging "PROGRESS" "$pName $mesgToInstall" }
         If (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $false))  { 
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-            Logging " " "$mesgComplete"
+            Write-Complete $pName
         } Elseif (($testInstFolder0 -eq $false) -and ($testInstFolder1 -eq $false)) {
             Copy-Item $srcPackage -Destination $instParent -Recurse -Force -ErrorAction SilentlyContinue
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-            Logging " " "$mesgComplete"
+            Write-Complete $pName
         } Elseif (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $true))  {
             Remove-Item -Path $instFolder0 -Force -Recurse
-            Logging " " "$mesgComplete"
+            Write-Complete $pName
         } Else {
-            Logging " " "$mesgComplete"
+            Write-Complete $pName
         }
     }
 } 
@@ -444,7 +455,7 @@ Function Install-Sql {
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
             $installed = Assert-IsInstalled $pName
             If ($installed) {
-				Logging " " "$mesgComplete"
+				Write-Complete $pName
 			} Else {
 				Logging "ERROR" "$pName $mesgFailed"
 				Logging "ERROR" "Reboot system and try the script again"
