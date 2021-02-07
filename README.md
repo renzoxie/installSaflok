@@ -1,6 +1,6 @@
 # Know the mini requirements
 <ol>
-    <li> Windows 8+ / windows Server 2003+ , exclude windoes server 2019</li>
+    <li> Windows 8+ / windows Server 2003+ , exclude windows server 2019</li>
     <li> PowerShell V5+ </li>
 </ol>
 
