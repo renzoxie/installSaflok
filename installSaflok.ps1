@@ -25,8 +25,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 Param (
     [Parameter(Mandatory=$True)]
-    [ValidateSet('c','d')]
-    [String]$inputDrive = 'c',
+    [String]$inputDrive,
 
     [Parameter(Mandatory=$True)]
     [String]$version,
@@ -44,7 +43,7 @@ $scriptPath = $PSScriptRoot
 # ---------------------------
 # Versions
 $scriptVersion = '2.0'
-$miniPsRequire = '5'
+[float]$miniPsRequire = '5.1'
 Switch ($version) {
     '5.45' {
         $progVersion = '5.4.0.0'
@@ -505,11 +504,12 @@ Function Set-ServiceRecovery{
 } 
 # ---------------------------
 # Mini Powershell version requirement
-If ($PSVersionTable.PSVersion.Major -lt $miniPsRequire) {
-    Logging "WARNING" "Your PowerShell installation is not version 5.0 or greater."
-    Logging "WARNING" "This script requires PowerShell version 5.0 or above."
-    Logging "WARNING" "You can download PowerShell version 5.0 at: https://www.microsoft.com/en-us/download/details.aspx?id=50395"
-    Logging "WARNING" "Reboot server after installing Powershell 5 or above, try this script again."
+[float]$psVerion = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor
+If ($psVerion -lt $miniPsRequire) {  
+    Logging "INFO" "Your current PowerShell version is $psVerion"   
+    Logging "WARN" "This script requires PowerShell version 5.0 or above."
+    Logging "WARN" "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
+    Logging "WARN" "Reboot server after installing Powershell 5 or above, run this script again."
     Stop-Script 5
 } 
 # ---------------------------
@@ -560,10 +560,12 @@ if ($inputDrive -IN $driveLetters) {
 }
 
 switch ($driveIDExist) {
-    $True {Logging "INFO" "You selected drive $inputDrive"}
+    $True {Logging "INFO" "You chose drive $inputDrive"}
     $False {
-              Logging "WARNING" 'Please re-run the script again to select the correct drive.'
-              Stop-Script
+                Logging "ERROR" "We could not install on drive $inputDrive."
+                Logging "WARNING" 'Please re-run the script again to input a correct drive.'
+              
+                Stop-Script
            }
 }
 
@@ -588,7 +590,7 @@ $verNoFromRootPath = $scriptPath.Substring($scriptPath.Length -11,3)
 Switch ($scriptPath -match $pattern) {
     $True  {
                 If ([int]$ver2Int -ne [int]$verNoFromRootPath) {
-                    Logging "ERROR" "Version input do NOT match corresponding source package "
+                    Logging "ERROR" "Version input does NOT match corresponding source package."
                     Stop-Script 5
                 } Else {
                     # -----------------------
