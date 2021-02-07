@@ -73,7 +73,7 @@ $mesgFailed = "installation failed!"
 $mesgNoSource = "Missing source installation folder."
 $mesgToInstall = "will now be installed, Please wait..."
 $mesgConfigIIS = "Checking IIS features Status for Messenger LENS..." 
-$mesgIISEnabled = "ALL IIS features  Messenger LENS requires have been enabled."
+$mesgIISEnabled = "ALL IIS features  Messenger LENS requires are there."
 
 # ---------------------------
 # Functions 
@@ -225,6 +225,7 @@ Function Install-Prog {
     If ([bool]$isInstalled) {
         If ($curVersion -eq $destVersion) {
             Logging "INFO" "$pName $mesgInstalled"
+            Start-Sleep -Seconds 2
         } Else {
             Logging "ERROR" "$mesgDiffVer - $pName"
             Stop-Script 5
@@ -232,6 +233,7 @@ Function Install-Prog {
     } Else {
         If ($packageFolder -eq $false) {
             Logging "ERROR" "$pName $mesgNoPkg"
+            Stop-Script 5
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
             Logging "ERROR" "$mesgDiffVer"
@@ -242,6 +244,7 @@ Function Install-Prog {
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
             If (Assert-IsInstalled $pName) {
                 Write-Complete $pName
+                Start-Sleep -Seconds 2
             } Else {
                 Logging "ERROR" "$pName $mesgFailed"
                 Stop-Script 5
@@ -271,12 +274,14 @@ Function Install-ProgPlusPatch {
     If ($isInstalled) {
         If ($curVersion -eq $ver2) {
             Logging "INFO" "$pName $mesgInstalled"
+            Start-Sleep -Seconds 2
         } Elseif ($curVersion -eq $ver1) {
             Logging "PROGRESS" "$pName patch $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             $getVersion = Get-InstVersion -pName $pName
             If ($getVersion -eq $ver2) { 
                 Logging "INFO" "$pName $mesgInstalled"
+                Start-Sleep -Seconds 2
             } Else {
                 Logging "ERROR" "$pName $mesgFailed"
                 Stop-Script 5
@@ -301,6 +306,7 @@ Function Install-ProgPlusPatch {
             $getVersion = Get-InstVersion -pName $pName
             If ($getVersion -eq $ver2) { 
                 Write-Complete $pName
+                Start-Sleep -Seconds 2
             } Else {
                 Logging "ERROR" "$pName $mesgFailed"
                 Stop-Script 5
@@ -323,12 +329,14 @@ Function Install-LensPatch {
 
     If ($isInstalled) {
         Logging "INFO" "$pName $mesgInstalled"
+        Start-Sleep -Seconds 2
     } Else {
         Logging "PROGRESS" "$pName $mesgToInstall"
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait; Start-Sleep 3
         Update-FileVersion $targetFile $destVersion
         If ((Get-FileVersion $targetFile) -eq $destVersion) {
             Write-Complete $pName
+            Start-Sleep -Seconds 2
         } Else {
             Logging "ERROR" "$pName $mesgFailed"
             Stop-Script 5
@@ -367,7 +375,7 @@ Function Install-DigitalPolling {
     } Else {
         Logging "PROGRESS" "$pName $mesgToInstall"
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
-        If (Test-Folder $targetFile){Write-Complete $pName}
+        If (Test-Folder $targetFile){Write-Complete $pName; Start-Sleep -Seconds 2}
         Else {Logging "Error" "$pName $mesgFailed";Stop-Script 5}
     }
 }
@@ -405,20 +413,25 @@ Function Install-PmsTester {
     If ($testInstParent -eq $False) { Logging "ERROR" "Messenger LENS has not been installed yet!" ; Stop-Script 5 } 
     If ($fileCopied) {
         Logging "INFO" "$pName $mesgInstalled."
+        Start-Sleep -Seconds 2
     } Else {
         If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging "PROGRESS" "$pName $mesgToInstall" }
         If (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $false))  { 
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
             Write-Complete $pName
+            Start-Sleep -Seconds 2
         } Elseif (($testInstFolder0 -eq $false) -and ($testInstFolder1 -eq $false)) {
             Copy-Item $srcPackage -Destination $instParent -Recurse -Force -ErrorAction SilentlyContinue
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
             Write-Complete $pName
+            Start-Sleep -Seconds 2
         } Elseif (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $true))  {
             Remove-Item -Path $instFolder0 -Force -Recurse
             Write-Complete $pName
+            Start-Sleep -Seconds 2
         } Else {
             Write-Complete $pName
+            Start-Sleep -Seconds 2
         }
     }
 } 
@@ -455,7 +468,8 @@ Function Install-Sql {
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
             $installed = Assert-IsInstalled $pName
             If ($installed) {
-				Write-Complete $pName
+                Write-Complete $pName
+                Start-Sleep -Seconds 2
 			} Else {
 				Logging "ERROR" "$pName $mesgFailed"
 				Logging "ERROR" "Reboot system and try the script again"
@@ -863,8 +877,8 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		Logging "WARN" "Please install Saflok messenger before Lens."
 		Stop-Script 5
 	} Else {
-        $featureState = dism /online /get-featureinfo /featurename:IIS-WebServerRole | findstr /C:'State : '
-        $features = [System.Collections.ArrayList]@(
+        Logging "INFO" "$mesgConfigIIS"
+        $iisFeatures = [System.Collections.ArrayList]@(
             'IIS-WebServerRole',
             'IIS-WebServer', 
             'IIS-CommonHttpFeatures',
@@ -880,58 +894,81 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             'IIS-DefaultDocument',
             'IIS-DirectoryBrowsing',
             'IIS-ASP',
-            'IIS-ManagementConsole'
+            'IIS-ManagementConsole',
             'IIS-HttpCompressionStatic' 
         )
-        If ($featureState -match 'Disabled') {
-            Logging "INFO" "$mesgConfigIIS"
-            Switch ($winOS) {
-                {$winOS -lt 6.1} {
-                    $features.Add('IIS-NetFxExtensibility') | Out-Null
-                    $features.Add('IIS-RequestMonitor') | Out-Null
-                    $features.Add('WAS-ProcessModel') | Out-Null
-                    $features.Add('WAS-NetFxEnvironment') | Out-Null
-                    $features.Add('WAS-ConfigurationAPI') | Out-Null
-                    $features.Add('IIS-ASPNET') | Out-Null
-                    $features.Add('NetFx3') | Out-Null
-                    $features.Add('WCF-HTTP-Activation') | Out-Null
-                    $features.Add('WCF-NonHTTP-Activation') | Out-Null
-                    For ([int]$i=0; $i -lt ($iisFeatures.Length - 1); $i++) {
-                        $feature = $iisFeatures[$i]
-                        DISM /online /enable-feature /featurename:$feature | Out-Null
-                        Start-Sleep -S 1
-                        Logging " " "Enabled feature $feature"
-                    }
-                } 
-                {$winOS -ge 6.1}{ 
-                    $disabledFeatures = @()
-                    $features.Add('NetFx4Extended-ASPNET45') | Out-Null
-                    $features.Add('IIS-ASPNET45') | Out-Null
-                    $features.Add('IIS-NetFxExtensibility45') | Out-Null
-                    $features.Add('IIS-Security') | Out-Null    
-                    $features.Add('IIS-WebServerManagementTools') | Out-Null
-                    $features.Add('IIS-ApplicationInit') | Out-Null                   
-                    For ([int]$i=0; $i -lt ($iisFeatures.Length -1 ); $i++) {
-                        $feature = $iisFeatures[$i]
-                        If (!((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Enabled")) {
-                            $disabledFeatures += $feature
-                        }
-                    }
-                    If ($disabledFeatures.Count-1 -gt 0){
-                        Logging "INFO" "$mesgConfigIIS"
-                        Foreach ($disabled In $disabledFeatures) {
-                            Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
-                            Logging " " "Enabled feature $disabled"
-                        }
-                    } Else {
-                        Logging "INFO" "$mesgIISEnabled"
-                    } 
+        $iisFeatures
+        
+        if ($winOS -lt 6.1) {
+            $iisFeatures += 'IIS-NetFxExtensibility'
+            $iisFeatures += 'IIS-RequestMonitor'
+            $iisFeatures += 'WAS-ProcessModel'
+            $iisFeatures += 'WAS-NetFxEnvironment'
+            $iisFeatures += 'WAS-ConfigurationAPI'
+            $iisFeatures += 'IIS-ASPNET'
+            $iisFeatures += 'NetFx3'
+            $iisFeatures += 'WCF-HTTP-Activation'
+            $iisFeatures += 'WCF-NonHTTP-Activation'
+            # arrays to collect features in disabled state
+            $disabledFeatures = @()
+            For ([int]$i=0; $i -lt ($iisFeatures.length-1); $i++) {
+                $feature = $iisFeatures[$i]
+                If ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
+                    $disabledFeatures += $feature 
                 }
             }
-        } Else {
-            Logging "INFO" "$mesgIISEnabled"
+            # check if there is any IIS feature which Messenger LENS requires is in disabled state
+            switch (($disabledFeatures.Length-1) -gt 0) {
+                $true {
+                    Logging "INFO" "Start installing the following IIS features:"
+                    Logging "INFO" "$disabledFeatures"
+                    Start-Sleep -Seconds 5
+                    Foreach ($disabled In $disabledFeatures) {
+                        DISM /online /enable-feature /featurename:$disabled | Out-Null
+                        Start-Sleep -S 1
+                        Logging "INFO" "Enabled IIS feature $disabled."
+                        Start-Sleep -Seconds 2
+                    }
+                }
+                $false {
+                    Logging "INFO" "$mesgIISEnabled"
+                    Start-Sleep -Seconds 2
+                }
+            } 
+        } else {
+            $iisFeatures += 'NetFx4Extended-ASPNET45'
+            $iisFeatures += 'IIS-ASPNET45'
+            $iisFeatures += 'IIS-NetFxExtensibility45'
+            $iisFeatures += 'IIS-Security'
+            $iisFeatures += 'IIS-WebServerManagementTools'
+            $iisFeatures += 'IIS-ApplicationInit'
+            # arrays to collect features in disabled state
+            $disabledFeatures = @()                   
+            For ([int]$i=0; $i -lt ($iisFeatures.Length -1 ); $i++) {
+                $feature = $iisFeatures[$i]
+                If ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
+                    $disabledFeatures += $feature 
+                }
+            }
+            switch (($disabledFeatures.Length-1) -gt 0) {
+                $true {
+                    Logging "INFO" "Start installing the following IIS features:"
+                    Logging "INFO" "$disabledFeatures"
+                    Start-Sleep -Seconds 5
+                    Foreach ($disabled In $disabledFeatures) {
+                        Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
+                        Logging "INFO" "Enabled IIS feature $disabled."
+                        Start-Sleep -Seconds 2
+                    }
+                }
+                $false {
+                    Logging "INFO" "$mesgIISEnabled"
+                    Start-Sleep -Seconds 2
+                }
+            } 
         }
-    }
+
+    }      
     # -------------------------------------------------------------------
     # Microsoft SQL Server 2012
     $pName = 'Microsoft SQL Server 2012'
