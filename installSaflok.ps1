@@ -24,12 +24,12 @@
 #>
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 Param (
-    [Parameter(Mandatory=$False)]
+    [Parameter(Mandatory=$True)]
     [ValidateSet('c','d')]
     [String]$inputDrive = 'c',
 
-    [Parameter(Mandatory=$False)]
-    [String]$version = '5.68',
+    [Parameter(Mandatory=$True)]
+    [String]$version,
     
     [Parameter(Mandatory=$False)]
     [String]$property = 'vagrant',
@@ -44,6 +44,7 @@ $scriptPath = $PSScriptRoot
 # ---------------------------
 # Versions
 $scriptVersion = '2.0'
+$miniPsRequire = '5'
 Switch ($version) {
     '5.45' {
         $progVersion = '5.4.0.0'
@@ -415,17 +416,7 @@ Function New-Share {
 
 	net share $shareName=$shareFolder "/GRANT:Everyone,FULL" /REMARK:"Saflok Database Folder Share"
 } 
-# ---------------------------
-# Install SC
-Function Install-SC {
-    Param(
-        [String]$exeFile,
-        [String]$agrFile,
-        [String]$service
-    )
 
-    Start-Process -NoNewWindow -FilePath $exeFile $service -ArgumentList " $argFile" -Wait -RedirectStandardOutput Out-Null
-} 
 # ---------------------------
 # Install SQL
 Function Install-Sql {
@@ -444,7 +435,7 @@ Function Install-Sql {
         If ($packageFolder -eq $true) {
             Logging "PROGRESS" "$pName $mesgToInstall"
             Logging "INFO" "The installer is 116M+, this could take a while, please wait... "
-            Logging "INFO" "This will take around 5 minutes."
+            Logging "INFO" "This will take more than 5 minutes."
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
             $installed = Assert-IsInstalled $pName
             If ($installed) {
@@ -514,7 +505,7 @@ Function Set-ServiceRecovery{
 } 
 # ---------------------------
 # Mini Powershell version requirement
-If ($PSVersionTable.PSVersion.Major -lt 5) {
+If ($PSVersionTable.PSVersion.Major -lt $miniPsRequire) {
     Logging "WARNING" "Your PowerShell installation is not version 5.0 or greater."
     Logging "WARNING" "This script requires PowerShell version 5.0 or above."
     Logging "WARNING" "You can download PowerShell version 5.0 at: https://www.microsoft.com/en-us/download/details.aspx?id=50395"
