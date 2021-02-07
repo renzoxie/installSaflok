@@ -60,15 +60,20 @@ Switch ($version) {
         $msgrVersion = '5.6.0.0'
     }
 }
+$versionOptions = [System.Collections.ArrayList]@(
+    '5.45'
+    '5.68'
+)
+
 # Logging Messages
 $mesgNoPkg ="package does not exist, operation exit."
-$mesgInstalled = "has already been installed."
+$mesgInstalled = "already installed."
 $mesgDiffVer = "There is another version exist, please uninstall it first."
-$mesgComplete = "installation is complete."
+$mesgComplete = "The install of $pName was successful."
 $mesgFailed = "installation failed!"
 $mesgNoSource = "Missing source installation folder."
 $mesgToInstall = "will now be installed, Please wait..."
-$mesgConfigIIS = "Configuring IIS features for Messenger LENS, please wait..." 
+$mesgConfigIIS = "Checking IIS features Status for Messenger LENS..." 
 $mesgIISEnabled = "ALL IIS features  Messenger LENS requires have been enabled."
 # ---------------------------
 # Functions 
@@ -161,6 +166,7 @@ Function Get-FileVersion {
             Logging "WARNING" "This file does not exist!"}
     }
 }
+
 # ---------------------------
 # INSTALLED? RETURN BOOLEAN VALUE 
 Function Assert-IsInstalled {
@@ -210,7 +216,7 @@ Function Install-Prog {
             Logging "INFO" "$pName $mesgInstalled"
         } Else {
             Logging "ERROR" "$mesgDiffVer - $pName"
-            Stop-Script
+            Stop-Script 5
         }
     } Else {
         If ($packageFolder -eq $false) {
@@ -218,16 +224,16 @@ Function Install-Prog {
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
             Logging "ERROR" "$mesgDiffVer"
-            Stop-Script
+            Stop-Script 5
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
             Logging "PROGRESS" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
             If (Assert-IsInstalled $pName) {
-                Logging " " "$pName $mesgComplete"
+                Logging " " "$mesgComplete"
             } Else {
                 Logging "ERROR" "$pName $mesgFailed"
-                Stop-Script
+                Stop-Script 5
             }
         }
     }
@@ -262,20 +268,20 @@ Function Install-ProgPlusPatch {
                 Logging "INFO" "$pName $mesgInstalled"
             } Else {
                 Logging "ERROR" "$pName $mesgFailed"
-                Stop-Script
+                Stop-Script 5
             }
         } Else {
             Logging "ERROR" "$mesgDiffVer - $pName"
-            Stop-Script
+            Stop-Script 5
         }
     } Else {
         If ($packageFolder -eq $false) {
             Logging "ERROR" "$pName $mesgNoPkg"
-            Stop-Script
+            Stop-Script 5
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
             Logging "ERROR" "$mesgDiffVer"
-            Stop-Script
+            Stop-Script 5
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
             Logging "PROGRESS" "$pName $mesgToInstall"
@@ -283,10 +289,10 @@ Function Install-ProgPlusPatch {
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             $getVersion = Get-InstVersion -pName $pName
             If ($getVersion -eq $ver2) { 
-                Logging " " "$pName $mesgComplete"
+                Logging " " "$mesgComplete"
             } Else {
                 Logging "ERROR" "$pName $mesgFailed"
-                Stop-Script 
+                Stop-Script 5
             }
         }
     }
@@ -311,10 +317,10 @@ Function Install-LensPatch {
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait; Start-Sleep 3
         Update-FileVersion $targetFile $destVersion
         If ((Get-FileVersion $targetFile) -eq $destVersion) {
-            Logging " " "$pName $mesgComplete"
+            Logging " " "$mesgComplete"
         } Else {
             Logging "ERROR" "$pName $mesgFailed"
-            Stop-Script
+            Stop-Script 5
         }
     }
 } 
@@ -350,8 +356,8 @@ Function Install-DigitalPolling {
     } Else {
         Logging "PROGRESS" "$pName $mesgToInstall"
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
-        If (Test-Folder $targetFile){Logging " " "$pName $mesgComplete"}
-        Else {Logging "Error" "$pName $mesgFailed";Stop-Script}
+        If (Test-Folder $targetFile){Logging " " "$mesgComplete"}
+        Else {Logging "Error" "$pName $mesgFailed";Stop-Script 5}
     }
 }
 # ---------------------------
@@ -385,23 +391,23 @@ Function Install-PmsTester {
     $testInstFolder0 = Test-Folder $instFolder0
     $testInstFolder1 = Test-Folder $instFolder1
     If ($testSrcPackage -eq $False) { Logging "ERROR" "$mesgNoSource"; Stop-Script } 
-    If ($testInstParent -eq $False) { Logging "ERROR" "Messenger LENS has not been installed yet!" ; Stop-Script } 
+    If ($testInstParent -eq $False) { Logging "ERROR" "Messenger LENS has not been installed yet!" ; Stop-Script 5 } 
     If ($fileCopied) {
         Logging "INFO" "$pName $mesgInstalled."
     } Else {
         If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging "PROGRESS" "$pName $mesgToInstall" }
         If (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $false))  { 
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-            Logging " " "$pName $mesgComplete."
+            Logging " " "$mesgComplete"
         } Elseif (($testInstFolder0 -eq $false) -and ($testInstFolder1 -eq $false)) {
             Copy-Item $srcPackage -Destination $instParent -Recurse -Force -ErrorAction SilentlyContinue
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-            Logging " " "$pName $mesgComplete."
+            Logging " " "$mesgComplete"
         } Elseif (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $true))  {
             Remove-Item -Path $instFolder0 -Force -Recurse
-            Logging " " "$pName $mesgComplete."
+            Logging " " "$mesgComplete"
         } Else {
-            Logging " " "$pName $mesgComplete."
+            Logging " " "$mesgComplete"
         }
     }
 } 
@@ -430,7 +436,7 @@ Function Install-Sql {
     If ($isInstalled -eq $true) {
         Logging "INFO" "$pName $mesgInstalled"
     } Else {
-        If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script}
+        If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script 5}
         If ($packageFolder -eq $true) {
             Logging "PROGRESS" "$pName $mesgToInstall"
             Logging "INFO" "The installer is 116M+, this could take a while, please wait... "
@@ -438,7 +444,7 @@ Function Install-Sql {
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
             $installed = Assert-IsInstalled $pName
             If ($installed) {
-				Logging " " "$pName $mesgComplete"
+				Logging " " "$mesgComplete"
 			} Else {
 				Logging "ERROR" "$pName $mesgFailed"
 				Logging "ERROR" "Reboot system and try the script again"
@@ -483,7 +489,7 @@ Function Update-SqlPasswd {
     }
 }
 # -----------------------
-#$recoveryServices
+# $recoveryServices
 Function Set-ServiceRecovery{
     [alias('Set-Recovery')]
     param
@@ -551,23 +557,6 @@ for ($i=0; $i -lt $driveIDs.Length; $i++) {
         $driveLetters += $matches[0]
     }
 }
-# ---------------------------
-# VALID DRIVE CHARACTER INPUT
-if ($inputDrive -IN $driveLetters) {
-    $driveIDExist = $True
-} else {
-    $driveIDExist = $False
-}
-
-switch ($driveIDExist) {
-    $True {Logging "INFO" "You chose drive $inputDrive"}
-    $False {
-                Logging "ERROR" "We could not install on drive $inputDrive."
-                Logging "WARNING" 'Please re-run the script again to input a correct drive.'
-              
-                Stop-Script
-           }
-}
 
 # ---------------------------
 # Driver letter + :
@@ -583,10 +572,8 @@ Switch ($version) {
     '5.45' {$pattern = "([A-Z]{7}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
     '5.68' {$pattern = "([A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
 }
-
 $ver2Int = $version.Replace(".", "")
 $verNoFromRootPath = $scriptPath.Substring($scriptPath.Length -11,3)
-
 Switch ($scriptPath -match $pattern) {
     $True  {
                 If ([int]$ver2Int -ne [int]$verNoFromRootPath) {
@@ -603,9 +590,30 @@ Switch ($scriptPath -match $pattern) {
             }
     $False  {
                 Logging "ERROR" "$mesgNoSource"
-                Stop-Script
+                Stop-Script 5
             }
 }
+
+# ---------------------------
+# VALID DRIVE CHARACTER INPUT
+if ($inputDrive -IN $driveLetters) {
+    Logging "INFO" "You chose drive $inputDrive"
+} else {
+    Logging "ERROR" "We could not install on drive $inputDrive."
+    Logging "WARNING" 'Please re-run the script again to input a correct drive.'
+    Stop-Script 5
+}
+
+# ---------------------------
+# VALID Version INPUT
+if ($version -IN $versionOptions) {
+    Logging "INFO" "We are going to install version $version"
+} else {
+    Logging "ERROR" "The version number specified is NOT correct."
+    Logging "WARNING" 'Please re-run the script again to input a correct version.'
+    Stop-Script 5
+}
+
 $absPackageFolders = @()
 For ($i=0; $i -lt ($packageFolders.Length-1); $i++) {
     $absPackageFolders += Join-Path $scriptPath $packageFolders[$i].Name
@@ -732,6 +740,7 @@ Switch ($version) {
             $pollingLog = 'C:\ProgramData\DormaKaba\Server\Polling\logs.log'
     }
 }
+
 # ---------------------------
 # Start to install
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
@@ -796,7 +805,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "WARN" "$srcHotelData"
         Logging "WARN" "Try this script again after database files have been loaded."
         Write-Host ''
-        Stop-Script
+        Stop-Script 5
     }  
     $instGdb = (Get-ChildItem -Path $shareFolder).Name
     If ((($instGdb -match '^SAFLOKDATAV2.GDB$').Count -eq 0) -or (($instGdb -match '^SAFLOKLOGV2.GDB$').Count -eq 0)) {
@@ -824,7 +833,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "ERROR" "Please contact your system administrator"
         Start-Sleep -S 2
         Write-Host''
-        Stop-Script
+        Stop-Script 5
     }
     # -------------------------------------------------------------------
     # start firebird service
@@ -841,7 +850,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $isInstalledMsgr = Assert-IsInstalled "Saflok Messenger Server"
 	If ($isInstalledMsgr -ne $True) {
 		Logging "WARN" "Please install Saflok messenger before Lens."
-		Stop-Script
+		Stop-Script 5
 	} Else {
         $featureState = dism /online /get-featureinfo /featurename:IIS-WebServerRole | findstr /C:'State : '
         $features = [System.Collections.ArrayList]@(
@@ -864,7 +873,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             'IIS-HttpCompressionStatic' 
         )
         If ($featureState -match 'Disabled') {
-            Logging "" "$mesgConfigIIS"
+            Logging "INFO" "$mesgConfigIIS"
             Switch ($winOS) {
                 {$winOS -lt 6.1} {
                     $features.Add('IIS-NetFxExtensibility') | Out-Null
@@ -1102,7 +1111,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Start-Sleep -Second 300
     } Else {
         Logging "ERROR" "Missing Messenger Lens program, Please make sure Messenger Lens is be installed properly. "
-        Stop-Script
+        Stop-Script 5
     }
 
 } 
@@ -1110,5 +1119,5 @@ If ($confirmation -eq 'N' -or $confirmation -eq 'NO') {
     Logging " " ""
     Write-Colr -Text $cname," Thank you, Bye!" -Colour White,Gray
     Write-Host ''
-    Stop-Script
+    Stop-Script 5
 }
