@@ -563,8 +563,7 @@ Logging "" "+---------------------------------------------------------"
 Logging "" "| $time"
 Write-Colr -Text $cname, " |"," $hotelName" -Colour White,cyan,Yellow
 Logging "" "| SAFLOK VERSION: $version"
-IF ($winOS -le 6.1) {Logging "" "| INSTALLING ON: WINDOWS 7 / SERVER 2008 R2 OR LOWER"}
-				Else {Logging "" "| INSTALLING ON: $osDetail"}
+Logging "" "| INSTALLING ON: $osDetail"
 Logging "" "+---------------------------------------------------------"
 Logging "" "| SCRIPT VERSION: $scriptVersion"
 Logging "" "+---------------------------------------------------------"
@@ -897,7 +896,6 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             'IIS-ManagementConsole',
             'IIS-HttpCompressionStatic' 
         )
-        $iisFeatures
         
         if ($winOS -lt 6.1) {
             $iisFeatures += 'IIS-NetFxExtensibility'
@@ -911,14 +909,14 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             $iisFeatures += 'WCF-NonHTTP-Activation'
             # arrays to collect features in disabled state
             $disabledFeatures = @()
-            For ([int]$i=0; $i -lt ($iisFeatures.length-1); $i++) {
+            For ([int]$i=0; $i -lt ($iisFeatures.count-1); $i++) {
                 $feature = $iisFeatures[$i]
-                If ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
+                If ((dism /online /get-featureinfo /featurename:$feature | findstr /C:'State : ') -match 'Disabled') {
                     $disabledFeatures += $feature 
                 }
             }
             # check if there is any IIS feature which Messenger LENS requires is in disabled state
-            switch (($disabledFeatures.Length-1) -gt 0) {
+            switch (($disabledFeatures.length) -gt 0) {
                 $true {
                     Logging "INFO" "Start installing the following IIS features:"
                     Logging "INFO" "$disabledFeatures"
@@ -944,18 +942,19 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             $iisFeatures += 'IIS-ApplicationInit'
             # arrays to collect features in disabled state
             $disabledFeatures = @()                   
-            For ([int]$i=0; $i -lt ($iisFeatures.Length -1 ); $i++) {
+            For ([int]$i=0; $i -lt ($iisFeatures.count -1); $i++) {
                 $feature = $iisFeatures[$i]
                 If ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
                     $disabledFeatures += $feature 
                 }
             }
-            switch (($disabledFeatures.Length-1) -gt 0) {
+            switch (($disabledFeatures.length) -gt 0) {
                 $true {
                     Logging "INFO" "Start installing the following IIS features:"
                     Logging "INFO" "$disabledFeatures"
                     Start-Sleep -Seconds 5
                     Foreach ($disabled In $disabledFeatures) {
+                        Logging "INFO" "Installing ISS feature $disabled..."
                         Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
                         Logging "INFO" "Enabled IIS feature $disabled."
                         Start-Sleep -Seconds 2
