@@ -91,7 +91,6 @@ Function Write-Colr {
 Function Logging {
     [CmdletBinding()]
     Param(
-        [string]$state,
         [string[]]$message
     )
 
@@ -102,14 +101,13 @@ Function Logging {
     $part5 = "$message"
     Switch ($state)
     {
-        ERROR {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
-        WARN  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
-        INFO  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
-        PROGRESS {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
-        WARNING  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
-        SUCCESS {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Green,Green,Green}
-        ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
-        default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
+        'ERROR' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
+        'WARN'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
+        'INFO'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
+        'PROGRESS' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
+        'WARNING'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
+        'SUCCESS' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Green,Green,White}
+        default {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
    }
 }
 
@@ -607,7 +605,7 @@ Switch ($scriptPath -match $pattern) {
                     # -----------------------
                     # HEADER Information
                     Logging " " ""
-                    Logging " " "By installing you accept licenses for the packages."
+                    Logging "By installing you accept licenses for the packages."
                     $confirmation = Read-Host "$cname Do you want to run the script?([Y]es/[N]o)"
                     $confirmation = $confirmation.ToUpper()
                 }
@@ -1062,12 +1060,12 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Foreach ($service In $servicesCheck) {
             $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
             If ($serviceStatus.Status -eq "stopped") {
-                Logging " " "Staring service $service."
+                Logging "Staring service $service."
                 Start-Service -Name $service -ErrorAction SilentlyContinue
                 $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
-                If ($serviceStatus.Status -eq "running") { Logging " " "$service has been started."}
+                If ($serviceStatus.Status -eq "running") { Logging "$service has been started."}
                 Start-Sleep -S 1
-            } Else {Logging " " "$service is in running state.";Start-Sleep -S 1}
+            } Else {Logging "$service is in running state.";Start-Sleep -S 1}
         }
         # ----------------------------------------------------------------
         # OPEN GUI AND CONFIG FILE
@@ -1079,20 +1077,20 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         } # run IRS GUI
         Get-Process -ProcessName notepad* | Stop-Process -Force; Start-Sleep -S 1
         If ((Assert-isInstalled "Saflok Program") -and (Test-Folder $hh6ConfigFile)) {
-            Logging " " "[ KabaSaflokHH6.exe.config ]"
+            Logging "[ KabaSaflokHH6.exe.config ]"
             Start-Process notepad $hh6ConfigFile -WindowStyle Minimized; Start-Sleep -S 1
         } # hh6 config
         If ((Assert-isInstalled  "Messenger LENS") -and (Test-Folder $lensPmsConfigFileInst)) {
-            Logging " " "[ LENS_PMS.exe.config ]"
+            Logging "[ LENS_PMS.exe.config ]"
             Start-Process notepad $lensPmsConfigFileInst -WindowStyle Minimized; Start-Sleep -S 1
         } # PMS config
         If($version -eq '5.45') {
             If ((Test-Path -Path $digitalPollingExe -PathType Leaf) -and (Test-Folder $pollingConfigInst)) {
-                Logging " " "[ DigitalKeysPollingService.exe.config ]"
+                Logging "[ DigitalKeysPollingService.exe.config ]"
                 Start-Process notepad $pollingConfigInst -WindowStyle Minimized; Start-Sleep -S 1
             } # polling config
             If ((Test-Path -Path $digitalPollingExe -PathType Leaf) -and (Test-Folder $pollingLog)) {
-                Logging " " "[ Polling log ]"
+                Logging "[ Polling log ]"
                 Start-Process notepad $pollingLog -WindowStyle Minimized; Start-Sleep -S 1
                 $TargetFile = $pollingLog
                 $ShortcutFile = "$env:Public\Desktop\PollingLog.lnk"
@@ -1133,12 +1131,12 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         if ($version -eq '5.45') {
             $pollingVer = Get-FileVersion $digitalPollingExe
         }
-        If (Test-Path $gatewayExe -PathType Leaf) { Logging " " "Gateway: $gatewayVer"; Start-Sleep -Seconds 1 }
-        If (Test-Path $hmsExe -PathType Leaf) { Logging " " "HMS:     $hmsVer"; Start-Sleep -Seconds 1 }
-        If (Test-Path $wsPmsExe -PathType Leaf) { Logging " " "PMS:     $wsPmsVer"; Start-Sleep -Seconds 1 }
-        If (Test-Path $kdsExe -PathType Leaf) { Logging " " "KDS:     $kdsVer"; Start-Sleep -Seconds 1 }
+        If (Test-Path $gatewayExe -PathType Leaf) { Logging "Gateway: $gatewayVer"; Start-Sleep -Seconds 1 }
+        If (Test-Path $hmsExe -PathType Leaf) { Logging "HMS:     $hmsVer"; Start-Sleep -Seconds 1 }
+        If (Test-Path $wsPmsExe -PathType Leaf) { Logging "PMS:     $wsPmsVer"; Start-Sleep -Seconds 1 }
+        If (Test-Path $kdsExe -PathType Leaf) { Logging "KDS:     $kdsVer"; Start-Sleep -Seconds 1 }
         If ($version -eq '5.45') {
-            If (Test-Path $digitalPollingExe -PathType Leaf) { Logging " " "POLLING: $pollingVer"; Start-Sleep -Seconds 1 }
+            If (Test-Path $digitalPollingExe -PathType Leaf) { Logging "POLLING: $pollingVer"; Start-Sleep -Seconds 1 }
         }
         Logging "" "+---------------------------------------------------------"
         Logging "" "DONE"
