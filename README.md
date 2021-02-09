@@ -2,11 +2,10 @@
 <ol>
     <li> Windows 7+ / windows Server 2003+ </li>
     <li> PowerShell V5+ </li>
-    <li> If on windows 7, have to execute this command first in Powershell: <br />
+    <li> If on windows 7, have to execute this command first in Powershell: </li>
     ````Powershell 
     set-executivePolicy remoteSigned -force 
     ```` 
-    </li>
 </ol>
 
 # Features
