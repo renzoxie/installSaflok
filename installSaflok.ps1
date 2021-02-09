@@ -545,8 +545,8 @@ $hotelName = 'Property: ' + $property.trim().toUpper()
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
 # Windows OS version in decimal 
-[array]$osversion = (Get-CimInstance -ClassName CIM_OperatingSystem).version.split(".")
-[decimal]$winOS = $osversion[0] + '.' + $osversion[1]
+$osversion = (Get-CimInstance -ClassName CIM_OperatingSystem).version.split(".") -AS [array]
+$winOS = ($osversion[0] + '.' + $osversion[1]) -AS [decimal]
 # Windows OS information
 $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
 # ---------------------------
@@ -917,7 +917,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 switch (($disabledFeatures.length) -gt 0) {
                     $true {
                         Foreach ($disabled In $disabledFeatures) {
-                            Logging "PROGRESS" "Installing ISS feature: $disabled"
+                            Logging "PROGRESS" "Adding feature $disabled"
                             DISM /online /enable-feature /featurename:$disabled | Out-Null
                             Start-Sleep -S 1
                             Logging "SUCCESS" "Enabled IIS feature: $disabled."
@@ -953,7 +953,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 switch (($disabledFeatures.length) -gt 0) {
                     $true {
                         Foreach ($disabled In $disabledFeatures) {
-                            Logging "PROGRESS" "Installing ISS feature: $disabled"
+                            Logging "PROGRESS" "Adding feature $disabled"
                             Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
                             Logging "SUCCESS" "Enabled IIS feature: $disabled."
                             Start-Sleep -Seconds 2
@@ -1153,8 +1153,9 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "" "+---------------------------------------------------------"
         Logging "" "DONE"
         Logging "" "+---------------------------------------------------------"
-        Write-Colr -Text $cname," Thanks for installing Saflok!" -Colour White,Gray
-        Logging "INFO" "The recent program changes indicate a reboot is necessary."
+        Logging "" ""
+        Write-Colr -Text $cname," Thanks for installing Saflok." -Colour White,Green
+        Write-host "NOTE: The recent program changes indicate a reboot is necessary." -ForegroundColor Yellow 
         Write-Host "";Write-Host ""
         # clean up script files and SAFLOK folder
         If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
