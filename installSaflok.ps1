@@ -73,7 +73,7 @@ $mesgFailed = "installation failed!"
 $mesgNoSource = "Missing source installation folder."
 $mesgToInstall = "will now be installed, Please wait..."
 $mesgConfigIIS = "Checking IIS features Status for Messenger LENS..."
-$mesgIISEnabled = "ALL IIS features  Messenger LENS requires are there."
+$mesgIISEnabled = "ALL IIS features Messenger LENS requires are ready."
 
 # ---------------------------
 # Functions
@@ -91,6 +91,7 @@ Function Write-Colr {
 Function Logging {
     [CmdletBinding()]
     Param(
+        [string]$state,
         [string[]]$message
     )
 
@@ -107,7 +108,7 @@ Function Logging {
         'PROGRESS' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
         'WARNING'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
         'SUCCESS' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Green,Green,White}
-        default {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
+        "" {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
    }
 }
 
@@ -545,9 +546,10 @@ $cname = "[$vendor]"
 $hotelName = 'Property: ' + $property.trim().toUpper()
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
+# Windows OS version in decimal 
 [array]$osversion = (Get-CimInstance -ClassName CIM_OperatingSystem).version.split(".")
 [decimal]$winOS = $osversion[0] + '.' + $osversion[1]
-
+# Windows OS information
 $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
 # ---------------------------
 # MENU OPTION
@@ -565,7 +567,7 @@ Logging "" "| INSTALLING ON: $osDetail"
 Logging "" "+---------------------------------------------------------"
 Logging "" "| SCRIPT VERSION: $scriptVersion"
 Logging "" "+---------------------------------------------------------"
-Logging " " ""
+Logging "" ""
 
 # ---------------------------
 # DRIVE INFO
@@ -587,7 +589,6 @@ $installDrive = $inputDrive + ':'
 # ---------------------------
 # SOURCE FOLDER - INSTALL SCRIPT
 $packageFolders =  Get-ChildItem ($scriptPath) | Select-Object Name | Sort-Object -Property Name
-
 # ---------------------------
 # validate if source folder exist
 Switch ($version) {
@@ -604,10 +605,11 @@ Switch ($scriptPath -match $pattern) {
                 } Else {
                     # -----------------------
                     # HEADER Information
-                    Logging " " ""
+                    Logging "" ""
                     Logging "By installing you accept licenses for the packages."
                     $confirmation = Read-Host "$cname Do you want to run the script?([Y]es/[N]o)"
                     $confirmation = $confirmation.ToUpper()
+                    Logging "" ""
                 }
             }
     $False  {
@@ -766,7 +768,7 @@ Switch ($version) {
 # ---------------------------
 # Start to install
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
-    Logging " " ""
+    Logging "" ""
     # -------------------------------------------------------------------
     # install Saflok client
     $isInstalled = 0
@@ -1060,12 +1062,12 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Foreach ($service In $servicesCheck) {
             $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
             If ($serviceStatus.Status -eq "stopped") {
-                Logging "Staring service $service."
+                Logging "" "Staring service $service."
                 Start-Service -Name $service -ErrorAction SilentlyContinue
                 $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
-                If ($serviceStatus.Status -eq "running") { Logging "$service has been started."}
+                If ($serviceStatus.Status -eq "running") { Logging "" "$service has been started."}
                 Start-Sleep -S 1
-            } Else {Logging "$service is in running state.";Start-Sleep -S 1}
+            } Else {Logging "" "$service is in running state.";Start-Sleep -S 1}
         }
         # ----------------------------------------------------------------
         # OPEN GUI AND CONFIG FILE
@@ -1077,20 +1079,20 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         } # run IRS GUI
         Get-Process -ProcessName notepad* | Stop-Process -Force; Start-Sleep -S 1
         If ((Assert-isInstalled "Saflok Program") -and (Test-Folder $hh6ConfigFile)) {
-            Logging "[ KabaSaflokHH6.exe.config ]"
+            Logging "" "[ KabaSaflokHH6.exe.config ]"
             Start-Process notepad $hh6ConfigFile -WindowStyle Minimized; Start-Sleep -S 1
         } # hh6 config
         If ((Assert-isInstalled  "Messenger LENS") -and (Test-Folder $lensPmsConfigFileInst)) {
-            Logging "[ LENS_PMS.exe.config ]"
+            Logging "" "[ LENS_PMS.exe.config ]"
             Start-Process notepad $lensPmsConfigFileInst -WindowStyle Minimized; Start-Sleep -S 1
         } # PMS config
         If($version -eq '5.45') {
             If ((Test-Path -Path $digitalPollingExe -PathType Leaf) -and (Test-Folder $pollingConfigInst)) {
-                Logging "[ DigitalKeysPollingService.exe.config ]"
+                Logging "" "[ DigitalKeysPollingService.exe.config ]"
                 Start-Process notepad $pollingConfigInst -WindowStyle Minimized; Start-Sleep -S 1
             } # polling config
             If ((Test-Path -Path $digitalPollingExe -PathType Leaf) -and (Test-Folder $pollingLog)) {
-                Logging "[ Polling log ]"
+                Logging "" "[ Polling log ]"
                 Start-Process notepad $pollingLog -WindowStyle Minimized; Start-Sleep -S 1
                 $TargetFile = $pollingLog
                 $ShortcutFile = "$env:Public\Desktop\PollingLog.lnk"
@@ -1131,12 +1133,12 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         if ($version -eq '5.45') {
             $pollingVer = Get-FileVersion $digitalPollingExe
         }
-        If (Test-Path $gatewayExe -PathType Leaf) { Logging "Gateway: $gatewayVer"; Start-Sleep -Seconds 1 }
-        If (Test-Path $hmsExe -PathType Leaf) { Logging "HMS:     $hmsVer"; Start-Sleep -Seconds 1 }
-        If (Test-Path $wsPmsExe -PathType Leaf) { Logging "PMS:     $wsPmsVer"; Start-Sleep -Seconds 1 }
-        If (Test-Path $kdsExe -PathType Leaf) { Logging "KDS:     $kdsVer"; Start-Sleep -Seconds 1 }
+        If (Test-Path $gatewayExe -PathType Leaf) { Logging "" "Gateway: $gatewayVer"; Start-Sleep -Seconds 1 }
+        If (Test-Path $hmsExe -PathType Leaf) { Logging "" "HMS:     $hmsVer"; Start-Sleep -Seconds 1 }
+        If (Test-Path $wsPmsExe -PathType Leaf) { Logging "" "PMS:     $wsPmsVer"; Start-Sleep -Seconds 1 }
+        If (Test-Path $kdsExe -PathType Leaf) { Logging "" "KDS:     $kdsVer"; Start-Sleep -Seconds 1 }
         If ($version -eq '5.45') {
-            If (Test-Path $digitalPollingExe -PathType Leaf) { Logging "POLLING: $pollingVer"; Start-Sleep -Seconds 1 }
+            If (Test-Path $digitalPollingExe -PathType Leaf) { Logging "" "POLLING: $pollingVer"; Start-Sleep -Seconds 1 }
         }
         Logging "" "+---------------------------------------------------------"
         Logging "" "DONE"
@@ -1155,7 +1157,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 
 }
 If ($confirmation -eq 'N' -or $confirmation -eq 'NO') {
-    Logging " " ""
+    Logging "" ""
     Write-Colr -Text $cname," Thank you, Bye!" -Colour White,Gray
     Write-Host ''
     Stop-Script 5
