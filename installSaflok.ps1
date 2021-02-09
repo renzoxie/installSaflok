@@ -34,7 +34,7 @@ Param (
     [String]$property = 'vagrant',
 
     [Parameter(Mandatory=$False)]
-    [String]$vendor = 'dormakaba'
+    [String]$vendor = 'Jeeking'
 )
 
 # ---------------------------
@@ -107,6 +107,7 @@ Function Logging {
         INFO  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
         PROGRESS {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
         WARNING  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
+        SUCCESS {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Green,Green,Green}
         ""   {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
         default { Write-Colr -Text $part1,$part2,$part5 -Colour White,White,White}
    }
@@ -120,7 +121,7 @@ Function Write-Complete {
         [string]
         $pName
     )
-    Logging " " "The install of $pName was successful."
+    Logging "SUCCESS" "The install of $pName was successful."
 }
 # ---------------------------
 # Stop Script
@@ -253,7 +254,8 @@ Function Install-Prog {
     }
 
 }
-
+# ---------------------------
+# INSTALL PROGRAM Plus Patch
 Function Install-ProgPlusPatch {
     [CmdletBinding()]
     Param (
@@ -314,7 +316,6 @@ Function Install-ProgPlusPatch {
         }
     }
 }
-
 # ---------------------------
 # Install Lens Patch
 Function Install-LensPatch {
@@ -343,7 +344,6 @@ Function Install-LensPatch {
         }
     }
 }
-
 # ---------------------------
 # Update File Version
 Function Update-FileVersion {
@@ -445,7 +445,6 @@ Function New-Share {
 
 	net share $shareName=$shareFolder "/GRANT:Everyone,FULL" /REMARK:"Saflok Database Folder Share"
 }
-
 # ---------------------------
 # Install SQL
 Function Install-Sql {
@@ -463,8 +462,7 @@ Function Install-Sql {
         If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script 5}
         If ($packageFolder -eq $true) {
             Logging "PROGRESS" "$pName $mesgToInstall"
-            Logging "INFO" "The installer is 116M+, this could take a while, please wait... "
-            Logging "INFO" "This will take more than 5 minutes."
+            Logging "INFO" "The installer is 116M+, this could take more than 5 minutes, please wait... "
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
             $installed = Assert-IsInstalled $pName
             If ($installed) {
@@ -898,7 +896,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             'IIS-ManagementConsole',
             'IIS-HttpCompressionStatic'
         )
-        If ($winOS -lt 6.1) {
+        If ($winOS -le 6.1) {
             $iisFeatures += 'IIS-NetFxExtensibility'
             $iisFeatures += 'IIS-RequestMonitor'
             $iisFeatures += 'WAS-ProcessModel'
@@ -919,14 +917,12 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             # check if there is any IIS feature which Messenger LENS requires is in disabled state
             switch (($disabledFeatures.length) -gt 0) {
                 $true {
-                    Logging "INFO" "Start installing the following IIS features:"
-                    Logging "INFO" "$disabledFeatures"
-                    Start-Sleep -Seconds 5
                     Foreach ($disabled In $disabledFeatures) {
+                        Logging "PROGRESS" "Installing ISS feature: $disabled"
                         DISM /online /enable-feature /featurename:$disabled | Out-Null
                         Start-Sleep -S 1
-                        Logging "INFO" "Enabled IIS feature $disabled."
-                        Start-Sleep -Seconds 2
+                        Logging "SUCCESS" "Enabled IIS feature: $disabled."
+                        Start-Sleep -Seconds 1
                     }
                 }
                 $false {
@@ -951,13 +947,10 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             }
             switch (($disabledFeatures.length) -gt 0) {
                 $true {
-                    Logging "INFO" "Start installing the following IIS features:"
-                    Logging "INFO" "$disabledFeatures"
-                    Start-Sleep -Seconds 5
                     Foreach ($disabled In $disabledFeatures) {
-                        Logging "INFO" "Installing ISS feature $disabled..."
+                        Logging "PROGRESS" "Installing ISS feature: $disabled"
                         Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
-                        Logging "INFO" "Enabled IIS feature $disabled."
+                        Logging "SUCCESS" "Enabled IIS feature: $disabled."
                         Start-Sleep -Seconds 2
                     }
                 }
@@ -968,10 +961,6 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             }
         }
     }
-    #####################################
-    Stop-script 5
-
-
 
     # -------------------------------------------------------------------
     # Microsoft SQL Server 2012
