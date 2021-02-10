@@ -102,11 +102,11 @@ Function Logging {
     $part5 = "$message"
     Switch ($state)
     {
-        'ERROR' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
+        'ERRO' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
         'WARN'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
         'INFO'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
-        'PROGRESS' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
-        'SUCCESS' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
+        'PROG' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
+        'SUCC' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
         "" {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
    }
 }
@@ -119,7 +119,7 @@ Function Write-Complete {
         [string]
         $pName
     )
-    Logging "SUCCESS" "The install of $pName was successful."
+    Logging "SUCC" "The install of $pName was successful."
 }
 # ---------------------------
 # Stop Script
@@ -169,7 +169,7 @@ Function Get-FileVersion {
             If ($testFile -like "*.exe") {
                 (Get-Item $testFile).VersionInfo.FileVersion
             } Else {
-                Logging "ERROR" "Can not get file version as it is not an executable file."
+                Logging "ERRO" "Can not get file version as it is not an executable file."
             }
         }
         $False {Write-Warning -Message "Oops, File $testFile does not exist!"}
@@ -225,26 +225,26 @@ Function Install-Prog {
             Logging "INFO" "$pName $mesgInstalled"
             Start-Sleep -Seconds 2
         } Else {
-            Logging "ERROR" "$mesgDiffVer - $pName"
+            Logging "ERRO" "$mesgDiffVer - $pName"
             Stop-Script 5
         }
     } Else {
         If ($packageFolder -eq $false) {
-            Logging "ERROR" "$pName $mesgNoPkg"
+            Logging "ERRO" "$pName $mesgNoPkg"
             Stop-Script 5
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
-            Logging "ERROR" "$mesgDiffVer"
+            Logging "ERRO" "$mesgDiffVer"
             Stop-Script 5
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
-            Logging "PROGRESS" "$pName $mesgToInstall"
+            Logging "PROG" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
             If (Assert-IsInstalled $pName) {
                 Write-Complete $pName
                 Start-Sleep -Seconds 2
             } Else {
-                Logging "ERROR" "$pName $mesgFailed"
+                Logging "ERRO" "$pName $mesgFailed"
                 Stop-Script 5
             }
         }
@@ -275,31 +275,31 @@ Function Install-ProgPlusPatch {
             Logging "INFO" "$pName $mesgInstalled"
             Start-Sleep -Seconds 2
         } Elseif ($curVersion -eq $ver1) {
-            Logging "PROGRESS" "$pName patch $mesgToInstall"
+            Logging "PROG" "$pName patch $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             $getVersion = Get-InstVersion -pName $pName
             If ($getVersion -eq $ver2) {
                 Logging "INFO" "$pName $mesgInstalled"
                 Start-Sleep -Seconds 2
             } Else {
-                Logging "ERROR" "$pName $mesgFailed"
+                Logging "ERRO" "$pName $mesgFailed"
                 Stop-Script 5
             }
         } Else {
-            Logging "ERROR" "$mesgDiffVer - $pName"
+            Logging "ERRO" "$mesgDiffVer - $pName"
             Stop-Script 5
         }
     } Else {
         If ($packageFolder -eq $false) {
-            Logging "ERROR" "$pName $mesgNoPkg"
+            Logging "ERRO" "$pName $mesgNoPkg"
             Stop-Script 5
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
-            Logging "ERROR" "$mesgDiffVer"
+            Logging "ERRO" "$mesgDiffVer"
             Stop-Script 5
         }
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
-            Logging "PROGRESS" "$pName $mesgToInstall"
+            Logging "PROG" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             $getVersion = Get-InstVersion -pName $pName
@@ -307,7 +307,7 @@ Function Install-ProgPlusPatch {
                 Write-Complete $pName
                 Start-Sleep -Seconds 2
             } Else {
-                Logging "ERROR" "$pName $mesgFailed"
+                Logging "ERRO" "$pName $mesgFailed"
                 Stop-Script 5
             }
         }
@@ -329,14 +329,14 @@ Function Install-LensPatch {
         Logging "INFO" "$pName $mesgInstalled"
         Start-Sleep -Seconds 2
     } Else {
-        Logging "PROGRESS" "$pName $mesgToInstall"
+        Logging "PROG" "$pName $mesgToInstall"
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait; Start-Sleep 3
         Update-FileVersion $targetFile $destVersion
         If ((Get-FileVersion $targetFile) -eq $destVersion) {
             Write-Complete $pName
             Start-Sleep -Seconds 2
         } Else {
-            Logging "ERROR" "$pName $mesgFailed"
+            Logging "ERRO" "$pName $mesgFailed"
             Stop-Script 5
         }
     }
@@ -370,10 +370,10 @@ Function Install-DigitalPolling {
     If (Test-Folder $targetFile) {
         Logging "INFO" "$pName $mesgInstalled"
     } Else {
-        Logging "PROGRESS" "$pName $mesgToInstall"
+        Logging "PROG" "$pName $mesgToInstall"
         Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
         If (Test-Folder $targetFile){Write-Complete $pName; Start-Sleep -Seconds 2}
-        Else {Logging "Error" "$pName $mesgFailed";Stop-Script 5}
+        Else {Logging "ERRO" "$pName $mesgFailed";Stop-Script 5}
     }
 }
 # ---------------------------
@@ -406,13 +406,13 @@ Function Install-PmsTester {
     $testInstParent = Test-Folder $instParent
     $testInstFolder0 = Test-Folder $instFolder0
     $testInstFolder1 = Test-Folder $instFolder1
-    If ($testSrcPackage -eq $False) { Logging "ERROR" "$mesgNoSource"; Stop-Script }
-    If ($testInstParent -eq $False) { Logging "ERROR" "Messenger LENS has not been installed yet!" ; Stop-Script 5 }
+    If ($testSrcPackage -eq $False) { Logging "ERRO" "$mesgNoSource"; Stop-Script }
+    If ($testInstParent -eq $False) { Logging "ERRO" "Messenger LENS has not been installed yet!" ; Stop-Script 5 }
     If ($fileCopied) {
         Logging "INFO" "$pName $mesgInstalled."
         Start-Sleep -Seconds 2
     } Else {
-        If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging "PROGRESS" "$pName $mesgToInstall" }
+        If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging "PROG" "$pName $mesgToInstall" }
         If (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $false))  {
             Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
             Write-Complete $pName
@@ -456,9 +456,9 @@ Function Install-Sql {
     If ($isInstalled -eq $true) {
         Logging "INFO" "$pName $mesgInstalled"
     } Else {
-        If ($packageFolder -eq $false) {Logging "ERROR" "$pName $mesgNoPkg";Stop-Script 5}
+        If ($packageFolder -eq $false) {Logging "ERRO" "$pName $mesgNoPkg";Stop-Script 5}
         If ($packageFolder -eq $true) {
-            Logging "PROGRESS" "$pName $mesgToInstall"
+            Logging "PROG" "$pName $mesgToInstall"
             Logging "INFO" "The installer is 116M+, this could take more than 5 minutes, please wait... "
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
             $installed = Assert-IsInstalled $pName
@@ -466,9 +466,9 @@ Function Install-Sql {
                 Write-Complete $pName
                 Start-Sleep -Seconds 2
 			} Else {
-				Logging "ERROR" "$pName $mesgFailed"
-				Logging "ERROR" "Reboot system and try the script again"
-				Logging "ERROR" "If still same, please contact your SAFLOK representative."
+				Logging "ERRO" "$pName $mesgFailed"
+				Logging "ERRO" "Reboot system and try the script again"
+				Logging "ERRO" "If still same, please contact your SAFLOK representative."
 				Stop-Script 10
 			}
         }
@@ -492,12 +492,12 @@ Function Update-SqlPasswd {
             $objSQLConnection.Open() | Out-Null
             $objSQLConnection.Close()
         } Catch {
-            Logging "ERROR" "Fail"
+            Logging "ERRO" "Fail"
             $errText =  $Error[0].ToString()
             If ($errText.Contains("network-related")) {
-                Logging "ERROR" "Connection Error. Check server name, port, firewall."
+                Logging "ERRO" "Connection Error. Check server name, port, firewall."
             }
-            Logging "ERROR" "$errText"
+            Logging "ERRO" "$errText"
             continue
         }
         $srv = New-Object "Microsoft.SqlServer.Management.Smo.Server" $ServerName
@@ -533,7 +533,7 @@ Function Set-ServiceRecovery{
 [Decimal]$psVerion = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor
 If ($psVerion -lt $miniPsRequire) {
     Logging "INFO" "Your current PowerShell version is v$psVerion."
-    Logging "ERROR" "This script requires PowerShell version $miniPsRequire or above."
+    Logging "ERRO" "This script requires PowerShell version $miniPsRequire or above."
     Logging "WARN" "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/."
     Logging "WARN" "Reboot server after installing Powershell 5 or above, run this script again."
     Stop-Script 5
@@ -544,7 +544,7 @@ $cname = "[$vendor]"
 $hotelName = 'Property: ' + $property.trim().toUpper()
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
-# Windows OS version in decimal 
+# Windows OS version in decimal
 $osversion = (Get-CimInstance -ClassName CIM_OperatingSystem).version.split(".") -AS [array]
 $winOS = ($osversion[0] + '.' + $osversion[1]) -AS [decimal]
 # Windows OS information
@@ -598,7 +598,7 @@ $verNoFromRootPath = $scriptPath.Substring($scriptPath.Length -11,3)
 Switch ($scriptPath -match $pattern) {
     $True  {
                 If ([int]$ver2Int -ne [int]$verNoFromRootPath) {
-                    Logging "ERROR" "Version input does NOT match corresponding source package."
+                    Logging "ERRO" "Version input does NOT match corresponding source package."
                     Stop-Script 5
                 } Else {
                     # -----------------------
@@ -611,7 +611,7 @@ Switch ($scriptPath -match $pattern) {
                 }
             }
     $False  {
-                Logging "ERROR" "$mesgNoSource"
+                Logging "ERRO" "$mesgNoSource"
                 Stop-Script 5
             }
 }
@@ -621,7 +621,7 @@ Switch ($scriptPath -match $pattern) {
 if ($inputDrive -IN $driveLetters) {
     Logging "INFO" "You chose drive $inputDrive"
 } else {
-    Logging "ERROR" "We could not install on drive $inputDrive."
+    Logging "ERRO" "We could not install on drive $inputDrive."
     Write-Warning -Message "Please re-run the script again to input a correct drive."
     Stop-Script 5
 }
@@ -631,7 +631,7 @@ if ($inputDrive -IN $driveLetters) {
 if ($version -IN $versionOptions) {
     Logging "INFO" "We are going to install version $version"
 } else {
-    Logging "ERROR" "The version number specified is NOT correct."
+    Logging "ERRO" "The version number specified is NOT correct."
     Write-Warning -Message "Please re-run the script again to input a correct version."
     Stop-Script 5
 }
@@ -851,8 +851,8 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     } Elseif ((Get-SmbShare | where-Object {$_.Name -eq $shareName}) -and ($winOS -gt 6.1) ) {
         Logging "INFO" "The Saflok database folder already been shared.";Start-Sleep -S 1
     } Else {
-        Logging "ERROR" "Share folder does not exist"
-        Logging "ERROR" "Please contact your system administrator"
+        Logging "ERRO" "Share folder does not exist"
+        Logging "ERRO" "Please contact your system administrator"
         Start-Sleep -S 2
         Write-Host''
         Stop-Script 5
@@ -894,7 +894,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             'IIS-ManagementConsole',
             'IIS-HttpCompressionStatic'
         )
-        If ($winOS -le 6.1) { 
+        If ($winOS -le 6.1) {
             Try {
                 $iisFeatures += 'IIS-NetFxExtensibility'
                 $iisFeatures += 'IIS-RequestMonitor'
@@ -917,10 +917,10 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 switch (($disabledFeatures.length) -gt 0) {
                     $true {
                         Foreach ($disabled In $disabledFeatures) {
-                            Logging "PROGRESS" "Adding feature $disabled"
+                            Logging "PROG" "Adding feature $disabled"
                             DISM /online /enable-feature /featurename:$disabled | Out-Null
                             Start-Sleep -S 1
-                            Logging "SUCCESS" "Enabled IIS feature: $disabled."
+                            Logging "SUCC" "Enabled feature: $disabled."
                             Start-Sleep -Seconds 1
                         }
                     }
@@ -929,7 +929,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                         Start-Sleep -Seconds 2
                     }
                 }
-            } 
+            }
             catch {
                 Write-Warning -Message "Oops, fail to enable IIS features for Messenger Lens."
                 Stop-Script 5
@@ -953,9 +953,9 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 switch (($disabledFeatures.length) -gt 0) {
                     $true {
                         Foreach ($disabled In $disabledFeatures) {
-                            Logging "PROGRESS" "Adding feature $disabled"
+                            Logging "PROG" "Adding feature $disabled"
                             Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
-                            Logging "SUCCESS" "Enabled IIS feature: $disabled."
+                            Logging "SUCC" "Enabled feature: $disabled."
                             Start-Sleep -Seconds 2
                         }
                     }
@@ -964,7 +964,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                         Start-Sleep -Seconds 2
                     }
                 }
-            } 
+            }
             catch {
                 Write-Warning -Message "Oops, fail to enable IIS features for Messenger Lens."
                 Stop-Script 5
@@ -1155,14 +1155,15 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "" "+---------------------------------------------------------"
         Logging "" ""
         Write-Colr -Text $cname," Thanks for installing Saflok." -Colour White,Green
-        Write-host "NOTE: The recent program changes indicate a reboot is necessary." -ForegroundColor Yellow 
+        Write-host ""
+        Write-host "NOTE: The recent program changes indicate a reboot is necessary." -ForegroundColor Yellow
         Write-Host "";Write-Host ""
         # clean up script files and SAFLOK folder
         If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }
         Start-Sleep -Second 300
     } Else {
-        Logging "ERROR" "Missing Messenger Lens program, Please make sure Messenger Lens is be installed properly. "
+        Logging "ERRO" "Missing Messenger Lens program, Please make sure Messenger Lens is be installed properly. "
         Stop-Script 5
     }
 
