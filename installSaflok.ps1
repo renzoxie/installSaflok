@@ -78,16 +78,6 @@ $mesgConfigIIS = "Checking IIS features Status for Messenger LENS now..."
 $mesgIISEnabled = "ALL IIS features Messenger LENS requires are ready."
 
 # ---------------------------
-# IIS features Messenger Lens requires
-$iisFeatures = [System.Collections.ArrayList]@(
-    'IIS-WebServerRole', 'IIS-WebServer', 'IIS-CommonHttpFeatures', 'IIS-HttpErrors', 'IIS-ApplicationDevelopment', 
-	'IIS-RequestFiltering', 'IIS-HealthAndDiagnostics', 'IIS-HttpLogging', 'IIS-Performance', 'IIS-ISAPIExtensions', 
-	'IIS-ISAPIFilter', 'IIS-StaticContent', 'IIS-DefaultDocument', 'IIS-DirectoryBrowsing', 'IIS-ASP',
-    'IIS-ManagementConsole', 'IIS-HttpCompressionStatic', 'NetFx4Extended-ASPNET45', 'IIS-ASPNET45', 
-	'IIS-NetFxExtensibility45', 'IIS-Security', 'IIS-WebServerManagementTools', 'IIS-ApplicationInit'
-)
-
-# ---------------------------
 # Functions
 # ---------------------------
 # Customized color
@@ -118,7 +108,7 @@ Function Logging {
         'WARN'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
         'INFO'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
         'PROG' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
-        'SUCC' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
+        'SUCC' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Green,Green,Green}
         "" {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
    }
 }
@@ -149,7 +139,6 @@ Function Stop-Script {
 Function Test-Folder {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$True)]
         [string]$folder
     )
 
@@ -160,7 +149,6 @@ Function Test-Folder {
 Function Get-InstVersion {
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory=$True)]
         [String]$pName
     )
 
@@ -172,7 +160,6 @@ Function Get-InstVersion {
 Function Get-FileVersion {
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory=$True)]
         [String]$testFile
     )
 
@@ -191,12 +178,9 @@ Function Get-FileVersion {
 # ---------------------------
 # INSTALLED? RETURN BOOLEAN VALUE
 Function Assert-IsInstalled {
-    [CmdletBinding()]
     Param (
-        [Parameter(Mandatory=$True)]
         [String]$pName
     )
-
     $findIntallByName = [String](Get-Package -ProviderName Programs -IncludeWindowsInstaller |
     Where-Object {$_.Name -eq $pName})
     $condition = ($null -ne $findIntallByName)
@@ -205,34 +189,31 @@ Function Assert-IsInstalled {
 # ---------------------------
 # UPDATE INSTALLED STATUS
 Function Update-Status {
-    [CmdletBinding()]
     Param (
-        [Parameter(Mandatory=$True)]
         [String]$pName
     )
-    Assert-IsInstalled $pName | Out-Null
-    If (Assert-IsInstalled $pName) { $script:isInstalled = $true}
+    Assert-IsInstalled -pName $pName | Out-Null
+    If (Assert-IsInstalled -pName $pName) { $script:isInstalled = $true}
     $packageFolder | Out-Null
     $curVersion | Out-Null
     $exeExist | Out-Null
 }
+
 # ---------------------------
 # INSTALL PROGRAM
 Function Install-Prog {
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory=$True)]
         [String]$pName,
-
         [String]$packageFolder,
         [String]$curVersion,
-        [bool]$exeExist,
+        [BOOLEAN]$exeExist,
         [String]$destVersion,
         [String]$exeFile,
         [String]$issFile
     )
 
-    If ([bool]$isInstalled) {
+    If ($isInstalled) {
         If ($curVersion -eq $destVersion) {
             Logging "INFO" "$pName $mesgInstalled"
             Start-Sleep -Seconds 2
@@ -266,14 +247,11 @@ Function Install-Prog {
 # ---------------------------
 # INSTALL PROGRAM Plus Patch
 Function Install-ProgPlusPatch {
-    [CmdletBinding()]
     Param (
-        [Parameter(Mandatory=$True)]
         [String]$pName,
-
         [String]$packageFolder,
         [String]$curVersion,
-        [bool]$exeExist,
+        [BOOLEAN]$exeExist,
         [String]$ver1,
         [String]$ver2,
         [String]$exeFile,
@@ -283,36 +261,34 @@ Function Install-ProgPlusPatch {
     )
 
     If ($isInstalled) {
-        If ($curVersion -eq $ver2) {
-            Logging "INFO" "$pName $mesgInstalled"
-            Start-Sleep -Seconds 2
-        } Elseif ($curVersion -eq $ver1) {
-            Logging "PROG" "$pName patch $mesgToInstall"
-            Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
-            $getVersion = Get-InstVersion -pName $pName
-            If ($getVersion -eq $ver2) {
+            If ($curVersion -eq '5.6.8.0')   {
                 Logging "INFO" "$pName $mesgInstalled"
                 Start-Sleep -Seconds 2
+            } Elseif ($curVersion -eq '5.6.0.0')   {
+                Logging "PROG" "$pName patch $mesgToInstall"
+                Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
+                Start-Sleep -Seconds 2
+                $getVersion = Get-InstVersion -pName $pName
+                If ($getVersion -eq $ver2) {
+                    Logging "SUCC" "$pName $mesgInstalled"
+                    Start-Sleep -Seconds 2
+                } Else {
+                    Logging "ERRO" "$pName $mesgFailed"
+                    Stop-Script 5
+                }
             } Else {
-                Logging "ERRO" "$pName $mesgFailed"
+                Logging "ERRO" "$mesgDiffVer - $pName"
                 Stop-Script 5
             }
-        } Else {
-            Logging "ERRO" "$mesgDiffVer - $pName"
-            Stop-Script 5
-        }
     } Else {
         If ($packageFolder -eq $false) {
             Logging "ERRO" "$pName $mesgNoPkg"
             Stop-Script 5
         }
-        If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
-            Logging "ERRO" "$mesgDiffVer"
-            Stop-Script 5
-        }
         If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
             Logging "PROG" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
+            Start-Sleep -Seconds 2
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             $getVersion = Get-InstVersion -pName $pName
             If ($getVersion -eq $ver2) {
@@ -786,7 +762,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $packageFolder = Test-Folder ($absPackageFolders[3])
     $curVersion = Get-InstVersion -pName $pName
     $exeExist = Test-Folder $saflokClient
-    Update-Status $pName
+    Update-Status  $pName
     Switch ($version) {
         '5.45' {
                 $destVersion = $progVersion
@@ -888,11 +864,20 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		Stop-Script 5
 	} Else {
         Logging "INFO" "$mesgConfigIIS"
+        # ---------------------------
+        # IIS features Messenger Lens requires
+        $iisFeatures = [System.Collections.ArrayList]@(
+            'IIS-WebServerRole', 'IIS-WebServer', 'IIS-CommonHttpFeatures', 'IIS-HttpErrors', 'IIS-ApplicationDevelopment',
+        	'IIS-RequestFiltering', 'IIS-HealthAndDiagnostics', 'IIS-HttpLogging', 'IIS-Performance', 'IIS-ISAPIExtensions',
+        	'IIS-ISAPIFilter', 'IIS-StaticContent', 'IIS-DefaultDocument', 'IIS-DirectoryBrowsing', 'IIS-ASP',
+            'IIS-ManagementConsole', 'IIS-HttpCompressionStatic', 'NetFx4Extended-ASPNET45', 'IIS-ASPNET45',
+        	'IIS-NetFxExtensibility45', 'IIS-Security', 'IIS-WebServerManagementTools', 'IIS-ApplicationInit'
+        )
         # arrays to collect features in disabled state
         $disabledFeatures = @()
-		[int]$totalFeatures = $iisFeatures.count		
+		$totalFeatures = $iisFeatures.count
 		Try {
-		    [int]$i = 0
+		    $i = 0
 		    while ([int]$i -lt ($totalFeatures -1)) {
 		        $sequenceNo = $i + 1
 		        if ($sequenceNo -lt 10) {
@@ -901,21 +886,21 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		            $twoDigits = $sequenceNo
 		        }
 		        $feature = $iisFeatures[$i]
-		        $featureState =  Get-WindowsOptionalFeature -Online | 
+		        $featureState =  Get-WindowsOptionalFeature -Online |
 		        Select-Object -Property @{Name='Name'; expression = {$_.FeatureName}}, @{Name='State'; expression = {$_.State}} |
-		        Where-Object {$_.Name -eq $feature}
-		        # get feature name and state 
+		        Where-Object {$_.Name -eq $feature} -ErrorAction SilentlyContinue
+		        # get feature name and state
 		        $featureName = $featureState.Name
 		        $featureState = $featureState.State
 		        # write message to host
-				Logging "" "[$twoDigits/$totalFeatures] $featureName ==> $featureState"
+				Logging "PROG" "[$twoDigits/$totalFeatures] $featureName ==> $featureState"
 				# add feature in disabledFeatures
 		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
 		            $disabledFeatures += $feature
 		        }
-		        [int]$i += 1
+		        $i++
 		    }
-		
+
 		    if ($disabledFeatures.length -gt 0) {
 		        foreach ($disabled in $disabledFeatures) {
 		            Logging "PROG" "Adding feature $disabled"
@@ -927,9 +912,9 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		            Logging "INFO" "$mesgIISEnabled"
 		            Start-Sleep -Seconds 2
 		    }
-		
+
 		}
-		
+
 		catch {
 		    Write-Warning -Message "Oops, fail to add IIS features for Messenger Lens."
 		    Stop-Script 5
