@@ -40,6 +40,7 @@ Param (
 # ---------------------------
 # Script location
 $scriptPath = $PSScriptRoot
+
 # ---------------------------
 # Versions
 $scriptVersion = '2.0'
@@ -65,6 +66,7 @@ $versionOptions = [System.Collections.ArrayList]@(
     '5.68'
 )
 
+# ---------------------------
 # Logging Messages
 $mesgNoPkg ="package does not exist, operation exit."
 $mesgInstalled = "already installed."
@@ -72,8 +74,18 @@ $mesgDiffVer = "There is another version exist, please uninstall it first."
 $mesgFailed = "installation failed!"
 $mesgNoSource = "Missing source installation folder."
 $mesgToInstall = "will now be installed, Please wait..."
-$mesgConfigIIS = "Checking IIS features Status for Messenger LENS..."
+$mesgConfigIIS = "Checking IIS features Status for Messenger LENS now..."
 $mesgIISEnabled = "ALL IIS features Messenger LENS requires are ready."
+
+# ---------------------------
+# IIS features Messenger Lens requires
+$iisFeatures = [System.Collections.ArrayList]@(
+    'IIS-WebServerRole', 'IIS-WebServer', 'IIS-CommonHttpFeatures', 'IIS-HttpErrors', 'IIS-ApplicationDevelopment', 
+	'IIS-RequestFiltering', 'IIS-HealthAndDiagnostics', 'IIS-HttpLogging', 'IIS-Performance', 'IIS-ISAPIExtensions', 
+	'IIS-ISAPIFilter', 'IIS-StaticContent', 'IIS-DefaultDocument', 'IIS-DirectoryBrowsing', 'IIS-ASP',
+    'IIS-ManagementConsole', 'IIS-HttpCompressionStatic', 'NetFx4Extended-ASPNET45', 'IIS-ASPNET45', 
+	'IIS-NetFxExtensibility45', 'IIS-Security', 'IIS-WebServerManagementTools', 'IIS-ApplicationInit'
+)
 
 # ---------------------------
 # Functions
@@ -869,107 +881,59 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 
     # -------------------------------------------------------------------
     # IIS FEATURES, requirement for messenger lens
+    # Delete the support for win7 and win server 2008, as they were retired
     $isInstalledMsgr = Assert-IsInstalled "Saflok Messenger Server"
 	If ($isInstalledMsgr -ne $True) {
 		Logging "WARN" "Please install Saflok messenger before Lens."
 		Stop-Script 5
 	} Else {
         Logging "INFO" "$mesgConfigIIS"
-        $iisFeatures = [System.Collections.ArrayList]@(
-            'IIS-WebServerRole',
-            'IIS-WebServer',
-            'IIS-CommonHttpFeatures',
-            'IIS-HttpErrors',
-            'IIS-ApplicationDevelopment',
-            'IIS-RequestFiltering',
-            'IIS-HealthAndDiagnostics',
-            'IIS-HttpLogging',
-            'IIS-Performance',
-            'IIS-ISAPIExtensions',
-            'IIS-ISAPIFilter',
-            'IIS-StaticContent',
-            'IIS-DefaultDocument',
-            'IIS-DirectoryBrowsing',
-            'IIS-ASP',
-            'IIS-ManagementConsole',
-            'IIS-HttpCompressionStatic'
-        )
-        If ($winOS -le 6.1) {
-            Try {
-                $iisFeatures += 'IIS-NetFxExtensibility'
-                $iisFeatures += 'IIS-RequestMonitor'
-                $iisFeatures += 'WAS-ProcessModel'
-                $iisFeatures += 'WAS-NetFxEnvironment'
-                $iisFeatures += 'WAS-ConfigurationAPI'
-                $iisFeatures += 'IIS-ASPNET'
-                $iisFeatures += 'NetFx3'
-                $iisFeatures += 'WCF-HTTP-Activation'
-                $iisFeatures += 'WCF-NonHTTP-Activation'
-                # arrays to collect features in disabled state
-                $disabledFeatures = @()
-                For ([int]$i=0; $i -lt ($iisFeatures.count-1); $i++) {
-                    $feature = $iisFeatures[$i]
-                    If ((dism /online /get-featureinfo /featurename:$feature | findstr /C:'State : ') -match 'Disabled') {
-                        $disabledFeatures += $feature
-                    }
-                }
-                # check if there is any IIS feature which Messenger LENS requires is in disabled state
-                switch (($disabledFeatures.length) -gt 0) {
-                    $true {
-                        Foreach ($disabled In $disabledFeatures) {
-                            Logging "PROG" "Adding feature $disabled"
-                            DISM /online /enable-feature /featurename:$disabled | Out-Null
-                            Start-Sleep -S 1
-                            Logging "SUCC" "Enabled feature: $disabled."
-                            Start-Sleep -Seconds 1
-                        }
-                    }
-                    $false {
-                        Logging "INFO" "$mesgIISEnabled"
-                        Start-Sleep -Seconds 2
-                    }
-                }
-            }
-            catch {
-                Write-Warning -Message "Oops, fail to enable IIS features for Messenger Lens."
-                Stop-Script 5
-            }
-        } else {
-            Try {
-                $iisFeatures += 'NetFx4Extended-ASPNET45'
-                $iisFeatures += 'IIS-ASPNET45'
-                $iisFeatures += 'IIS-NetFxExtensibility45'
-                $iisFeatures += 'IIS-Security'
-                $iisFeatures += 'IIS-WebServerManagementTools'
-                $iisFeatures += 'IIS-ApplicationInit'
-                # arrays to collect features in disabled state
-                $disabledFeatures = @()
-                For ([int]$i=0; $i -lt ($iisFeatures.count -1); $i++) {
-                    $feature = $iisFeatures[$i]
-                    If ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
-                        $disabledFeatures += $feature
-                    }
-                }
-                switch (($disabledFeatures.length) -gt 0) {
-                    $true {
-                        Foreach ($disabled In $disabledFeatures) {
-                            Logging "PROG" "Adding feature $disabled"
-                            Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
-                            Logging "SUCC" "Enabled feature: $disabled."
-                            Start-Sleep -Seconds 2
-                        }
-                    }
-                    $false {
-                        Logging "INFO" "$mesgIISEnabled"
-                        Start-Sleep -Seconds 2
-                    }
-                }
-            }
-            catch {
-                Write-Warning -Message "Oops, fail to enable IIS features for Messenger Lens."
-                Stop-Script 5
-            }
-        }
+        # arrays to collect features in disabled state
+        $disabledFeatures = @()
+		[int]$totalFeatures = $iisFeatures.count		
+		Try {
+		    [int]$i = 0
+		    while ([int]$i -lt ($totalFeatures -1)) {
+		        $sequenceNo = $i + 1
+		        if ($sequenceNo -lt 10) {
+		            $twoDigits = [string]'0' + $sequenceNo
+		        } else {
+		            $twoDigits = $sequenceNo
+		        }
+		        $feature = $iisFeatures[$i]
+		        $featureState =  Get-WindowsOptionalFeature -Online | 
+		        Select-Object -Property @{Name='Name'; expression = {$_.FeatureName}}, @{Name='State'; expression = {$_.State}} |
+		        Where-Object {$_.Name -eq $feature}
+		        # get feature name and state 
+		        $featureName = $featureState.Name
+		        $featureState = $featureState.State
+		        # write message to host
+				Logging "" "[$twoDigits/$totalFeatures] $featureName ==> $featureState"
+				# add feature in disabledFeatures
+		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
+		            $disabledFeatures += $feature
+		        }
+		        [int]$i += 1
+		    }
+		
+		    if ($disabledFeatures.length -gt 0) {
+		        foreach ($disabled in $disabledFeatures) {
+		            Logging "PROG" "Adding feature $disabled"
+		            #Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
+		            Logging "SUCC" "Enabled feature: $disabled."
+		            Start-Sleep -Seconds 2
+		        }
+		    } else {
+		            Logging "INFO" "$mesgIISEnabled"
+		            Start-Sleep -Seconds 2
+		    }
+		
+		}
+		
+		catch {
+		    Write-Warning -Message "Oops, fail to add IIS features for Messenger Lens."
+		    Stop-Script 5
+		}
     }
 
     # -------------------------------------------------------------------
@@ -1156,7 +1120,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "" ""
         Write-Colr -Text $cname," Thanks for installing Saflok." -Colour White,Green
         Write-host ""
-        Write-host "NOTE: The recent program changes indicate a reboot is necessary." -ForegroundColor Yellow
+        Write-host "# NOTE: The recent program changes indicate a reboot is necessary." -ForegroundColor Magenta
         Write-Host "";Write-Host ""
         # clean up script files and SAFLOK folder
         If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
