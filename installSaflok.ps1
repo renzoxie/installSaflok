@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Installs SAFLOK Lodging systems on local server
 
@@ -22,7 +22,7 @@
     .LINK
     For deployments of this script, please see https://github.com/renzoxie/installSaflok
 #>
-[CmdletBinding(DefaultParameterSetName = 'Default')]
+[CmdletBinding()]
 Param (
     [Parameter(Mandatory=$True)]
     [String]$inputDrive,
@@ -50,14 +50,14 @@ Switch ($version) {
         $progVersion = '5.4.0.0'
         $pmsVersion = '5.1.0.0'
         $msgrVersion= '5.2.0.0'
-        $wsPmsExeBeforePatchVersion = '4.7.1.15707'
-        $wsPmsExeVersion = '4.7.2.22767'
+        $wsPmsExeBefPatchVersion = '4.7.1.15707'
+        $wsPmsExeAftPatchVersion = '4.7.2.22767'
     }
     '5.68' {
         $ver1 = '5.6.0.0'
         $ver2 = '5.6.8.0'
-        $wsPmsExeBeforePatchVersion = '5.6.0.0'
-        $wsPmsExeVersion = '5.6.7.22261'
+        $wsPmsExeBefPatchVersion = '5.6.0.0'
+        $wsPmsExeAftPatchVersion = '5.6.7.22261'
         $msgrVersion = '5.6.0.0'
     }
 }
@@ -74,8 +74,9 @@ $mesgDiffVer = "There is another version exist, please uninstall it first."
 $mesgFailed = "installation failed!"
 $mesgNoSource = "Missing source installation folder."
 $mesgToInstall = "will now be installed, Please wait..."
-$mesgConfigIIS = "Checking IIS features Status for Messenger LENS now..."
+$mesgConfigIIS = "Checking IIS features Status for Messenger LENS..."
 $mesgIISEnabled = "ALL IIS features Messenger LENS requires are ready."
+$mesgPrepare = "Prepare to install "
 
 # ---------------------------
 # Functions
@@ -117,9 +118,7 @@ Function Logging {
 # Logging for installation complete
 Function Write-Complete {
     Param (
-        [Parameter(Mandatory=$true)]
-        [string]
-        $pName
+        [string]$pName
     )
     Logging "SUCC" "The install of $pName was successful."
 }
@@ -130,20 +129,10 @@ Function Stop-Script {
     Param(
         [int]$seconds = 60
     )
-
     Start-Sleep -Seconds $seconds
     exit
 }
-# ---------------------------
-# TEST FILE OR FOLDER, RETURN BOOLEAN VALUE
-Function Test-Folder {
-    [CmdletBinding()]
-    Param(
-        [string]$folder
-    )
 
-    Test-Path -Path $folder -PathType Any
-}
 # ---------------------------
 # GET INSTALLED VERSION
 Function Get-InstVersion {
@@ -155,15 +144,16 @@ Function Get-InstVersion {
     [String](Get-Package -ProviderName Programs -IncludeWindowsInstaller |
     Where-Object {$_.Name -eq $pName}).Version
 }
+
 # ---------------------------
 # Check file versions
 Function Get-FileVersion {
-    [CmdletBinding()]
     Param (
-        [String]$testFile
+        $testFile
     )
 
-    Switch (Test-Path $testFile) {
+    $isExeExist = Test-Path $testFile -PathType Any
+    Switch ($isExeExist) {
         $True {
             If ($testFile -like "*.exe") {
                 (Get-Item $testFile).VersionInfo.FileVersion
@@ -171,13 +161,16 @@ Function Get-FileVersion {
                 Logging "ERRO" "Can not get file version as it is not an executable file."
             }
         }
-        $False {Write-Warning -Message "Oops, File $testFile does not exist!"}
+        $False {
+            Write-Warning -Message "Oops, File $testFile does not exist!"
+        }
     }
 }
 
 # ---------------------------
 # INSTALLED? RETURN BOOLEAN VALUE
 Function Assert-IsInstalled {
+    [CmdletBinding()]
     Param (
         [String]$pName
     )
@@ -186,17 +179,17 @@ Function Assert-IsInstalled {
     $condition = ($null -ne $findIntallByName)
     ($true, $false)[!$condition]
 }
+
 # ---------------------------
 # UPDATE INSTALLED STATUS
 Function Update-Status {
+    [CmdletBinding()]
     Param (
         [String]$pName
     )
     Assert-IsInstalled -pName $pName | Out-Null
     If (Assert-IsInstalled -pName $pName) { $script:isInstalled = $true}
-    $packageFolder | Out-Null
-    $curVersion | Out-Null
-    $exeExist | Out-Null
+    $script:updateVersion = Get-InstVersion -pName $pName
 }
 
 # ---------------------------
@@ -204,103 +197,112 @@ Function Update-Status {
 Function Install-Prog {
     [CmdletBinding()]
     Param (
-        [String]$pName,
-        [String]$packageFolder,
-        [String]$curVersion,
-        [BOOLEAN]$exeExist,
-        [String]$destVersion,
-        [String]$exeFile,
-        [String]$issFile
+        [string]$pName,
+        [string]$packageFolder,
+        [string]$destVersion,
+        [string]$exeProgFile,
+        [string]$exe2Install,          
+        [string]$iss2Install                 
+    )
+     
+    begin {
+        Update-Status -pName $pName
+        $isPkgFolderExist = Test-Path $packageFolder -PathType Any
+        $isExeExist = Test-Path $exeProgFile -PathType Any
+        
+    }
+    process {
+        Switch ($isInstalled)  {
+            $true {
+                If ($updateVersion -eq $destVersion) {
+                    Logging "INFO" "$pName $mesgInstalled"
+                    Start-Sleep -Seconds 2
+                } Else {
+                    Logging "ERRO" "$mesgDiffVer"
+                    Stop-Script 5
+                }
+            }
+
+            $false {
+                If ($isPkgFolderExist -eq 0) {
+                    Logging "ERRO" "$pName $mesgNoPkg"
+                    Stop-Script 5
+                }
+                If (($isPkgFolderExist -eq 1) -and ($isExeExist -eq 1)) {
+                    Logging "ERRO" "$mesgDiffVer"
+                    Stop-Script 5
+                }
+                If (($isPkgFolderExist -eq 1) -and ($isExeExist -eq 0)) {
+                    Logging "PROG" "$pName $mesgToInstall"
+                    Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " /s /f1$iss2Install " -Wait
+                    If (Assert-IsInstalled $pName) {
+                        $isExeExist = 1
+                        Write-Complete $pName
+                        Start-Sleep -Seconds 2
+                    } Else {
+                        Logging "ERRO" "$pName $mesgFailed"
+                        Stop-Script 5
+                    }
+                }
+            }
+        }
+    }
+    end {
+        $pName = ""
+        $updateVersion = ""
+        $destVersion = ""
+        $isPkgFolderExist = 0
+        $isInstalled = 0
+        $isExeExist = 0
+    }
+}
+
+# ---------------------------
+# INSTALL PROGRAM Patch
+Function Install-Patch {
+    [CmdletBinding()]
+    Param (
+        $pName,
+        $ver1,
+        $ver2,
+        $patchExeFile,
+        $patchIssFile                 
     )
 
-    If ($isInstalled) {
-        If ($curVersion -eq $destVersion) {
+    begin {
+        Update-Status -pName $pName
+    }
+    process {
+        If ($updateVersion -eq $ver2)   {
             Logging "INFO" "$pName $mesgInstalled"
             Start-Sleep -Seconds 2
+        } Elseif ($updateVersion -eq $ver1)   {
+            Logging "PROG" "$pName patch $mesgToInstall"
+            Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
+            Start-Sleep -Seconds 2
+            Update-Status -pName $pName
+            If ($updateVersion -eq $ver2) {
+                Logging "SUCC" "$pName $mesgInstalled"
+                Start-Sleep -Seconds 2
+            } Else {
+                Logging "ERRO" "$pName $mesgFailed"
+                Stop-Script 5
+            }
         } Else {
             Logging "ERRO" "$mesgDiffVer - $pName"
             Stop-Script 5
         }
-    } Else {
-        If ($packageFolder -eq $false) {
-            Logging "ERRO" "$pName $mesgNoPkg"
-            Stop-Script 5
-        }
-        If (($packageFolder -eq $true) -and ($exeExist -eq $true)) {
-            Logging "ERRO" "$mesgDiffVer"
-            Stop-Script 5
-        }
-        If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
-            Logging "PROG" "$pName $mesgToInstall"
-            Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
-            If (Assert-IsInstalled $pName) {
-                Write-Complete $pName
-                Start-Sleep -Seconds 2
-            } Else {
-                Logging "ERRO" "$pName $mesgFailed"
-                Stop-Script 5
-            }
-        }
+ 
     }
-
-}
-# ---------------------------
-# INSTALL PROGRAM Plus Patch
-Function Install-ProgPlusPatch {
-    Param (
-        [String]$pName,
-        [String]$packageFolder,
-        [String]$curVersion,
-        [BOOLEAN]$exeExist,
-        [String]$ver1,
-        [String]$ver2,
-        [String]$exeFile,
-        [String]$issFile,
-        [String]$patchExeFile,
-        [String]$patchIssFile
-    )
-
-    If ($isInstalled) {
-            If ($curVersion -eq '5.6.8.0')   {
-                Logging "INFO" "$pName $mesgInstalled"
-                Start-Sleep -Seconds 2
-            } Elseif ($curVersion -eq '5.6.0.0')   {
-                Logging "PROG" "$pName patch $mesgToInstall"
-                Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
-                Start-Sleep -Seconds 2
-                $getVersion = Get-InstVersion -pName $pName
-                If ($getVersion -eq $ver2) {
-                    Logging "SUCC" "$pName $mesgInstalled"
-                    Start-Sleep -Seconds 2
-                } Else {
-                    Logging "ERRO" "$pName $mesgFailed"
-                    Stop-Script 5
-                }
-            } Else {
-                Logging "ERRO" "$mesgDiffVer - $pName"
-                Stop-Script 5
-            }
-    } Else {
-        If ($packageFolder -eq $false) {
-            Logging "ERRO" "$pName $mesgNoPkg"
-            Stop-Script 5
-        }
-        If (($packageFolder -eq $true) -and ($exeExist -eq $false)) {
-            Logging "PROG" "$pName $mesgToInstall"
-            Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
-            Start-Sleep -Seconds 2
-            Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
-            $getVersion = Get-InstVersion -pName $pName
-            If ($getVersion -eq $ver2) {
-                Write-Complete $pName
-                Start-Sleep -Seconds 2
-            } Else {
-                Logging "ERRO" "$pName $mesgFailed"
-                Stop-Script 5
-            }
-        }
+    end {
+        $pName = ""
+        $updateVersion = ""
+        $isInstalled = 0
+        $ver1 = ""
+        $ver2 = ""
     }
 }
+
 # ---------------------------
 # Install Lens Patch
 Function Install-LensPatch {
@@ -309,41 +311,40 @@ Function Install-LensPatch {
         [String]$targetFile,
         [String]$destVersion,
         [String]$pName,
-        [String]$exeFile,
-        [String]$issFile
+        [String]$patchExeFile,
+        [String]$patchIssFile  
     )
 
-    If ($isInstalled) {
-        Logging "INFO" "$pName $mesgInstalled"
-        Start-Sleep -Seconds 2
-    } Else {
-        Logging "PROG" "$pName $mesgToInstall"
-        Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait; Start-Sleep 3
-        Update-FileVersion $targetFile $destVersion
-        If ((Get-FileVersion $targetFile) -eq $destVersion) {
-            Write-Complete $pName
+    begin {
+        Update-Status -pName $pName
+        $wsPmsExeVersion = Get-FileVersion -testFile $targetFile
+    }
+    process {
+        If ($isInstalled -and ($wsPmsExeVersion -eq $destVersion) ) {
+            Logging "INFO" "$pName patch $mesgInstalled"
             Start-Sleep -Seconds 2
         } Else {
-            Logging "ERRO" "$pName $mesgFailed"
-            Stop-Script 5
-        }
+            Logging "PROG" "$pName patch $mesgToInstall"
+            Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
+            Start-Sleep 2
+            $wsPmsExeVersion | Out-Null
+            If ($wsPmsExeVersion -eq $destVersion) {
+                Write-Complete $pName
+                Start-Sleep -Seconds 2
+            } Else {
+                Logging "ERRO" "$pName $mesgFailed"
+                Stop-Script 5
+            }
+        }      
+ 
+    }
+    end {
+        $pName = ""
+        $isInstalled = 0
     }
 }
-# ---------------------------
-# Update File Version
-Function Update-FileVersion {
-    [CmdletBinding()]
-    Param (
-        [String]$targetFile,
-        [String]$verToMatch
-    )
 
-    If (Test-Folder $targetFile) {
-        Get-FileVersion $targetFile | Out-Null
-        If ((Get-FileVersion $targetFile) -eq $verToMatch) {$script:isInstalled = 1}
-        Else {$script:isInstalled = 0}
-    }
-}
+
 # ---------------------------
 # Install digitalPolling
 Function Install-DigitalPolling {
@@ -351,19 +352,37 @@ Function Install-DigitalPolling {
     Param (
         [String]$pName,
         [String]$targetFile,
-        [String]$exeFile,
-        [String]$issFile
+        [String]$exe2Install,
+        [String]$iss2Install
     )
 
-    If (Test-Folder $targetFile) {
-        Logging "INFO" "$pName $mesgInstalled"
-    } Else {
-        Logging "PROG" "$pName $mesgToInstall"
-        Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " /s /f1$issFile" -Wait
-        If (Test-Folder $targetFile){Write-Complete $pName; Start-Sleep -Seconds 2}
-        Else {Logging "ERRO" "$pName $mesgFailed";Stop-Script 5}
+    begin {
+        $isExeExist = Test-Path $targetFile -PathType Any    
+    }
+
+    process {
+        If($isExeExist) {
+            Logging "INFO" "$pName $mesgInstalled"
+        } Else {
+            Logging "PROG" "$pName $mesgToInstall"
+            Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " /s /f1$iss2Install" -Wait
+            $isExeExist = Test-Path $targetFile -PathType Any 
+            If ($isExeExist){
+                Write-Complete $pName
+                Start-Sleep -Seconds 2
+            } Else {
+                Logging "ERRO" "$pName $mesgFailed"
+                Stop-Script 5
+            }
+        }
+
+    }
+    end {
+        $pName = ""
+        $isExeExist = 0
     }
 }
+
 # ---------------------------
 # Update Copied Flies
 Function Update-Copy {
@@ -374,10 +393,23 @@ Function Update-Copy {
         [String]$instFolder1
     )
 
-    $testSrcPackage  = Test-Folder $srcPackage; $testSrcPackage | Out-Null
-    $testInstFolder0 = Test-Folder $instFolder0; $testInstFolder0 | Out-Null
-    $testInstFolder1 = Test-Folder $instFolder1; $testInstFolder1 | Out-Null
-    If (($testInstFolder0 -eq $false) -and ($testInstFolder1)) { $script:fileCopied = 1 }
+    begin {
+        $testSrcPackage  = Test-Path $srcPackage -PathType Any
+        $testInstFolder0 = Test-Path $instFolder0 -PathType Any
+        $testInstFolder1 = Test-Path $instFolder1 -PathType Any; $testInstFolder1
+    }
+    process {
+        $testSrcPackage | Out-Null
+        $testInstFolder0 | Out-Null
+        $testInstFolder1 | Out-Null
+        If (($testInstFolder0 -eq $false) -and ($testInstFolder1)) { 
+            $script:fileCopied = 1 
+        }
+    }
+    end {
+        $fileCopied = 0
+    }
+
 }
 # ---------------------------
 # Install Web Service PMS Tester
@@ -389,35 +421,43 @@ Function Install-PmsTester {
         [String]$instFolder0,
         [String]$instFolder1
     )
-    $pName = 'Web Service PMS Tester'
-    $testSrcPackage  = Test-Folder $srcPackage
-    $testInstParent = Test-Folder $instParent
-    $testInstFolder0 = Test-Folder $instFolder0
-    $testInstFolder1 = Test-Folder $instFolder1
-    If ($testSrcPackage -eq $False) { Logging "ERRO" "$mesgNoSource"; Stop-Script }
-    If ($testInstParent -eq $False) { Logging "ERRO" "Messenger LENS has not been installed yet!" ; Stop-Script 5 }
-    If ($fileCopied) {
-        Logging "INFO" "$pName $mesgInstalled."
-        Start-Sleep -Seconds 2
-    } Else {
-        If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging "PROG" "$pName $mesgToInstall" }
-        If (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $false))  {
-            Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-            Write-Complete $pName
-            Start-Sleep -Seconds 2
-        } Elseif (($testInstFolder0 -eq $false) -and ($testInstFolder1 -eq $false)) {
-            Copy-Item $srcPackage -Destination $instParent -Recurse -Force -ErrorAction SilentlyContinue
-            Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-            Write-Complete $pName
-            Start-Sleep -Seconds 2
-        } Elseif (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $true))  {
-            Remove-Item -Path $instFolder0 -Force -Recurse
-            Write-Complete $pName
+
+    begin {
+        $pName = 'Web Service PMS Tester'
+        $testSrcPackage  = Test-Path $srcPackage -PathType Any
+        $testInstParent = Test-Path $instParent -PathType Any
+        $testInstFolder0 = Test-Path $instFolder0 -PathType Any
+        $testInstFolder1 = Test-Path $instFolder1 -PathType Any; $testInstFolder1
+    }
+    process {
+        If ($testSrcPackage -eq 0) { Logging "ERRO" "$mesgNoSource"; Stop-Script }
+        If ($testInstParent -eq $False) { Logging "ERRO" "Messenger LENS has not been installed yet!" ; Stop-Script 5 }
+        If ($fileCopied) {
+            Logging "INFO" "$pName $mesgInstalled."
             Start-Sleep -Seconds 2
         } Else {
-            Write-Complete $pName
-            Start-Sleep -Seconds 2
+            If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {Logging "PROG" "$pName $mesgToInstall" }
+            If (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $false))  {
+                Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
+                Write-Complete $pName
+                Start-Sleep -Seconds 2
+            } Elseif (($testInstFolder0 -eq $false) -and ($testInstFolder1 -eq $false)) {
+                Copy-Item $srcPackage -Destination $instParent -Recurse -Force -ErrorAction SilentlyContinue
+                Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
+                Write-Complete $pName
+                Start-Sleep -Seconds 2
+            } Elseif (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $true))  {
+                Remove-Item -Path $instFolder0 -Force -Recurse
+                Write-Complete $pName
+                Start-Sleep -Seconds 2
+            } Else {
+                Write-Complete $pName
+                Start-Sleep -Seconds 2
+            }
         }
+    }
+    end {
+        $fileCopied = 0
     }
 }
 # ---------------------------
@@ -437,29 +477,46 @@ Function Install-Sql {
     Param (
         [String]$pName,
         [String]$packageFolder,
-        [String]$exeFile,
+        [String]$exe2Install,
         [String]$argFile
     )
 
-    If ($isInstalled -eq $true) {
-        Logging "INFO" "$pName $mesgInstalled"
-    } Else {
-        If ($packageFolder -eq $false) {Logging "ERRO" "$pName $mesgNoPkg";Stop-Script 5}
-        If ($packageFolder -eq $true) {
-            Logging "PROG" "$pName $mesgToInstall"
-            Logging "INFO" "The installer is 116M+, this could take more than 5 minutes, please wait... "
-            Start-Process -NoNewWindow -FilePath $exeFile -ArgumentList " $argFile" -Wait
-            $installed = Assert-IsInstalled $pName
-            If ($installed) {
-                Write-Complete $pName
-                Start-Sleep -Seconds 2
-			} Else {
-				Logging "ERRO" "$pName $mesgFailed"
-				Logging "ERRO" "Reboot system and try the script again"
-				Logging "ERRO" "If still same, please contact your SAFLOK representative."
-				Stop-Script 10
-			}
+    begin {
+        Update-Status -pName $pName
+        $isPkgFolderExist = Test-Path $packageFolder -PathType Any
+    }
+
+    Process {
+        If ($isInstalled) {
+            Logging "INFO" "$pName $mesgInstalled"
+        } Else {
+            Switch ($isPkgFolderExist) {
+                0 {
+                    Logging "ERRO" "$pName $mesgNoPkg"
+                    Stop-Script 5
+                }
+                1 {
+                    Logging "PROG" "$pName $mesgToInstall"
+                    Logging "INFO" "The installer is 116M+, this could take more than 5 minutes, please wait... "
+                    Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " $argFile" -Wait
+                    Update-Status -pName $pName
+                    If ($installed) {
+                        Write-Complete $pName
+                        Start-Sleep -Seconds 2
+			        } Else {
+				        Logging "ERRO" "$pName $mesgFailed"
+				        Logging "ERRO" "Reboot system and try the script again"
+				        Logging "ERRO" "If still same, please contact your SAFLOK representative."
+				        Stop-Script 10
+			        }
+                }
+
+            }
         }
+    }
+
+    end {
+        $pName = ""
     }
 }
 # ---------------------------
@@ -757,55 +814,42 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     Logging "" ""
     # -------------------------------------------------------------------
     # install Saflok client
-    $isInstalled = 0
     $pName = "Saflok Program"
-    $packageFolder = Test-Folder ($absPackageFolders[3])
-    $curVersion = Get-InstVersion -pName $pName
-    $exeExist = Test-Folder $saflokClient
-    Update-Status  $pName
-    Switch ($version) {
-        '5.45' {
-                $destVersion = $progVersion
-                Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $progExe $progISS
-        }
-        '5.68' {
-                Install-ProgPlusPatch $pName $packageFolder $curVersion $exeExist $ver1 $ver2 $progExe $progISS $progPatchExe $patchProgISS
-                # -------------------------------------------------------------------
-                # [ clean munit ink ]
-                $munit = 'C:\Users\Public\Desktop\Kaba Saflok M-Unit.lnk'
-                If (Test-Path -Path $munit){
-                    Remove-Item $munit -Force
-                }
+    Install-Prog -pName $pName -packageFolder $absPackageFolders[3] -destVersion $progVersion `
+                    -exeProgFile $saflokClient -exe2Install $progExe -iss2Install $progISS 
+
+    # -------------------------------------------------------------------
+    # install Saflok Program Patch
+    if ($version -eq '5.68') {
+        $pName = "Saflok Program"  
+        Install-Patch -pName $pName -ver1 $ver1 -ver2 $ver2 -patchExeFile $progPatchExe -patchIssFile $patchProgISS
+        # -------------------------------------------------------------------
+        # [ clean munit ink ]
+        $munit = 'C:\Users\Public\Desktop\Kaba Saflok M-Unit.lnk'
+        If (Test-Path -Path $munit){
+            Remove-Item $munit -Force
         }
     }
 
     # -------------------------------------------------------------------
     # install Saflok PMS
     $pName = "Saflok PMS"
-    $isInstalled = 0
-    $packageFolder = Test-Folder ($absPackageFolders[4])
-    $curVersion = Get-InstVersion -pName $pName
-    $exeExist = Test-Folder $saflokIRS
-    Update-Status $pName
-        Switch ($version) {
-        '5.45' {
-                $destVersion = $pmsVersion
-                Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $pmsExe $pmsISS
-        }
-        '5.68' {
-               Install-ProgPlusPatch $pName $packageFolder $curVersion $exeExist $ver1 $ver2 $pmsExe $pmsISS $pmsPatchExe $patchPmsISS
-        }
+    Install-Prog -pName $pName -packageFolder $absPackageFolders[4] -destVersion $pmsVersion `
+                 -exeProgFile $saflokIRS -exe2Install $pmsExe -iss2Install $pmsISS
+ 
+    # -------------------------------------------------------------------
+    # install Saflok PMS Patch
+    if ($version -eq '5.68') {
+        $pName = "Saflok PMS"
+        Install-Patch -pName $pName -ver1 $ver1 -ver2 $ver2 -patchExeFile $pmsPatchExe -patchIssFile $patchPmsISS 
     }
+    
     # -------------------------------------------------------------------
     # install Saflok Messenger
     $pName = "Saflok Messenger Server"
-    $isInstalled = 0
-    $packageFolder = Test-Folder ($absPackageFolders[5])
-    $curVersion = Get-InstVersion -pName $pName
-    $exeExist = Test-Folder $saflokMsgr
-    $destVersion = $msgrVersion
-    Update-Status "$pName"
-    Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $msgrExe $msgrISS
+    Install-Prog -pName $pName -packageFolder $absPackageFolders[5] -destVersion $msgrVersion `
+                 -exeProgFile $saflokMsgr -exe2Install $msgrExe -iss2Install $msgrISS
+
     # -------------------------------------------------------------------
     # copy database to saflokdata folder
     $srcHotelData = ($absPackageFolders[0])
@@ -826,25 +870,20 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             Copy-Item -Path $srcHotelData\*.gdb -Destination $shareFolder
         }
     }
+
     # -------------------------------------------------------------------
     # share database folder
-    If ((Test-Path $shareFolder) -and ($winOS -le 6.1)) {
-        If (!(net share | findstr "SaflokData")) {
-            New-Share -shareName $shareName -shareFolder $shareFolder | Out-Null; Start-Sleep -S 1
-        } Else {
-            Logging "INFO" "The Saflok database folder already been shared."; Start-Sleep -S 1
-        }
-    } Elseif (!(Get-SmbShare | where-Object {$_.Name -eq $shareName}) -and ($winOS -gt 6.1) ) {
-        New-SmbShare -Name $shareName -Path $shareFolder -FullAccess "everyone" -Description "Saflok database folder share" | Out-Null; Start-Sleep -S 1
-    } Elseif ((Get-SmbShare | where-Object {$_.Name -eq $shareName}) -and ($winOS -gt 6.1) ) {
-        Logging "INFO" "The Saflok database folder already been shared.";Start-Sleep -S 1
+    New-SmbShare -Name $shareName -Path $shareFolder -FullAccess "everyone" -Description "Saflok database folder share" | Out-Null; Start-Sleep -S 1
+    if ((Get-SmbShare | where-Object {$_.Name -eq $shareName})) {
+        Logging "INFO" "The Saflok database folder already been shared."
+        Start-Sleep -S 2
     } Else {
         Logging "ERRO" "Share folder does not exist"
         Logging "ERRO" "Please contact your system administrator"
-        Start-Sleep -S 2
         Write-Host''
         Stop-Script 5
     }
+
     # -------------------------------------------------------------------
     # start firebird service
     $fbSvcStat = (Get-Service | Where-Object {$_.Name -eq 'FirebirdGuardianDefaultInstance'}).Status
@@ -877,8 +916,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         $disabledFeatures = @()
 		$totalFeatures = $iisFeatures.count
 		Try {
-		    $i = 0
-		    while ([int]$i -lt ($totalFeatures -1)) {
+            For ($i=0; $i -lt $totalFeatures; $i++) {
 		        $sequenceNo = $i + 1
 		        if ($sequenceNo -lt 10) {
 		            $twoDigits = [string]'0' + $sequenceNo
@@ -886,25 +924,24 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		            $twoDigits = $sequenceNo
 		        }
 		        $feature = $iisFeatures[$i]
-		        $featureState =  Get-WindowsOptionalFeature -Online |
+		        $featureList =  Get-WindowsOptionalFeature -Online |
 		        Select-Object -Property @{Name='Name'; expression = {$_.FeatureName}}, @{Name='State'; expression = {$_.State}} |
 		        Where-Object {$_.Name -eq $feature} -ErrorAction SilentlyContinue
 		        # get feature name and state
-		        $featureName = $featureState.Name
-		        $featureState = $featureState.State
+		        $featureName = $featureList.Name
+		        $featureState = $featureList.State
 		        # write message to host
 				Logging "PROG" "[$twoDigits/$totalFeatures] $featureName ==> $featureState"
 				# add feature in disabledFeatures
 		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
 		            $disabledFeatures += $feature
 		        }
-		        $i++
 		    }
 
 		    if ($disabledFeatures.length -gt 0) {
 		        foreach ($disabled in $disabledFeatures) {
 		            Logging "PROG" "Adding feature $disabled"
-		            #Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
+		            Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
 		            Logging "SUCC" "Enabled feature: $disabled."
 		            Start-Sleep -Seconds 2
 		        }
@@ -924,53 +961,33 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # -------------------------------------------------------------------
     # Microsoft SQL Server 2012
     $pName = 'Microsoft SQL Server 2012'
-    $isInstalled = 0
-    $packageFolder = Test-Folder ($sqlExprExe)
-    $argFile = '/qs /INSTANCENAME="LENSSQL" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
-    $argFile += '/FEATURES=SQLENGINE,SSMS /HELP="False" /INDICATEPROGRESS="True" /QUIETSIMPLE="True" /X86="True" /ERRORREPORTING="False" '
-    $argFile += '/SQMREPORTING="False" /SQLSVCSTARTUPTYPE="Automatic" /FILESTREAMLEVEL="0" /FILESTREAMLEVEL="0" /ENABLERANU="True" '
-    $argFile += '/SQLCOLLATION="Latin1_General_CI_AS" /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
-    $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="S@flok2018"'
-    Update-Status $pName
-    Install-Sql $pName $packageFolder $sqlExprExe $argFile
+    Install-Sql -pName $pName -packageFolder $sqlExprExe -exe2Install $sqlExprExe -argFile $argFile
     If (Assert-IsInstalled 'Microsoft SQL Server 2012') {Update-SqlPasswd -login 'sa' -passwd 'Lens2014'}
+
     # -------------------------------------------------------------------
     # install Messenger Lens
     $pName = "Messenger LENS"
-    Update-Status $pName
-    If (Assert-IsInstalled $pName) {
-        # -------------------------------------------------------------------
-        # install Messenger Lens Patch
-        $pName = "Messenger Lens Patch"
-        $destVersion = $wsPmsExeVersion
-        Update-FileVersion $wsPmsExe $destVersion
-        Install-LensPatch $wsPmsExe $destVersion $pName $lensPatchExe $patchLensISS
-    } Else {
-        $pName = "Messenger LENS"
-        $isInstalled = 0
-        $packageFolder = Test-Folder ($absPackageFolders[6])
-        $curVersion = Get-InstVersion -pName $pName
-        $exeExist = Test-Folder $wsPmsExe
-        $destVersion = $wsPmsExeBeforePatchVersion
-        Install-Prog $pName $packageFolder $curVersion $exeExist $destVersion $lensExe $lensISS
-        $pName = "Messenger Lens Patch"
-        $isInstalled = 0
-        $targetFile = $wsPmsExe
-        $destVersion = $wsPmsExeVersion
-        Update-FileVersion $wsPmsExe $destVersion
-        Install-LensPatch $wsPmsExe $destVersion $pName $lensPatchExe $patchLensISS
-    }
+    Install-Prog -pName $pName -packageFolder $absPackageFolders[6] -destVersion $wsPmsExeBefPatchVersion `
+                 -exeProgFile $wsPmsExe -exe2Install $lensExe -iss2Install $lensISS
+
+    # -------------------------------------------------------------------
+    # install Messenger Lens patch 
+    $pName = "Messenger Lens"
+    Install-LensPatch -targetFile $wsPmsExe -destVersion $wsPmsExeAftPatchVersion -pName $pName -patchExeFile `
+                      $lensPatchExe -patchIssFile $patchLensISS 
+
     # -------------------------------------------------------------------
     # install digital polling service
     If ($version -eq  '5.45') {
         $isInstalled = 0
         $pName = "Marriott digital polling service"
-        Install-DigitalPolling $pName $digitalPollingExe $pollingPatchExe $patchPollingISS
+        Install-DigitalPolling -pName $pName -targetFile $digitalPollingExe -exe2Install $pollingPatchExe `
+                               -iss2Install $patchPollingISS
     }
 
     # -------------------------------------------------------------------
     # allow everyone access to Lens folder
-    If (Test-Folder Container) {
+    If (Test-Exist Container) {
         $acl = Get-Acl -Path $lensInstFolder
         $AccessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("everyone","FullControl","Allow")
         $acl.SetAccessRule($AccessRule); $acl | Set-Acl $lensInstFolder
@@ -990,7 +1007,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     Update-Copy $webServiceTester $newFolder0 $newFolder1
     Install-PmsTester $webServiceTester $kabaInstFolder $newFolder0 $newFolder1
     $wsTesterExe = Join-Path $newFolder1 'MessengerNet WSTestPMS.exe'
-    If ((Test-Folder $wsTesterExe)) {
+    If ((Test-Exist $wsTesterExe)) {
         $TargetFile = $wsTesterExe
         $ShortcutFile = "$env:Public\Desktop\WS_PMS_TESTER.lnk"
         $WScriptShell = New-Object -ComObject WScript.Shell
@@ -1037,20 +1054,20 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             Start-Process -NoNewWindow -FilePath $saflokIRS; Start-Sleep -S 1
         } # run IRS GUI
         Get-Process -ProcessName notepad* | Stop-Process -Force; Start-Sleep -S 1
-        If ((Assert-isInstalled "Saflok Program") -and (Test-Folder $hh6ConfigFile)) {
+        If ((Assert-isInstalled "Saflok Program") -and (Test-Exist $hh6ConfigFile)) {
             Logging "" "[ KabaSaflokHH6.exe.config ]"
             Start-Process notepad $hh6ConfigFile -WindowStyle Minimized; Start-Sleep -S 1
         } # hh6 config
-        If ((Assert-isInstalled  "Messenger LENS") -and (Test-Folder $lensPmsConfigFileInst)) {
+        If ((Assert-isInstalled  "Messenger LENS") -and (Test-Exist $lensPmsConfigFileInst)) {
             Logging "" "[ LENS_PMS.exe.config ]"
             Start-Process notepad $lensPmsConfigFileInst -WindowStyle Minimized; Start-Sleep -S 1
         } # PMS config
         If($version -eq '5.45') {
-            If ((Test-Path -Path $digitalPollingExe -PathType Leaf) -and (Test-Folder $pollingConfigInst)) {
+            If ((Test-Path -Path $digitalPollingExe -PathType Leaf) -and (Test-Exist $pollingConfigInst)) {
                 Logging "" "[ DigitalKeysPollingService.exe.config ]"
                 Start-Process notepad $pollingConfigInst -WindowStyle Minimized; Start-Sleep -S 1
             } # polling config
-            If ((Test-Path -Path $digitalPollingExe -PathType Leaf) -and (Test-Folder $pollingLog)) {
+            If ((Test-Path -Path $digitalPollingExe -PathType Leaf) -and (Test-Exist $pollingLog)) {
                 Logging "" "[ Polling log ]"
                 Start-Process notepad $pollingLog -WindowStyle Minimized; Start-Sleep -S 1
                 $TargetFile = $pollingLog
