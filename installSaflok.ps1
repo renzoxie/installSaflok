@@ -54,7 +54,6 @@ Switch ($version) {
         $msgrVersion = '5.2.0.0'
         $msgrPatchedVersion = '5.2.0.0'
         $msgrLensVersion = '4.7.0.0'
-        #$wsPmsExeBefPatchVersion = '4.7.1.15707'
         $wsPmsExeAftPatchVersion = '4.7.2.22767'
     }
     '5.68' {
@@ -65,7 +64,6 @@ Switch ($version) {
         $msgrVersion = '5.6.0.0'
         $msgrPatchedVersion = '5.6.0.0'
         $msgrLensVersion = '5.6.0.0'
-        #$wsPmsExeBefPatchVersion = '5.6.0.0'
         $wsPmsExeAftPatchVersion = '5.6.7.22261'
     }
 }
