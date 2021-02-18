@@ -53,6 +53,7 @@ Switch ($version) {
         $pmsPatchedVersion = '5.1.0.0'
         $msgrVersion = '5.2.0.0'
         $msgrPatchedVersion = '5.2.0.0'
+        $msgrLensVersion = '4.7.0.0'
         #$wsPmsExeBefPatchVersion = '4.7.1.15707'
         $wsPmsExeAftPatchVersion = '4.7.2.22767'
     }
@@ -870,9 +871,10 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 continue
             }
             $False {
-                Logging "PROG" "Processing folder share"
+                Logging "PROG" "Processing folder share."
                 New-SmbShare -Name $shareName -Path $shareFolder -FullAccess "everyone" -Description "Saflok database folder share" | Out-Null
                 Start-Sleep -S 2
+                Logging "INFO" "Folder share completed."
                 continue
             }
         }
