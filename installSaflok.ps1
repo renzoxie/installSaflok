@@ -174,7 +174,7 @@ Function Get-InstVersion {
 }
 
 # ---------------------------
-# IF Installed, return bool
+# IF Installed, return Boolean
 Function Assert-IsInstalled {
     [CmdletBinding()]
     Param (
