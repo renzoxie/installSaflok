@@ -1,7 +1,9 @@
 # Know the mini requirements
 <ol>
-    <li> Windows 7+ / windows Server 2003+ </li>
+    <li> Run as administrator </li>
+    <li> Windows 8+ / windows Server 2003+ </li>
     <li> PowerShell V5+ </li>
+    <li> If system prompt no right to run the script, please run the following command in advance <br />set-executionPolicy remoteSigned -force</li>
 </ol>
 
 # Features

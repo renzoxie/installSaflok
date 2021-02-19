@@ -1,5 +1,6 @@
 # 最低要求
 <ol>
+    <li> 管理员权限 </li>
     <li> Windows 8+ / windows Server 2003+ </li>
     <li> PowerShell V5+ </li>
     <li> 如果提示无权运行，需要用管理员权限在PowerShell命令行中输入以下命令并回车<br />set-executionPolicy remoteSigned -force </li>
