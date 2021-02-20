@@ -75,80 +75,6 @@ $versionOptions = [System.Collections.ArrayList]@(
 )
 
 # ---------------------------
-# Logging Messages
-$lang = (Get-WinSystemLocale).Name
-switch ($lang) {
-    {'zh-CN'} {
-        $mesgNoPkg ="å®‰è£…åŒ…ä¸å­˜åœ¨ï¼Œå‡†å¤‡é€€å‡ºã€‚"
-        $mesgInstalled = "ç¨‹åºå·²å®‰è£…ã€‚"
-        $mesgDiffVer = "å·²å®‰è£…å…¶ä»–ç‰ˆæœ¬ç¨‹åºï¼Œè¯·å¸è½½å…¶ä»–ç‰ˆæœ¬åå†è¿è¡Œæœ¬è„šæœ¬ã€‚"
-        $mesgFailed = "ç¨‹åºå®‰è£…å¤±è´¥ï¼Œå‡†å¤‡é€€å‡º"
-        $mesgNoSource = "æœªæ‰¾åˆ°æºå®‰è£…æ–‡ä»¶å¤¹ã€‚"
-        $mesgToInstall = "ç¨‹åºæ­£åœ¨å®‰è£…ï¼Œè¯·ç¨ç­‰..."
-        $mesgConfigIIS = "æ­£åœ¨æ£€æŸ¥Messenger Lensæ‰€éœ€IISç»„ä»¶çŠ¶æ€..."
-        $mesgIISEnabled = "æ‰€æœ‰Messenger LENSæ‰€éœ€ç»„ä»¶å·²å‡†å¤‡å°±ç»ªã€‚"
-        $mesgSucc = "ç¨‹åºå®‰è£…æˆåŠŸã€‚"
-        $mesgNotExe = "éæ‰§è¡Œæ–‡ä»¶ï¼Œæ— æ³•è¿‡å»æ–‡ä»¶ç‰ˆæœ¬ã€‚"
-        $mesgNoFile = "æ–‡ä»¶ä¸å­˜åœ¨ã€‚"
-        $mesgLensNotInstalled = "è¯·å…ˆå®‰è£…Messenger LENSã€‚"
-        $mesgHugeInstaller = "ç¨‹åºè¾ƒå¤§ï¼Œå®‰è£…å¯èƒ½éœ€è¦è¾ƒé•¿æ—¶é—´ï¼Œè¯·è€å¿ƒç­‰å¾…..."
-        $mesgReboot = "é‡å¯ç³»ç»Ÿï¼Œç„¶åå°è¯•å†æ¬¡æ‰§è¡Œæ­¤è„šæœ¬"
-        $mesgContactSaflok = "å¦‚æœé‡å¯åé—®é¢˜ä¾æ—§, è¯·è”ç³»SaflokæŠ€æœ¯æ”¯æŒã€‚"
-        $mesgConnectError = "æ•°æ®åº“è¿æ¥é”™è¯¯ï¼Œè¯·æ£€æŸ¥æœåŠ¡å™¨åç§°ï¼Œç«¯å£ï¼Œé˜²ç«å¢™é…ç½®ã€‚"
-        $mesgPsVer = "å½“å‰ç³»ç»ŸPowerShellç‰ˆæœ¬æ˜¯"
-        $mesgPSMiniRequire = "æ­¤è„šæœ¬éœ€è¦PowerShell $miniPsRequireæˆ–è€…æ›´é«˜ç‰ˆæœ¬"
-        $mesgPSDownloadUrl = "å¾®è½¯å®˜ç½‘ä¸‹è½½æ›´é«˜ç‰ˆæœ¬PowerShellç½‘å€: https://docs.microsoft.com/en-us/powershell/"
-        $mesgRootAndTryAgain =  "è¯·å…ˆå®‰è£…Powershell V5ä»¥ä¸Šç‰ˆæœ¬, é‡å¯ç³»ç»Ÿåå†æ¬¡è¿è¡Œæ­¤è„šæœ¬ã€‚"
-        $prompProperty = "é…’åº—åç§°ï¼š"
-        $prompWelcome = "| æ¬¢è¿ä½¿ç”¨SAFLOKé…’åº—ç³»ç»Ÿå®‰è£…è„šæœ¬"
-        $prompImprtant = " # æ³¨æ„"
-        $prompRunAsAdmin = " # æ­¤è„šæœ¬å¿…é¡»ä»¥ç®¡ç†å‘˜èº«ä»½è¿è¡Œ"
-        $prompSafVer = "| SAFLOK ç‰ˆæœ¬å·: $version"
-        $prompWinOS = "| æ“ä½œç³»ç»Ÿ:"
-        $prompScriptVer = "| è„šæœ¬ç‰ˆæœ¬å·: $scriptVersion"
-        $prompVerNoMatch = "è¾“å…¥ç‰ˆæœ¬ä¸å®‰è£…åŒ…ä¸å¦ï¼Œå‡†å¤‡é€€å‡ºã€‚"
-        $prompAccept = "å®‰è£…å³ä»£è¡¨æ¥å—è½¯ä»¶åŒ…çš„è®¸å¯åè®®ã€‚"
-        $prompDoU = "$cname æ˜¯å¦ç»§ç»­å®‰è£…?(è¾“å…¥[Y]es/[N]o)"
-        $prompChkConfig = "éœ€è¦æ‰‹åŠ¨é…ç½®ä»¥ä¸‹æ–‡ä»¶ä¸­çš„éƒ¨åˆ†å‚æ•°: "
-        $prompIVI = "å·²å®‰è£…ç¨‹åºç‰ˆæœ¬: "
-    }
-    {'en-US'} {
-        $mesgNoPkg ="package does not exist, operation exit."
-        $mesgInstalled = "already installed."
-        $mesgDiffVer = "There is another version exist, please uninstall it first."
-        $mesgFailed = "installation failed!"
-        $mesgNoSource = "Missing source installation folder."
-        $mesgToInstall = "will now be installed, Please wait..."
-        $mesgConfigIIS = "Checking IIS features status for Messenger Lens..."
-        $mesgIISEnabled = "ALL IIS features Messenger LENS requires are ready."
-        $mesgSucc = "install was successful."
-        $mesgNotExe = "Can not get file version as it is not an executable file."
-        $mesgNoFile = "Oops, File does not exist!"
-        $mesgLensNotInstalled = "Messenger LENS has not been installed yet!"
-        $mesgHugeInstaller = "The installer is 116M+, this could take more than 5 minutes, please wait..."
-        $mesgReboot = "Reboot system and try the script again"
-        $mesgContactSaflok = "If still same, please contact your SAFLOK representative."
-        $mesgConnectError = "Connection Error. Check server name, port, firewall."
-        $mesgPsVer = "Your current PowerShell version is"
-        $mesgPSMiniRequire = "This script requires PowerShell version $miniPsRequire or above"
-        $mesgPSDownloadUrl = "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
-        $mesgRootAndTryAgain =  "Reboot server after installing Powershell 5 or above, run this script again."
-        $prompProperty = "Property: "
-        $prompWelcome = "| WELCOME TO SAFLOK LODGING SYSTEMS INSTALLATION"
-        $prompImprtant = " # IMPORTANT"
-        $prompRunAsAdmin = " # THIS SCRIPT MUST BE RUN AS ADMINISTRATOR"
-        $prompSafVer = "| SAFLOK VERSION: $version"
-        $prompWinOS = "| INSTALLING ON:"
-        $prompScriptVer = "| SCRIPT VERSION: $scriptVersion"
-        $prompVerNoMatch = "Version input does NOT match corresponding source package."
-        $prompAccept = "By installing you accept licenses for the packages."
-        $prompDoU = "$cname Do you want to run the script?([Y]es/[N]o)"
-        $prompChkConfig = "The following files need to be checked or configure: "
-        $prompIVI = "Installed Version Information: "
-    }
-}
-
-# ---------------------------
 # Functions
 # ---------------------------
 # Customized color
@@ -182,6 +108,89 @@ Function Logging {
         'SUCC' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Green,Green,Green}
         "" {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
    }
+}
+
+# ---------------------------
+# DRIVE INFO
+$inputDrive = $inputDrive.Trim().ToUpper()
+$driveLetterPattern = "(\w{1})"
+
+# ---------------------------
+# Logging Messages
+$lang = (Get-WinSystemLocale).Name
+switch ($lang) {
+    'zh-CN' {
+        $mesgNoPkg ="°²×°°ü²»´æÔÚ£¬×¼±¸ÍË³ö¡£"
+        $mesgInstalled = "³ÌĞòÒÑ°²×°¡£"
+        $mesgDiffVer = "ÒÑ°²×°ÆäËû°æ±¾³ÌĞò£¬ÇëĞ¶ÔØÆäËû°æ±¾ºóÔÙÔËĞĞ±¾½Å±¾¡£"
+        $mesgFailed = "³ÌĞò°²×°Ê§°Ü£¬×¼±¸ÍË³ö"
+        $mesgNoSource = "Î´ÕÒµ½Ô´°²×°ÎÄ¼ş¼Ğ¡£"
+        $mesgToInstall = "³ÌĞòÕıÔÚ°²×°£¬ÇëÉÔµÈ..."
+        $mesgConfigIIS = "ÕıÔÚ¼ì²éMessenger LensËùĞèIIS×é¼ş×´Ì¬..."
+        $mesgIISEnabled = "ËùÓĞMessenger LENSËùĞè×é¼şÒÑ×¼±¸¾ÍĞ÷¡£"
+        $mesgSucc = "³ÌĞò°²×°³É¹¦¡£"
+        $mesgNotExe = "·ÇÖ´ĞĞÎÄ¼ş£¬ÎŞ·¨¹ıÈ¥ÎÄ¼ş°æ±¾¡£"
+        $mesgNoFile = "ÎÄ¼ş²»´æÔÚ¡£"
+        $mesgLensNotInstalled = "ÇëÏÈ°²×°Messenger LENS¡£"
+        $mesgHugeInstaller = "³ÌĞò½Ï´ó£¬°²×°¿ÉÄÜĞèÒª½Ï³¤Ê±¼ä£¬ÇëÄÍĞÄµÈ´ı..."
+        $mesgReboot = "ÖØÆôÏµÍ³£¬È»ºó³¢ÊÔÔÙ´ÎÖ´ĞĞ´Ë½Å±¾"
+        $mesgContactSaflok = "Èç¹ûÖØÆôºóÎÊÌâÒÀ¾É, ÇëÁªÏµSaflok¼¼ÊõÖ§³Ö¡£"
+        $mesgConnectError = "Êı¾İ¿âÁ¬½Ó´íÎó£¬Çë¼ì²é·şÎñÆ÷Ãû³Æ£¬¶Ë¿Ú£¬·À»ğÇ½ÅäÖÃ¡£"
+        $mesgPsVer = "µ±Ç°ÏµÍ³PowerShell°æ±¾ÊÇ"
+        $mesgPSMiniRequire = "´Ë½Å±¾ĞèÒªPowerShell $miniPsRequire»òÕß¸ü¸ß°æ±¾"
+        $mesgPSDownloadUrl = "Î¢Èí¹ÙÍøÏÂÔØ¸ü¸ß°æ±¾PowerShellÍøÖ·: https://docs.microsoft.com/en-us/powershell/"
+        $mesgRootAndTryAgain =  "ÇëÏÈ°²×°Powershell V5ÒÔÉÏ°æ±¾, ÖØÆôÏµÍ³ºóÔÙ´ÎÔËĞĞ´Ë½Å±¾¡£"
+        $prompProperty = "¾ÆµêÃû³Æ£º"
+        $prompWelcome = "| »¶Ó­Ê¹ÓÃSAFLOK¾ÆµêÏµÍ³°²×°½Å±¾"
+        $prompImprtant = " # ×¢Òâ"
+        $prompRunAsAdmin = " # ´Ë½Å±¾±ØĞëÒÔ¹ÜÀíÔ±Éí·İÔËĞĞ"
+        $prompSafVer = "| SAFLOK °æ±¾ºÅ: $version"
+        $prompWinOS = "| ²Ù×÷ÏµÍ³:"
+        $prompScriptVer = "| ½Å±¾°æ±¾ºÅ: $scriptVersion"
+        $prompVerNoMatch = "ÊäÈë°æ±¾Óë°²×°°ü²»·ñ£¬×¼±¸ÍË³ö¡£"
+        $prompAccept = "Ñ¡Ôñ°²×°¼´´ú±í½ÓÊÜÈí¼ş°üµÄĞí¿ÉĞ­Òé"
+        $prompDoU = "ÊÇ·ñ¼ÌĞø°²×°?(ÊäÈë[Y]es/[N]o)"
+        $prompChkConfig = "ĞèÒªÊÖ¶¯ÅäÖÃÒÔÏÂÎÄ¼şÖĞµÄ²¿·Ö²ÎÊı: "
+        $prompIVI = "ÒÑ°²×°³ÌĞò°æ±¾: "
+        $mesgChose = "ÒÑÑ¡Ôñ°²×°ÔÚ ["+$inputDrive+"] ÅÌ"
+        $mesgCouldNotIns = "'ÎŞ·¨½«³ÌĞò°²×°ÔÚ'+$inputDrive+'ÅÌ£¬×¼±¸ÍË³ö¡£'"
+    }
+    Default {
+        $mesgNoPkg ="package does not exist, operation exit."
+        $mesgInstalled = "already installed."
+        $mesgDiffVer = "There is another version exist, please uninstall it first."
+        $mesgFailed = "installation failed!"
+        $mesgNoSource = "Missing source installation folder."
+        $mesgToInstall = "will now be installed, Please wait..."
+        $mesgConfigIIS = "Checking IIS features status for Messenger Lens..."
+        $mesgIISEnabled = "ALL IIS features Messenger LENS requires are ready."
+        $mesgSucc = "install was successful."
+        $mesgNotExe = "Can not get file version as it is not an executable file."
+        $mesgNoFile = "Oops, File does not exist!"
+        $mesgLensNotInstalled = "Messenger LENS has not been installed yet!"
+        $mesgHugeInstaller = "The installer is 116M+, this could take more than 5 minutes, please wait..."
+        $mesgReboot = "Reboot system and try the script again"
+        $mesgContactSaflok = "If still same, please contact your SAFLOK representative."
+        $mesgConnectError = "Connection Error. Check server name, port, firewall."
+        $mesgPsVer = "Your current PowerShell version is"
+        $mesgPSMiniRequire = "This script requires PowerShell version $miniPsRequire or above"
+        $mesgPSDownloadUrl = "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
+        $mesgRootAndTryAgain =  "Reboot server after installing Powershell 5 or above, run this script again."
+        $prompProperty = "Property: "
+        $prompWelcome = "| WELCOME TO SAFLOK LODGING SYSTEMS INSTALLATION"
+        $prompImprtant = " # IMPORTANT"
+        $prompRunAsAdmin = " # THIS SCRIPT MUST BE RUN AS ADMINISTRATOR"
+        $prompSafVer = "| SAFLOK VERSION: $version"
+        $prompWinOS = "| INSTALLING ON:"
+        $prompScriptVer = "| SCRIPT VERSION: $scriptVersion"
+        $prompVerNoMatch = "Version input does NOT match corresponding source package."
+        $prompAccept = "By installing you accept licenses for the packages"
+        $prompDoU = " Do you want to run the script?([Y]es/[N]o)"
+        $prompChkConfig = "The following files need to be checked or configure: "
+        $prompIVI = "Installed Version Information: "
+        $mesgChose = "You chose drive $inputDrive"
+        $mesgCouldNotIns = "We could not install on drive $inputDrive."
+    }
 }
 
 # ---------------------------
@@ -655,10 +664,6 @@ Logging "" "$prompScriptVer"
 Logging "" "+---------------------------------------------------------"
 Logging "" ""
 
-# ---------------------------
-# DRIVE INFO
-$inputDrive = $inputDrive.Trim().ToUpper()
-$driveLetterPattern = "(\w{1})"
 # Get drive IDs from localhost, driveType 3="Fixed local disk"
 $driveIDs = (Get-WmiObject -class Win32_LogicalDisk -computername localhost -filter "drivetype=3").DeviceID
 $driveLetters = @()
@@ -692,8 +697,8 @@ Switch ($scriptPath -match $pattern) {
                     # -----------------------
                     # HEADER Information
                     Logging "" ""
-                    Logging "" "$prompAccept"
-                    $confirmation = Read-Host "$prompDoU"
+                    Write-Colr -Text "$cname ","$prompAccept" -Colour White,White
+                    $confirmation = Read-Host "$cname $prompDoU"
                     $confirmation = $confirmation.ToUpper()
                     Logging "" ""
                 }
@@ -707,9 +712,9 @@ Switch ($scriptPath -match $pattern) {
 # ---------------------------
 # VALID DRIVE CHARACTER INPUT
 if ($inputDrive -IN $driveLetters) {
-    Logging "" "You chose drive $inputDrive"
+    Logging "" "$mesgChose"
 } else {
-    Logging "ERRO" "We could not install on drive $inputDrive."
+    Logging "ERRO" "$mesgCouldNotIns"
     Write-Warning -Message "Please re-run the script again to input a correct drive."
     Stop-Script 5
 }
