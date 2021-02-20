@@ -44,7 +44,7 @@ $scriptPath = $PSScriptRoot
 # ---------------------------
 # Versions
 $scriptVersion = '2.0'
-[decimal]$miniPsRequire = '5.1'
+$miniPsRequire = '5.1' -AS [decimal]
 Switch ($version) {
     '5.45' {
         $progVersion = '5.4.0.0'
@@ -76,14 +76,77 @@ $versionOptions = [System.Collections.ArrayList]@(
 
 # ---------------------------
 # Logging Messages
-$mesgNoPkg ="package does not exist, operation exit."
-$mesgInstalled = "already installed."
-$mesgDiffVer = "There is another version exist, please uninstall it first."
-$mesgFailed = "installation failed!"
-$mesgNoSource = "Missing source installation folder."
-$mesgToInstall = "will now be installed, Please wait..."
-$mesgConfigIIS = "Checking IIS features status for Messenger Lens..."
-$mesgIISEnabled = "ALL IIS features Messenger LENS requires are ready."
+$lang = (Get-WinSystemLocale).Name
+switch ($lang) {
+    {'zh-CN'} {
+        $mesgNoPkg ="安装包不存在，准备退出。"
+        $mesgInstalled = "程序已安装。"
+        $mesgDiffVer = "已安装其他版本程序，请卸载其他版本后再运行本脚本。"
+        $mesgFailed = "程序安装失败，准备退出"
+        $mesgNoSource = "未找到源安装文件夹。"
+        $mesgToInstall = "程序正在安装，请稍等..."
+        $mesgConfigIIS = "正在检查Messenger Lens所需IIS组件状态..."
+        $mesgIISEnabled = "所有Messenger LENS所需组件已准备就绪。"
+        $mesgSucc = "程序安装成功。"
+        $mesgNotExe = "非执行文件，无法过去文件版本。"
+        $mesgNoFile = "文件不存在。"
+        $mesgLensNotInstalled = "请先安装Messenger LENS。"
+        $mesgHugeInstaller = "程序较大，安装可能需要较长时间，请耐心等待..."
+        $mesgReboot = "重启系统，然后尝试再次执行此脚本"
+        $mesgContactSaflok = "如果重启后问题依旧, 请联系Saflok技术支持。"
+        $mesgConnectError = "数据库连接错误，请检查服务器名称，端口，防火墙配置。"
+        $mesgPsVer = "当前系统PowerShell版本是"
+        $mesgPSMiniRequire = "此脚本需要PowerShell $miniPsRequire或者更高版本"
+        $mesgPSDownloadUrl = "微软官网下载更高版本PowerShell网址: https://docs.microsoft.com/en-us/powershell/"
+        $mesgRootAndTryAgain =  "请先安装Powershell V5以上版本, 重启系统后再次运行此脚本。"
+        $prompProperty = "酒店名称："
+        $prompWelcome = "| 欢迎使用SAFLOK酒店系统安装脚本"
+        $prompImprtant = " # 注意"
+        $prompRunAsAdmin = " # 此脚本必须以管理员身份运行"
+        $prompSafVer = "| SAFLOK 版本号: $version"
+        $prompWinOS = "| 操作系统:"
+        $prompScriptVer = "| 脚本版本号: $scriptVersion"
+        $prompVerNoMatch = "输入版本与安装包不否，准备退出。"
+        $prompAccept = "安装即代表接受软件包的许可协议。"
+        $prompDoU = "$cname 是否继续安装?(输入[Y]es/[N]o)"
+        $prompChkConfig = "需要手动配置以下文件中的部分参数: "
+        $prompIVI = "已安装程序版本: "
+    }
+    {'en-US'} {
+        $mesgNoPkg ="package does not exist, operation exit."
+        $mesgInstalled = "already installed."
+        $mesgDiffVer = "There is another version exist, please uninstall it first."
+        $mesgFailed = "installation failed!"
+        $mesgNoSource = "Missing source installation folder."
+        $mesgToInstall = "will now be installed, Please wait..."
+        $mesgConfigIIS = "Checking IIS features status for Messenger Lens..."
+        $mesgIISEnabled = "ALL IIS features Messenger LENS requires are ready."
+        $mesgSucc = "install was successful."
+        $mesgNotExe = "Can not get file version as it is not an executable file."
+        $mesgNoFile = "Oops, File does not exist!"
+        $mesgLensNotInstalled = "Messenger LENS has not been installed yet!"
+        $mesgHugeInstaller = "The installer is 116M+, this could take more than 5 minutes, please wait..."
+        $mesgReboot = "Reboot system and try the script again"
+        $mesgContactSaflok = "If still same, please contact your SAFLOK representative."
+        $mesgConnectError = "Connection Error. Check server name, port, firewall."
+        $mesgPsVer = "Your current PowerShell version is"
+        $mesgPSMiniRequire = "This script requires PowerShell version $miniPsRequire or above"
+        $mesgPSDownloadUrl = "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
+        $mesgRootAndTryAgain =  "Reboot server after installing Powershell 5 or above, run this script again."
+        $prompProperty = "Property: "
+        $prompWelcome = "| WELCOME TO SAFLOK LODGING SYSTEMS INSTALLATION"
+        $prompImprtant = " # IMPORTANT"
+        $prompRunAsAdmin = " # THIS SCRIPT MUST BE RUN AS ADMINISTRATOR"
+        $prompSafVer = "| SAFLOK VERSION: $version"
+        $prompWinOS = "| INSTALLING ON:"
+        $prompScriptVer = "| SCRIPT VERSION: $scriptVersion"
+        $prompVerNoMatch = "Version input does NOT match corresponding source package."
+        $prompAccept = "By installing you accept licenses for the packages."
+        $prompDoU = "$cname Do you want to run the script?([Y]es/[N]o)"
+        $prompChkConfig = "The following files need to be checked or configure: "
+        $prompIVI = "Installed Version Information: "
+    }
+}
 
 # ---------------------------
 # Functions
@@ -122,14 +185,6 @@ Function Logging {
 }
 
 # ---------------------------
-# Logging for installation complete
-Function Write-Complete {
-    Param (
-        [string]$pName
-    )
-    Logging "SUCC" "The install of $pName was successful."
-}
-# ---------------------------
 # Stop Script
 Function Stop-Script {
     [CmdletBinding()]
@@ -153,11 +208,11 @@ Function Get-FileVersion {
             If ($testFile -like "*.exe") {
                 (Get-Item $testFile).VersionInfo.FileVersion
             } Else {
-                Logging "ERRO" "Can not get file version as it is not an executable file."
+                Logging "ERRO" "$mesgNotExe"
             }
         }
         $False {
-            Write-Warning -Message "Oops, File $testFile does not exist!"
+            Write-Warning -Message "$mesgNoFile"
         }
     }
 }
@@ -245,7 +300,7 @@ Function Install-Prog {
                     Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " /s /f1$iss2Install " -Wait
                     Update-Status -pName $pName
                     If ($isInstalled) {
-                        Write-Complete $pName
+                        Logging "SUCC" "$pName $mesgSucc"
                         Start-Sleep -Seconds 2
                     } Else {
                         Logging "ERRO" "$pName $mesgFailed"
@@ -292,7 +347,7 @@ Function Install-Patch {
             }
 
         } Else {
-            Logging "ERRO" "$mesgDiffVer - $pName"
+            Logging "ERRO" "$mesgDiffVer"
             Stop-Script 5
         }
 
@@ -327,7 +382,7 @@ Function Install-LensPatch {
             Start-Sleep 2
             $wsPmsExeVersion | Out-Null
             If ($wsPmsExeVersion -eq $destVersion) {
-                Write-Complete $pName
+                Logging "SUCC" "$pName $mesgSucc"
                 Start-Sleep -Seconds 2
             } Else {
                 Logging "ERRO" "$pName $mesgFailed"
@@ -362,7 +417,7 @@ Function Install-DigitalPolling {
             Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " /s /f1$iss2Install" -Wait
             $isExeExist = Test-Path $targetFile -PathType Any
             If ($isExeExist){
-                Write-Complete $pName
+                Logging "SUCC" "$pName $mesgSucc"
                 Start-Sleep -Seconds 2
             } Else {
                 Logging "ERRO" "$pName $mesgFailed"
@@ -423,7 +478,7 @@ Function Install-PmsTester {
             Stop-Script 5
         }
         If ($testInstParent -eq $False) {
-            Logging "ERRO" "Messenger LENS has not been installed yet!"
+            Logging "ERRO" "$mesgLensNotInstalled"
             Stop-Script 5
         }
         Switch ($testInstFolder1) {
@@ -439,19 +494,19 @@ Function Install-PmsTester {
             }
             If (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $false))  {
                 Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-                Write-Complete $pName
+                Logging "SUCC" "$pName $mesgSucc"
                 Start-Sleep -Seconds 2
             } Elseif (($testInstFolder0 -eq $false) -and ($testInstFolder1 -eq $false)) {
                 Copy-Item $srcPackage -Destination $instParent -Recurse -Force -ErrorAction SilentlyContinue
                 Rename-Item -Path $instFolder0 -NewName $instFolder1 -force -ErrorAction SilentlyContinue
-                Write-Complete $pName
+                Logging "SUCC" "$pName $mesgSucc"
                 Start-Sleep -Seconds 2
             } Elseif (($testInstFolder0 -eq $true) -and ($testInstFolder1 -eq $true))  {
                 Remove-Item -Path $instFolder0 -Force -Recurse
-                Write-Complete $pName
+                Logging "SUCC" "$pName $mesgSucc"
                 Start-Sleep -Seconds 2
             } Else {
-                Write-Complete $pName
+                Logging "SUCC" "$pName $mesgSucc"
                 Start-Sleep -Seconds 2
             }
         }
@@ -486,17 +541,17 @@ Function Install-Sql {
                 }
                 $true {
                     Logging "PROG" "$pName $mesgToInstall"
-                    Logging "INFO" "The installer is 116M+, this could take more than 5 minutes, please wait... "
+                    Logging "INFO" "$mesgHugeInstaller"
                     Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " $argFile" -Wait
                     Start-Sleep -Seconds 2
                     Update-Status -pName $pName
                     If ($installed) {
-                        Write-Complete $pName
+                        Logging "SUCC" "$pName $mesgSucc"
                         Start-Sleep -Seconds 2
 			        } Else {
 				        Logging "ERRO" "$pName $mesgFailed"
-				        Logging "ERRO" "Reboot system and try the script again"
-				        Logging "ERRO" "If still same, please contact your SAFLOK representative."
+				        Logging "ERRO" "$mesgReboot"
+				        Logging "ERRO" "$mesgContactSaflok"
 				        Stop-Script 5
 			        }
                 }
@@ -528,7 +583,7 @@ Function Update-SqlPasswd {
             Logging "ERRO" "Fail"
             $errText =  $Error[0].ToString()
             If ($errText.Contains("network-related")) {
-                Logging "ERRO" "Connection Error. Check server name, port, firewall."
+                Logging "ERRO" "$mesgConnectError"
             }
             Logging "ERRO" "$errText"
             continue
@@ -563,18 +618,18 @@ Function Set-ServiceRecovery{
 }
 # ---------------------------
 # Mini Powershell version requirement
-[Decimal]$psVerion = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor
-If ($psVerion -lt $miniPsRequire) {
-    Logging "INFO" "Your current PowerShell version is v$psVerion."
-    Logging "ERRO" "This script requires PowerShell version $miniPsRequire or above."
-    Logging "WARN" "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/."
-    Logging "WARN" "Reboot server after installing Powershell 5 or above, run this script again."
+$psVersion = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor -AS [Decimal]
+If ($psVersion -lt $miniPsRequire) {
+    Logging "INFO" "$mesgPsVer V$psVerion"
+    Logging "ERRO" "$mesgPSMiniRequire"
+    Logging "WARN" "$mesgPSDownloadUrl"
+    Logging "WARN" "$mesgRootAndTryAgain"
     Stop-Script 5
 }
 # ---------------------------
 # Header variables
 $cname = "[$vendor]"
-$hotelName = 'Property: ' + $property.trim().toUpper()
+$hotelName = $prompProperty + $property.trim().toUpper()
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
 # Windows OS version in decimal
@@ -586,17 +641,17 @@ $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
 # MENU OPTION
 Clear-Host
 Logging "" "+---------------------------------------------------------"
-Logging "" "| WELCOME TO SAFLOK LODGING SYSTEMS INSTALLATION"
+Logging "" $prompWelcome
 Logging "" "+---------------------------------------------------------"
-Write-Colr -Text $cname, " |"," # IMPORTANT"  -Colour White,cyan,Red
-Write-Colr -Text $cname, " |"," # THIS SCRIPT MUST BE RUN AS ADMINISTRATOR" -Colour White,cyan,red
+Write-Colr -Text $cname, " |",$prompImprtant  -Colour White,cyan,Red
+Write-Colr -Text $cname, " |",$prompRunAsAdmin -Colour White,cyan,red
 Logging "" "+---------------------------------------------------------"
 Logging "" "| $time"
 Write-Colr -Text $cname, " |"," $hotelName" -Colour White,cyan,Yellow
-Logging "" "| SAFLOK VERSION: $version"
-Logging "" "| INSTALLING ON: $osDetail"
+Logging "" "$prompSafVer"
+Logging "" "$prompWinOS $osDetail"
 Logging "" "+---------------------------------------------------------"
-Logging "" "| SCRIPT VERSION: $scriptVersion"
+Logging "" "$prompScriptVer"
 Logging "" "+---------------------------------------------------------"
 Logging "" ""
 
@@ -631,14 +686,14 @@ $verNoFromRootPath = $scriptPath.Substring($scriptPath.Length -11,3)
 Switch ($scriptPath -match $pattern) {
     $True  {
                 If ([int]$ver2Int -ne [int]$verNoFromRootPath) {
-                    Logging "ERRO" "Version input does NOT match corresponding source package."
+                    Logging "ERRO" "$prompVerNoMatch"
                     Stop-Script 5
                 } Else {
                     # -----------------------
                     # HEADER Information
                     Logging "" ""
-                    Logging "By installing you accept licenses for the packages."
-                    $confirmation = Read-Host "$cname Do you want to run the script?([Y]es/[N]o)"
+                    Logging "" "$prompAccept"
+                    $confirmation = Read-Host "$prompDoU"
                     $confirmation = $confirmation.ToUpper()
                     Logging "" ""
                 }
@@ -1058,7 +1113,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         # ----------------------------------------------------------------
         # OPEN GUI AND CONFIG FILE
         Logging "" "+---------------------------------------------------------"
-        Logging "" "The following files need to be checked or configure: "
+        Logging "" "$prompChkConfig"
         Logging "" "+---------------------------------------------------------"
         If ($Null -eq (Get-Process | where-object {$_.Name -eq 'Saflok_IRS'}).ID) {
             Start-Process -NoNewWindow -FilePath $saflokIRS; Start-Sleep -S 1
@@ -1110,7 +1165,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         }
         # ----------------------------------------------------------------
         # FOOTER
-        Logging "" "Installed Version Information: "
+        Logging "" "$prompIVI"
         Logging "" "+---------------------------------------------------------"
         $gatewayVer = Get-FileVersion $gatewayExe;
         $hmsVer = Get-FileVersion $hmsExe;
