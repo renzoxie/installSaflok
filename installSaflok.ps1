@@ -153,7 +153,9 @@ switch ($lang) {
         $prompChkConfig = "需要手动配置以下文件中的部分参数: "
         $prompIVI = "已安装程序版本: "
         $mesgChose = "已选择安装在 ["+$inputDrive+"] 盘"
-        $mesgCouldNotIns = "'无法将程序安装在'+$inputDrive+'盘，准备退出。'"
+        $mesgCouldNotIns = "无法将程序安装在 ["+$inputDrive+"] 盘，准备退出。"
+        $mesgGoin2InstVer = "将进行安装的程序版本为 [V"+$version+"]"
+        $mesgRerun4Drive = "重新运行本脚本，请选择正确的磁盘位置。"
     }
     Default {
         $mesgNoPkg ="package does not exist, operation exit."
@@ -188,8 +190,10 @@ switch ($lang) {
         $prompDoU = " Do you want to run the script?([Y]es/[N]o)"
         $prompChkConfig = "The following files need to be checked or configure: "
         $prompIVI = "Installed Version Information: "
-        $mesgChose = "You chose drive $inputDrive"
-        $mesgCouldNotIns = "We could not install on drive $inputDrive."
+        $mesgChose = "You chose drive "+$inputDrive
+        $mesgCouldNotIns = "We could not install on drive "+$inputDrive
+        $mesgGoin2InstVer = "We are going to install version "+$version
+        $mesgRerun4Drive = "Please re-run the script again to input a correct drive."
     }
 }
 
@@ -715,17 +719,17 @@ if ($inputDrive -IN $driveLetters) {
     Logging "" "$mesgChose"
 } else {
     Logging "ERRO" "$mesgCouldNotIns"
-    Write-Warning -Message "Please re-run the script again to input a correct drive."
+    Logging "WARN" "$mesgRerun4Drive"
     Stop-Script 5
 }
 
 # ---------------------------
 # VALID Version INPUT
 if ($version -IN $versionOptions) {
-    Logging "" "We are going to install version $version"
+    Logging "" "$mesgGoin2InstVer"
 } else {
     Logging "ERRO" "The version number specified is NOT correct."
-    Write-Warning -Message "Please re-run the script again to input a correct version."
+    Logging "WARN" "Please re-run the script again to input a correct version."
     Stop-Script 5
 }
 
