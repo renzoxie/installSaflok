@@ -1070,7 +1070,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                     }
                 }
 		        # write message to host
-				Write-Colr -Text "$cname ","[$twoDigits/$totalFeatures]","$featureName"," | ","$featureState" -Colour White,White,White,White,$foo
+				Write-Colr -Text "$cname ","[$twoDigits/23]","$featureName"," | ","$featureState" -Colour White,White,White,White,$foo
 				# add feature in disabledFeatures
 		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
 		            $disabledFeatures += $feature
@@ -1081,7 +1081,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		        foreach ($disabled in $disabledFeatures) {
 		            Logging "PROG" "Adding feature $disabled"
 		            Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
-		            Logging "SUCC" "Enabled feature: $disabled."
+		            Logging "SUCC" "Enabled feature: $disabled"
 		            Start-Sleep -Seconds 2
 		        }
 		    } else {
