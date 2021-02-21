@@ -43,7 +43,7 @@ $scriptPath = $PSScriptRoot
 
 # ---------------------------
 # Versions
-$scriptVersion = '2.0'
+$scriptVersion = '2.1'
 $miniPsRequire = '5.1' -AS [decimal]
 Switch ($version) {
     '5.45' {
