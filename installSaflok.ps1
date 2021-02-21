@@ -120,42 +120,68 @@ $driveLetterPattern = "(\w{1})"
 $lang = (Get-WinSystemLocale).Name
 switch ($lang) {
     'zh-CN' {
-        $mesgNoPkg ="安装包不存在，准备退出。"
-        $mesgInstalled = "程序已安装。"
-        $mesgDiffVer = "已安装其他版本程序，请卸载其他版本后再运行本脚本。"
+        $mesgNoPkg ="安装包不存在，准备退出"
+        $mesgInstalled = "已安装"
+        $mesgDiffVer = "已安装其他版本程序，请卸载其他版本后再运行本脚本"
         $mesgFailed = "程序安装失败，准备退出"
-        $mesgNoSource = "未找到源安装文件夹。"
+        $mesgNoSource = "未找到源安装文件夹"
         $mesgToInstall = "程序正在安装，请稍等..."
         $mesgConfigIIS = "正在检查Messenger Lens所需IIS组件状态..."
-        $mesgIISEnabled = "所有Messenger LENS所需组件已准备就绪。"
-        $mesgSucc = "程序安装成功。"
-        $mesgNotExe = "非执行文件，无法过去文件版本。"
+        $mesgIISEnabled = "所有Messenger LENS所需组件已准备就绪"
+        $mesgSucc = "程序安装成功"
+        $mesgNotExe = "非执行文件，无法过去文件版本"
         $mesgNoFile = "文件不存在。"
         $mesgLensNotInstalled = "请先安装Messenger LENS。"
         $mesgHugeInstaller = "程序较大，安装可能需要较长时间，请耐心等待..."
         $mesgReboot = "重启系统，然后尝试再次执行此脚本"
-        $mesgContactSaflok = "如果重启后问题依旧, 请联系Saflok技术支持。"
-        $mesgConnectError = "数据库连接错误，请检查服务器名称，端口，防火墙配置。"
+        $mesgContactSaflok = "如果重启后问题依旧, 请联系Saflok技术支持"
+        $mesgConnectError = "数据库连接错误，请检查服务器名称，端口，防火墙配置"
         $mesgPsVer = "当前系统PowerShell版本是"
         $mesgPSMiniRequire = "此脚本需要PowerShell $miniPsRequire或者更高版本"
         $mesgPSDownloadUrl = "微软官网下载更高版本PowerShell网址: https://docs.microsoft.com/en-us/powershell/"
-        $mesgRootAndTryAgain =  "请先安装Powershell V5以上版本, 重启系统后再次运行此脚本。"
+        $mesgRootAndTryAgain =  "请先安装Powershell V5以上版本, 重启系统后再次运行此脚本"
         $prompProperty = "酒店名称："
         $prompWelcome = "| 欢迎使用SAFLOK酒店系统安装脚本"
-        $prompImprtant = " # 注意"
+        $prompImprtant = " # 重要"
         $prompRunAsAdmin = " # 此脚本必须以管理员身份运行"
         $prompSafVer = "| SAFLOK 版本号: $version"
         $prompWinOS = "| 操作系统:"
         $prompScriptVer = "| 脚本版本号: $scriptVersion"
-        $prompVerNoMatch = "输入版本与安装包不否，准备退出。"
-        $prompAccept = "选择安装即代表接受软件包的许可协议"
+        $prompVerNoMatch = "输入版本与安装包不否，准备退出"
+        $prompAccept = "选择安装即代表接受软件的许可协议"
         $prompDoU = "是否继续安装?(输入[Y]es/[N]o)"
+        $prompStartInstall = "开始安装"
         $prompChkConfig = "需要手动配置以下文件中的部分参数: "
-        $prompIVI = "已安装程序版本: "
-        $mesgChose = "已选择安装在 ["+$inputDrive+"] 盘"
-        $mesgCouldNotIns = "无法将程序安装在 ["+$inputDrive+"] 盘，准备退出。"
+        $mesgCouldNotIns = "无法将程序安装在 ["+$inputDrive+"] 盘，准备退出"
         $mesgGoin2InstVer = "将进行安装的程序版本为 [V"+$version+"]"
-        $mesgRerun4Drive = "重新运行本脚本，请选择正确的磁盘位置。"
+        $mesgRerun4Drive = "请重新运行本脚本，请选择正确的磁盘位置"
+        $mesgCp2dFolder = "请将数据库文件拷贝至此文件夹:"
+        $mesgTryScriptAgain = "数据库文件放置在上述文件夹后，请再次运行此脚本"
+        $mesgVerNotCorrect = "输入的版本号不正确"
+        $mesgRerun4Ver = "请重新运行本脚本，请选择正确的版本号"
+        #-----------------
+        # Share Folder
+        $shareFolderNotExist = "文件夹不存在"
+        $sharingFolder = "正在处理文件夹共享..."
+        $shareFolderDone = "成功共享文件夹"
+        $shareAlreadyShared = "数据库文件夹已共享"
+        #-----------------
+        # Messenger Lens
+        $mesgLensBefMessenger = "安装Lens之前，请先安装Saflok messenger程序"
+        $mesgFailedEnableIIS = "添加IIS组件失败。"
+        #-----------------       
+        # Services
+        $mesgStartinService = "正在启动服务"
+        $mesgServiceStarted = "服务已启动"
+        $mesgServiceRunning = “服务正处于运行状态中"
+        #-----------------       
+        # config
+        $mesgCheckConfig = "提示: 配置文件已最小化，请在任务栏处打开"
+        $mesgtks = " 感谢安装Saflok酒店系统"
+        $mesgNeedReboot = "# 注意: 安装过程序之后需要重启系统"
+        $mesgMissingLens = "必须先安装Messenger Lens程序"
+        $mesgbye = " 后会有期！"
+        $mesgDone = "完成"
     }
     Default {
         $mesgNoPkg ="package does not exist, operation exit."
@@ -189,11 +215,40 @@ switch ($lang) {
         $prompAccept = "By installing you accept licenses for the packages"
         $prompDoU = " Do you want to run the script?([Y]es/[N]o)"
         $prompChkConfig = "The following files need to be checked or configure: "
-        $prompIVI = "Installed Version Information: "
-        $mesgChose = "You chose drive "+$inputDrive
+        $prompStartInstall = "Start installing Saflok"
         $mesgCouldNotIns = "We could not install on drive "+$inputDrive
         $mesgGoin2InstVer = "We are going to install version "+$version
         $mesgRerun4Drive = "Please re-run the script again to input a correct drive."
+        $mesgCp2dFolder = "Please copy database files to this folder:"
+        $mesgTryScriptAgain = "Try this script again after database files have been loaded."
+        $mesgVerNotCorrect = "The version number specified is NOT correct."
+        $mesgRerun4Ver = "Please re-run the script again to input a correct version."
+        #-----------------
+        # Share Folder
+        $shareFolderNotExist = "Folder need to be shared does not exist"
+        $sharingFolder = "Processing folder share."
+        $shareFolderDone = "Folder share completed."
+        $shareAlreadyShared = "The Saflok database folder already been shared."
+        #-----------------
+        # Messenger Lens
+        $mesgLensBefMessenger = "Please install Saflok messenger before Lens."
+        $mesgFailedEnableIIS = "Oops, fail to add IIS features for Messenger Lens."
+        #-----------------       
+        # Services
+        $mesgStartinService = "Staring service"
+        $mesgServiceStarted = "has been started."
+        $mesgServiceRunning = “is in running state."
+        #-----------------       
+        # config
+        $mesgCheckConfig = "Tip: Please check those config files opening in taskbar area."
+        $mesgtks = " Thanks for installing Saflok."
+        $mesgNeedReboot = "# NOTE: The recent program changes indicate a reboot is necessary."
+        $mesgMissingLens = "Missing Messenger Lens program, Please make sure Messenger Lens is be installed properly."
+        $mesgbye = " Thank you, Bye!"
+        $mesgDone = "DONE"
+
+
+
     }
 }
 
@@ -294,7 +349,7 @@ Function Install-Prog {
             $true {
                 If ($progVersion -ne $progPatchedVersion) {
                     If ($updateVersion -eq $progPatchedVersion) {
-                        Logging "INFO" "$pName $mesgInstalled"
+                        Logging "INFO" "$mesgInstalled $pName"
                         Start-Sleep -Seconds 2
                     } Elseif ($updateVersion -eq $progVersion) {
                         continue
@@ -303,7 +358,7 @@ Function Install-Prog {
                         Stop-Script 5
                     }
                 } else {
-                    Logging "INFO" "$pName $mesgInstalled"
+                    Logging "INFO" "$mesgInstalled $pName"
                     Start-Sleep -Seconds 2
                 }
             }
@@ -343,7 +398,7 @@ Function Install-Patch {
     }
     process {
         If ($updateVersion -eq $progPatchedVersion)   {
-            Logging "INFO" "$pName patch $mesgInstalled"
+            Logging "INFO" "$mesgInstalled $pName Patch"
             Start-Sleep -Seconds 2
         } Elseif ($updateVersion -eq $progVersion)   {
             Logging "PROG" "$pName patch $mesgToInstall"
@@ -351,11 +406,11 @@ Function Install-Patch {
             Start-Sleep -Seconds 2
             Update-Status -pName $pName
             If ($updateVersion -eq $progPatchedVersion) {
-                Logging "SUCC" "$pName patch $mesgInstalled"
+                Logging "SUCC" "$mesgInstalled $pName Patch "
                 Start-Sleep -Seconds 2
                 continue
             } Else {
-                Logging "ERRO" "$pName patch $mesgFailed"
+                Logging "ERRO" "$pName Patch $mesgFailed"
                 Stop-Script 5
             }
 
@@ -386,11 +441,11 @@ Function Install-LensPatch {
     }
     process {
         If ($isInstalled -and ($wsPmsExeVersion -eq $destVersion) ) {
-            Logging "INFO" "$pName patch $mesgInstalled"
+            Logging "INFO" "$mesgInstalled $pName Patch "
             Start-Sleep -Seconds 2
         } Else {
-            Logging "INFO" "$pName $mesgInstalled"
-            Logging "PROG" "$pName patch $mesgToInstall"
+            Logging "INFO" "$mesgInstalled $pName"
+            Logging "PROG" "$pName Patch $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
             Start-Sleep 2
             $wsPmsExeVersion | Out-Null
@@ -424,7 +479,7 @@ Function Install-DigitalPolling {
 
     process {
         If($isExeExist) {
-            Logging "INFO" "$pName $mesgInstalled"
+            Logging "INFO" "$mesgInstalled $pName"
         } Else {
             Logging "PROG" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " /s /f1$iss2Install" -Wait
@@ -499,7 +554,7 @@ Function Install-PmsTester {
             $false {$fileCopied = $false}
         }
         If ($fileCopied) {
-            Logging "INFO" "$pName $mesgInstalled."
+            Logging "INFO" "$mesgInstalled $pName"
             Start-Sleep -Seconds 2
         } Else {
             If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {
@@ -668,7 +723,7 @@ Logging "" "$prompScriptVer"
 Logging "" "+---------------------------------------------------------"
 Logging "" ""
 
-# Get drive IDs from localhost, driveType 3="Fixed local disk"
+# Get drive IDs from localhost
 $driveIDs = (Get-WmiObject -class Win32_LogicalDisk -computername localhost -filter "drivetype=3").DeviceID
 $driveLetters = @()
 for ($i=0; $i -lt $driveIDs.Length; $i++) {
@@ -684,8 +739,9 @@ $installDrive = $inputDrive + ':'
 # ---------------------------
 # SOURCE FOLDER - INSTALL SCRIPT
 $packageFolders =  Get-ChildItem ($scriptPath) | Select-Object Name | Sort-Object -Property Name
+
 # ---------------------------
-# validate if source folder exist
+# if source folder exist
 Switch ($version) {
     '5.45' {$pattern = "([A-Z]{7}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
     '5.68' {$pattern = "([A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
@@ -716,7 +772,7 @@ Switch ($scriptPath -match $pattern) {
 # ---------------------------
 # VALID DRIVE CHARACTER INPUT
 if ($inputDrive -IN $driveLetters) {
-    Logging "" "$mesgChose"
+    Logging "" "$prompStartInstall"
 } else {
     Logging "ERRO" "$mesgCouldNotIns"
     Logging "WARN" "$mesgRerun4Drive"
@@ -726,10 +782,10 @@ if ($inputDrive -IN $driveLetters) {
 # ---------------------------
 # VALID Version INPUT
 if ($version -IN $versionOptions) {
-    Logging "" "$mesgGoin2InstVer"
+    Logging "" "[SAFLOK LODGING SYSTEM]"
 } else {
-    Logging "ERRO" "The version number specified is NOT correct."
-    Logging "WARN" "Please re-run the script again to input a correct version."
+    Logging "ERRO" "$mesgVerNotCorrect"
+    Logging "WARN" "$mesgRerun4Ver "
     Stop-Script 5
 }
 
@@ -904,9 +960,9 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $srcHotelData = ($absPackageFolders[0])
     $srcGdb = (Get-ChildItem -Path $srcHotelData).Name
     If ((($srcGdb -match '^SAFLOKDATAV2.GDB$').Count -eq 0) -or (($srcGdb -match '^SAFLOKLOGV2.GDB$').Count -eq 0) -or ($null -eq $srcGdb)) {
-        Logging "WARN" "Please copy database files to this folder:"
+        Logging "WARN" "$mesgCp2dFolder"
         Logging "WARN" "$srcHotelData"
-        Logging "WARN" "Try this script again after database files have been loaded."
+        Logging "WARN" "$mesgTryScriptAgain"
         Write-Host ''
         Stop-Script 5
     }
@@ -924,21 +980,21 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # share database folder
     try {
         If(!(Test-Path -Path $shareFolder -IsValid)) {
-            Logging "ERRO" "Folder need to be shared does not exist"
+            Logging "ERRO" "$shareFolderNotExist"
             Stop-Script -seconds 5
         }
         $getSmbShare = Get-SmbShare | Where-Object {$_.Name -eq $shareName}
         Switch ($null -ne $getSmbShare) {
             $True {
-                Logging "INFO" "The Saflok database folder already been shared."
+                Logging "INFO" "$shareAlreadyShared"
                 Start-Sleep -S 2
                 continue
             }
             $False {
-                Logging "PROG" "Processing folder share."
+                Logging "PROG" "$sharingFolder"
                 New-SmbShare -Name $shareName -Path $shareFolder -FullAccess "everyone" -Description "Saflok database folder share" | Out-Null
                 Start-Sleep -S 2
-                Logging "INFO" "Folder share completed."
+                Logging "INFO" "$shareFolderDone"
                 continue
             }
         }
@@ -963,7 +1019,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # Delete the support for win7 and win server 2008, as they were retired
     Update-Status -pName "Saflok Messenger Server"
 	If ($isInstalled -ne $True) {
-		Logging "WARN" "Please install Saflok messenger before Lens."
+		Logging "WARN" "$mesgLensBefMessenger"
 		Stop-Script 5
 	} Else {
         Logging "INFO" "$mesgConfigIIS"
@@ -994,8 +1050,15 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		        # get feature name and state
 		        $featureName = $featureList.Name
 		        $featureState = $featureList.State
+                
+                If ($lang -eq "zh-CN") {
+                    switch ($featureState) {
+                        'Enabled' {$featureState = '已启用'}
+                        'Disabled' {$featureState = '未启用'}
+                    }
+                }
 		        # write message to host
-				Logging "PROG" "[$twoDigits/$totalFeatures] $featureName <==> $featureState"
+				Logging "PROG" "[$twoDigits/$totalFeatures] $featureName | $featureState"
 				# add feature in disabledFeatures
 		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
 		            $disabledFeatures += $feature
@@ -1010,14 +1073,14 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		            Start-Sleep -Seconds 2
 		        }
 		    } else {
-		            Logging "INFO" "$mesgIISEnabled"
+		            Write-Colr -Text $cname, "$mesgIISEnabled" -Colour White,Gray
 		            Start-Sleep -Seconds 2
 		    }
 
 		}
 
 		catch {
-		    Write-Warning -Message "Oops, fail to add IIS features for Messenger Lens."
+		    Write-Warning -Message "$mesgFailedEnableIIS"
 		}
     }
 
@@ -1112,12 +1175,15 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Foreach ($service In $servicesCheck) {
             $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
             If ($serviceStatus.Status -eq "stopped") {
-                Logging "" "Staring service $service."
+                Logging "" "$mesgStartinService $service."
                 Start-Service -Name $service -ErrorAction SilentlyContinue
                 $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
-                If ($serviceStatus.Status -eq "running") { Logging "" "$service has been started."}
-                Start-Sleep -S 1
-            } Else {Logging "" "$service is in running state.";Start-Sleep -S 1}
+                If ($serviceStatus.Status -eq "running") { Logging "" "$service $mesgServiceStarted"}
+                Start-Sleep -S 2
+            } Else {
+                Logging "INFO" "$service $mesgServiceRunning"
+                Start-Sleep -S 2
+            }
         }
         # ----------------------------------------------------------------
         # OPEN GUI AND CONFIG FILE
@@ -1153,7 +1219,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 Start-Sleep -S 1
             }
         }
-        Write-Colr -Text "$cname ","Please check those config files opening in taskbar area." -Colour White,Magenta
+        Write-Colr -Text "$cname ","$mesgCheckConfig" -Colour White,Gray
         Logging "" "+---------------------------------------------------------"
         Start-Sleep -Seconds 1
         # ----------------------------------------------------------------
@@ -1191,26 +1257,26 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             If (Test-Path $digitalPollingExe -PathType Leaf) { Logging "" "POLLING: $pollingVer"; Start-Sleep -Seconds 1 }
         }
         Logging "" "+---------------------------------------------------------"
-        Logging "" "DONE"
+        Write-Colr -Text "$cname ","$mesgDone" -Colour White,Green
         Logging "" "+---------------------------------------------------------"
         Logging "" ""
-        Write-Colr -Text $cname," Thanks for installing Saflok." -Colour White,Green
+        Write-Colr -Text $cname,"$mesgtks" -Colour White,Green
         Write-host ""
-        Write-host "# NOTE: The recent program changes indicate a reboot is necessary." -ForegroundColor Magenta
+        Write-host "$mesgNeedReboot" -ForegroundColor Gray
         Write-Host "";Write-Host ""
         # clean up script files and SAFLOK folder
         If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }
         Start-Sleep -Second 2
     } Else {
-        Logging "ERRO" "Missing Messenger Lens program, Please make sure Messenger Lens is be installed properly. "
+        Logging "ERRO" "$mesgMissingLens"
         Stop-Script 5
     }
 
 }
 If ($confirmation -eq 'N' -or $confirmation -eq 'NO') {
     Logging "" ""
-    Write-Colr -Text $cname," Thank you, Bye!" -Colour White,Gray
+    Write-Colr -Text $cname,"$mesgbye" -Colour White,Gray
     Write-Host ''
     Stop-Script 5
 }
