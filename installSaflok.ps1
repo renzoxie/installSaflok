@@ -159,9 +159,13 @@ switch ($lang) {
         $mesgTryScriptAgain = "数据库文件放置在上述文件夹后，请再次运行此脚本"
         $mesgVerNotCorrect = "输入的版本号不正确"
         $mesgRerun4Ver = "请重新运行本脚本，请选择正确的版本号"
-		$noCount = "序列号    |"
-		$iisName = " 组件名称      |"
+		$noCount = "序号     |"
+		$iisName = " 组件名称   	  |"
 		$iisState = " 状态"
+		#-----------------
+        # IIS
+		$addinFeature = "正在添加组件"
+		$enabledFeature = "已启用"
         #-----------------
         # Share Folder
         $shareFolderNotExist = "文件夹不存在"
@@ -236,6 +240,11 @@ switch ($lang) {
         $sharingFolder = "Processing folder share"
         $shareFolderDone = "Folder share completed"
         $shareAlreadyShared = "The Saflok database folder already been shared"
+		#-----------------
+        # IIS
+		$addinFeature = "Adding feature"
+		$enabledFeature = "enabled"
+
         #-----------------
         # Messenger Lens
         $mesgLensBefMessenger = "Please install Saflok messenger before Lens"
@@ -1099,9 +1108,9 @@ Write-Colr -Text "$cname ","$noCount","$iisName","$iisState" -Colour White,White
 
 		    if ($disabledFeatures.length -gt 0) {
 		        foreach ($disabled in $disabledFeatures) {
-		            Logging "PROG" "Adding feature $disabled"
+		            Logging "PROG" "$addinFeature $disabled"
 		            Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
-		            Logging "SUCC" "Enabled feature: $disabled"
+		            Logging "SUCC" "$disabled $enabledFeature"
 		            Start-Sleep -Seconds 2
 		        }
 		    } else {
