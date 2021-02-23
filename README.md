@@ -6,6 +6,12 @@
     <li> If system prompt no right to run the script, please run the following command in advance <br />set-executionPolicy remoteSigned -force</li>
 </ol>
 
+# Version Options
+<ol>
+    <li> 5.45 </li>
+    <li> 5.68 </li>
+</ol>
+
 # Features
 <ol>
     <li> support install on drive C or drive D </li>

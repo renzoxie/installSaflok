@@ -6,6 +6,12 @@
     <li> 如果提示无权运行，需要用管理员权限在PowerShell命令行中输入以下命令并回车<br />set-executionPolicy remoteSigned -force </li>
 </ol>
 
+# 可选版本
+<ol>
+    <li> 5.45 </li>
+    <li> 5.68 </li>
+</ol>
+
 # 功能
 <ol>
     <li> 支持安装在C盘或者D盘 </li>
