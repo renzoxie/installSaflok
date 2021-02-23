@@ -454,7 +454,7 @@ Function Install-LensPatch {
 						Logging "PROG" "$pName Patch $mesgToInstall"
 						Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
 						Start-Sleep 5
-						$wsPmsExeVersion #| Out-Null
+						$wsPmsExeVersion = Get-FileVersion -testFile $targetFile
 						try {
 							Switch ($wsPmsExeVersion -eq $destVersion) {
 								$true {
