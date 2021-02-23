@@ -54,7 +54,7 @@ Switch ($version) {
         $msgrVersion = '5.2.0.0'
         $msgrPatchedVersion = '5.2.0.0'
         $msgrLensVersion = '4.7.0.0'
-        #$wsPmsExeBefPatchVersion = '4.7.1.15707'
+        $wsPmsExeBefPatchVersion = '4.7.1.15707'
         $wsPmsExeAftPatchVersion = '4.7.2.22767'
     }
     '5.68' {
@@ -65,7 +65,7 @@ Switch ($version) {
         $msgrVersion = '5.6.0.0'
         $msgrPatchedVersion = '5.6.0.0'
         $msgrLensVersion = '5.6.0.0'
-        #$wsPmsExeBefPatchVersion = '5.6.0.0'
+        $wsPmsExeBefPatchVersion = '5.6.0.0'
         $wsPmsExeAftPatchVersion = '5.6.7.22261'
     }
 }
@@ -120,71 +120,74 @@ $driveLetterPattern = "(\w{1})"
 $lang = (Get-WinSystemLocale).Name
 switch ($lang) {
     'zh-CN' {
-        $mesgNoPkg ="°²×°°ü²»´æÔÚ£¬×¼±¸ÍË³ö"
-        $mesgInstalled = "ÒÑ°²×°"
-        $mesgDiffVer = "ÒÑ°²×°ÆäËû°æ±¾³ÌĞò£¬ÇëĞ¶ÔØÆäËû°æ±¾ºóÔÙÔËĞĞ±¾½Å±¾"
-        $mesgFailed = "³ÌĞò°²×°Ê§°Ü£¬×¼±¸ÍË³ö"
-        $mesgNoSource = "Î´ÕÒµ½Ô´°²×°ÎÄ¼ş¼Ğ"
-        $mesgToInstall = "³ÌĞòÕıÔÚ°²×°£¬ÇëÉÔµÈ..."
-        $mesgConfigIIS = "ÕıÔÚ¼ì²éMessenger LensËùĞèIIS×é¼ş×´Ì¬..."
-        $mesgIISEnabled = "ËùÓĞMessenger LENSËùĞè×é¼şÒÑ×¼±¸¾ÍĞ÷"
-        $mesgSucc = "³ÌĞò°²×°³É¹¦"
-        $mesgNotExe = "·ÇÖ´ĞĞÎÄ¼ş£¬ÎŞ·¨¹ıÈ¥ÎÄ¼ş°æ±¾"
-        $mesgNoFile = "ÎÄ¼ş²»´æÔÚ¡£"
-        $mesgLensNotInstalled = "ÇëÏÈ°²×°Messenger LENS¡£"
-        $mesgHugeInstaller = "³ÌĞò½Ï´ó£¬°²×°¿ÉÄÜĞèÒª½Ï³¤Ê±¼ä£¬ÇëÄÍĞÄµÈ´ı..."
-        $mesgReboot = "ÖØÆôÏµÍ³£¬È»ºó³¢ÊÔÔÙ´ÎÖ´ĞĞ´Ë½Å±¾"
-        $mesgContactSaflok = "Èç¹ûÖØÆôºóÎÊÌâÒÀ¾É, ÇëÁªÏµSaflok¼¼ÊõÖ§³Ö"
-        $mesgConnectError = "Êı¾İ¿âÁ¬½Ó´íÎó£¬Çë¼ì²é·şÎñÆ÷Ãû³Æ£¬¶Ë¿Ú£¬·À»ğÇ½ÅäÖÃ"
-        $mesgPsVer = "µ±Ç°ÏµÍ³PowerShell°æ±¾ÊÇ"
-        $mesgPSMiniRequire = "´Ë½Å±¾ĞèÒªPowerShell $miniPsRequire»òÕß¸ü¸ß°æ±¾"
-        $mesgPSDownloadUrl = "Î¢Èí¹ÙÍøÏÂÔØ¸ü¸ß°æ±¾PowerShellÍøÖ·: https://docs.microsoft.com/en-us/powershell/"
-        $mesgRootAndTryAgain =  "ÇëÏÈ°²×°Powershell V5ÒÔÉÏ°æ±¾, ÖØÆôÏµÍ³ºóÔÙ´ÎÔËĞĞ´Ë½Å±¾"
-        $prompProperty = "¾ÆµêÃû³Æ£º"
-        $prompWelcome = "| »¶Ó­Ê¹ÓÃSAFLOK¾ÆµêÏµÍ³°²×°½Å±¾"
-        $prompImprtant = " # ÖØÒª"
-        $prompRunAsAdmin = " # ´Ë½Å±¾±ØĞëÒÔ¹ÜÀíÔ±Éí·İÔËĞĞ"
-        $prompSafVer = "| SAFLOK °æ±¾ºÅ: $version"
-        $prompWinOS = "| ²Ù×÷ÏµÍ³:"
-        $prompScriptVer = "| ½Å±¾°æ±¾ºÅ: $scriptVersion"
-        $prompVerNoMatch = "ÊäÈë°æ±¾Óë°²×°°ü²»·ñ£¬×¼±¸ÍË³ö"
-        $prompAccept = "Ñ¡Ôñ°²×°¼´´ú±í½ÓÊÜÈí¼şµÄĞí¿ÉĞ­Òé"
-        $prompDoU = "ÊÇ·ñ¼ÌĞø°²×°?(ÊäÈë[Y]es/[N]o)"
-        $prompStartInstall = "¿ªÊ¼°²×°"
-        $prompChoseDrive = "SAFLOK³ÌĞò½«°²×°ÔÚ ["+ $inputDrive+"] ÅÌ"
-        $prompChkConfig = "| ĞèÒªÊÖ¶¯ÅäÖÃÒÔÏÂÎÄ¼şÖĞµÄ²¿·Ö²ÎÊı: "
-        $mesgCouldNotIns = "ÎŞ·¨½«³ÌĞò°²×°ÔÚ ["+$inputDrive+"] ÅÌ£¬×¼±¸ÍË³ö"
-        $mesgRerun4Drive = "ÇëÖØĞÂÔËĞĞ±¾½Å±¾£¬ÇëÑ¡ÔñÕıÈ·µÄ´ÅÅÌÎ»ÖÃ"
-        $mesgCp2dFolder = "Çë½«Êı¾İ¿âÎÄ¼ş¿½±´ÖÁ´ËÎÄ¼ş¼Ğ:"
-        $mesgTryScriptAgain = "Êı¾İ¿âÎÄ¼ş·ÅÖÃÔÚÉÏÊöÎÄ¼ş¼Ğºó£¬ÇëÔÙ´ÎÔËĞĞ´Ë½Å±¾"
-        $mesgVerNotCorrect = "ÊäÈëµÄ°æ±¾ºÅ²»ÕıÈ·"
-        $mesgRerun4Ver = "ÇëÖØĞÂÔËĞĞ±¾½Å±¾£¬ÇëÑ¡ÔñÕıÈ·µÄ°æ±¾ºÅ"
+        $mesgNoPkg ="å®‰è£…åŒ…ä¸å­˜åœ¨ï¼Œå‡†å¤‡é€€å‡º"
+        $mesgInstalled = "å·²å®‰è£…"
+        $mesgDiffVer = "å·²å®‰è£…å…¶ä»–ç‰ˆæœ¬ç¨‹åºï¼Œè¯·å¸è½½å…¶ä»–ç‰ˆæœ¬åå†è¿è¡Œæœ¬è„šæœ¬"
+        $mesgFailed = "ç¨‹åºå®‰è£…å¤±è´¥ï¼Œå‡†å¤‡é€€å‡º"
+        $mesgNoSource = "æœªæ‰¾åˆ°æºå®‰è£…æ–‡ä»¶å¤¹"
+        $mesgToInstall = "ç¨‹åºæ­£åœ¨å®‰è£…ï¼Œè¯·ç¨ç­‰..."
+        $mesgConfigIIS = "æ­£åœ¨æ£€æŸ¥Messenger Lensæ‰€éœ€IISç»„ä»¶çŠ¶æ€..."
+        $mesgIISEnabled = "æ‰€æœ‰Messenger LENSæ‰€éœ€ç»„ä»¶å·²å‡†å¤‡å°±ç»ª"
+        $mesgSucc = "ç¨‹åºå®‰è£…æˆåŠŸ"
+        $mesgNotExe = "éæ‰§è¡Œæ–‡ä»¶ï¼Œæ— æ³•è¿‡å»æ–‡ä»¶ç‰ˆæœ¬"
+        $mesgNoFile = "æ–‡ä»¶ä¸å­˜åœ¨"
+        $mesgLensNotInstalled = "è¯·å…ˆå®‰è£…Messenger LENSã€‚"
+        $mesgHugeInstaller = "ç¨‹åºè¾ƒå¤§ï¼Œå®‰è£…å¯èƒ½éœ€è¦è¾ƒé•¿æ—¶é—´ï¼Œè¯·è€å¿ƒç­‰å¾…..."
+        $mesgReboot = "é‡å¯ç³»ç»Ÿï¼Œç„¶åå°è¯•å†æ¬¡æ‰§è¡Œæ­¤è„šæœ¬"
+        $mesgContactSaflok = "å¦‚æœé‡å¯åé—®é¢˜ä¾æ—§, è¯·è”ç³»SaflokæŠ€æœ¯æ”¯æŒ"
+        $mesgConnectError = "æ•°æ®åº“è¿æ¥é”™è¯¯ï¼Œè¯·æ£€æŸ¥æœåŠ¡å™¨åç§°ï¼Œç«¯å£ï¼Œé˜²ç«å¢™é…ç½®"
+        $mesgPsVer = "å½“å‰ç³»ç»ŸPowerShellç‰ˆæœ¬æ˜¯"
+        $mesgPSMiniRequire = "æ­¤è„šæœ¬éœ€è¦PowerShell $miniPsRequireæˆ–è€…æ›´é«˜ç‰ˆæœ¬"
+        $mesgPSDownloadUrl = "å¾®è½¯å®˜ç½‘ä¸‹è½½æ›´é«˜ç‰ˆæœ¬PowerShellç½‘å€: https://docs.microsoft.com/en-us/powershell/"
+        $mesgRootAndTryAgain =  "è¯·å…ˆå®‰è£…Powershell V5ä»¥ä¸Šç‰ˆæœ¬, é‡å¯ç³»ç»Ÿåå†æ¬¡è¿è¡Œæ­¤è„šæœ¬"
+        $prompProperty = "é…’åº—åç§°ï¼š"
+        $prompWelcome = "| æ¬¢è¿ä½¿ç”¨SAFLOKé…’åº—ç³»ç»Ÿå®‰è£…è„šæœ¬"
+        $prompImprtant = " # é‡è¦"
+        $prompRunAsAdmin = " # æ­¤è„šæœ¬å¿…é¡»ä»¥ç®¡ç†å‘˜èº«ä»½è¿è¡Œ"
+        $prompSafVer = "| SAFLOK ç‰ˆæœ¬å·: $version"
+        $prompWinOS = "| æ“ä½œç³»ç»Ÿ:"
+        $prompScriptVer = "| è„šæœ¬ç‰ˆæœ¬å·: $scriptVersion"
+        $prompVerNoMatch = "è¾“å…¥ç‰ˆæœ¬ä¸å®‰è£…åŒ…ä¸å¦ï¼Œå‡†å¤‡é€€å‡º"
+        $prompAccept = "é€‰æ‹©å®‰è£…å³ä»£è¡¨æ¥å—è½¯ä»¶çš„è®¸å¯åè®®"
+        $prompDoU = "æ˜¯å¦ç»§ç»­å®‰è£…?(è¾“å…¥[Y]es/[N]o)"
+        $prompStartInstall = "å¼€å§‹å®‰è£…..."
+        $prompChoseDrive = "SAFLOKç¨‹åºå°†å®‰è£…åœ¨ ["+ $inputDrive+"] ç›˜"
+        $prompChkConfig = "| éœ€è¦æ‰‹åŠ¨é…ç½®ä»¥ä¸‹æ–‡ä»¶ä¸­çš„éƒ¨åˆ†å‚æ•°: "
+        $mesgCouldNotIns = "æ— æ³•å°†ç¨‹åºå®‰è£…åœ¨ ["+$inputDrive+"] ç›˜ï¼Œå‡†å¤‡é€€å‡º"
+        $mesgRerun4Drive = "è¯·é‡æ–°è¿è¡Œæœ¬è„šæœ¬ï¼Œè¯·é€‰æ‹©æ­£ç¡®çš„ç£ç›˜ä½ç½®"
+        $mesgCp2dFolder = "è¯·å°†æ•°æ®åº“æ–‡ä»¶æ‹·è´è‡³æ­¤æ–‡ä»¶å¤¹:"
+        $mesgTryScriptAgain = "æ•°æ®åº“æ–‡ä»¶æ”¾ç½®åœ¨ä¸Šè¿°æ–‡ä»¶å¤¹åï¼Œè¯·å†æ¬¡è¿è¡Œæ­¤è„šæœ¬"
+        $mesgVerNotCorrect = "è¾“å…¥çš„ç‰ˆæœ¬å·ä¸æ­£ç¡®"
+        $mesgRerun4Ver = "è¯·é‡æ–°è¿è¡Œæœ¬è„šæœ¬ï¼Œè¯·é€‰æ‹©æ­£ç¡®çš„ç‰ˆæœ¬å·"
+		$noCount = "åºåˆ—å·    |"
+		$iisName = " ç»„ä»¶åç§°      |"
+		$iisState = " çŠ¶æ€"
         #-----------------
         # Share Folder
-        $shareFolderNotExist = "ÎÄ¼ş¼Ğ²»´æÔÚ"
-        $sharingFolder = "ÕıÔÚ´¦ÀíÎÄ¼ş¼Ğ¹²Ïí..."
-        $shareFolderDone = "³É¹¦¹²ÏíÎÄ¼ş¼Ğ"
-        $shareAlreadyShared = "Êı¾İ¿âÎÄ¼ş¼ĞÒÑ¹²Ïí"
+        $shareFolderNotExist = "æ–‡ä»¶å¤¹ä¸å­˜åœ¨"
+        $sharingFolder = "æ­£åœ¨å¤„ç†æ–‡ä»¶å¤¹å…±äº«..."
+        $shareFolderDone = "æˆåŠŸå…±äº«æ–‡ä»¶å¤¹"
+        $shareAlreadyShared = "æ•°æ®åº“æ–‡ä»¶å¤¹å·²å…±äº«"
         #-----------------
         # Messenger Lens
-        $mesgLensBefMessenger = "°²×°LensÖ®Ç°£¬ÇëÏÈ°²×°Saflok messenger³ÌĞò"
-        $mesgFailedEnableIIS = "Ìí¼ÓIIS×é¼şÊ§°Ü¡£"
+        $mesgLensBefMessenger = "å®‰è£…Lensä¹‹å‰ï¼Œè¯·å…ˆå®‰è£…Saflok messengerç¨‹åº"
+        $mesgFailedEnableIIS = "æ·»åŠ IISç»„ä»¶å¤±è´¥"
         #-----------------       
         # Services
-        $mesgStartinService = "ÕıÔÚÆô¶¯·şÎñ"
-        $mesgServiceStarted = "·şÎñÒÑÆô¶¯"
-        $mesgServiceRunning = "·şÎñÕı´¦ÓÚÔËĞĞ×´Ì¬ÖĞ"
+        $mesgStartinService = "æ­£åœ¨å¯åŠ¨æœåŠ¡"
+        $mesgServiceStarted = "æœåŠ¡å·²å¯åŠ¨"
+        $mesgServiceRunning = "æœåŠ¡æ­£å¤„äºè¿è¡ŒçŠ¶æ€ä¸­"
         #-----------------       
         # config
-        $prompIVI = "ÒÑ°²×°°æ±¾ĞÅÏ¢: " 
-        $mesgCheckConfig = "ÌáÊ¾: ÅäÖÃÎÄ¼şÒÑ×îĞ¡»¯£¬ÇëÔÚÈÎÎñÀ¸´¦´ò¿ª"
-        $mesgtks = " ¸ĞĞ»°²×°Saflok¾ÆµêÏµÍ³"
-        $mesgNeedReboot = "# ×¢Òâ: °²×°¹ı³ÌĞòÖ®ºóĞèÒªÖØÆôÏµÍ³"
-        $mesgMissingLens = "±ØĞëÏÈ°²×°Messenger Lens³ÌĞò"
-        $mesgbye = " ºó»áÓĞÆÚ£¡"
-        $mesgDone = "Íê³É"
+        $prompIVI = "å·²å®‰è£…ç‰ˆæœ¬ä¿¡æ¯: " 
+        $mesgCheckConfig = "æç¤º: é…ç½®æ–‡ä»¶å·²æœ€å°åŒ–ï¼Œè¯·åœ¨ä»»åŠ¡æ å¤„æ‰“å¼€"
+        $mesgtks = " æ„Ÿè°¢å®‰è£…Safloké…’åº—ç³»ç»Ÿ"
+        $mesgNeedReboot = "# å‹æƒ…æç¤º: å®‰è£…è¿‡ç¨‹åºä¹‹åéœ€è¦é‡å¯ç³»ç»Ÿ"
+        $mesgMissingLens = "å¿…é¡»å…ˆå®‰è£…Messenger Lensç¨‹åº"
+        $mesgbye = " åä¼šæœ‰æœŸï¼"
+        $mesgDone = "å®Œæˆ"
     }
-    'en-US' {
+    Default {
         $mesgNoPkg ="package does not exist, operation exit"
         $mesgInstalled = "Already installed"
         $mesgDiffVer = "There is another version exist, please uninstall it first"
@@ -224,6 +227,9 @@ switch ($lang) {
         $mesgTryScriptAgain = "Try this script again after database files have been loaded"
         $mesgVerNotCorrect = "The version number specified is NOT correct"
         $mesgRerun4Ver = "Please re-run the script again to input a correct version"
+		$noCount = "Sequence|"
+		$iisName = " Feature Name      |"
+		$iisState = " State"
         #-----------------
         # Share Folder
         $shareFolderNotExist = "Folder need to be shared does not exist"
@@ -248,9 +254,6 @@ switch ($lang) {
         $mesgMissingLens = "Missing Messenger Lens program, Please make sure Messenger Lens is be installed properly"
         $mesgbye = " Thank you, Bye!"
         $mesgDone = "DONE"
-
-
-
     }
 }
 
@@ -272,8 +275,7 @@ Function Get-FileVersion {
         $testFile
     )
 
-    $isExeExist = Test-Path $testFile -PathType Any
-    Switch ($isExeExist) {
+ Switch (Test-Path $testFile -PathType Any) {
         $True {
             If ($testFile -like "*.exe") {
                 (Get-Item $testFile).VersionInfo.FileVersion
@@ -351,7 +353,7 @@ Function Install-Prog {
             $true {
                 If ($progVersion -ne $progPatchedVersion) {
                     If ($updateVersion -eq $progPatchedVersion) {
-                        Logging "INFO" "$mesgInstalled $pName"
+                        Logging "INFO" "$pName $mesgInstalled"
                         Start-Sleep -Seconds 2
                     } Elseif ($updateVersion -eq $progVersion) {
                         continue
@@ -360,7 +362,7 @@ Function Install-Prog {
                         Stop-Script 5
                     }
                 } else {
-                    Logging "INFO" "$mesgInstalled $pName"
+                    Logging "INFO" "$pName $mesgInstalled"
                     Start-Sleep -Seconds 2
                 }
             }
@@ -400,7 +402,7 @@ Function Install-Patch {
     }
     process {
         If ($updateVersion -eq $progPatchedVersion)   {
-            Logging "INFO" "$mesgInstalled $pName Patch"
+            Logging "INFO" "$pName Patch $mesgInstalled "
             Start-Sleep -Seconds 2
         } Elseif ($updateVersion -eq $progVersion)   {
             Logging "PROG" "$pName patch $mesgToInstall"
@@ -425,7 +427,7 @@ Function Install-Patch {
 }
 
 # ---------------------------
-# Install Lens Patch
+# Install Lens Patch -New
 Function Install-LensPatch {
     [CmdletBinding()]
     Param (
@@ -441,27 +443,44 @@ Function Install-LensPatch {
         $wsPmsExeVersion = Get-FileVersion -testFile $targetFile
     }
     process {
-        If ($isInstalled -and ($wsPmsExeVersion -eq $destVersion) ) {
-            Logging "INFO" "$mesgInstalled $pName Patch "
-            Start-Sleep -Seconds 2
-        } Else {
-            Logging "PROG" "$pName Patch $mesgToInstall"
-            Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
-            Start-Sleep 2
-            $wsPmsExeVersion | Out-Null
-            If ($wsPmsExeVersion -eq $destVersion) {
-                Logging "SUCC" "$pName Patch $mesgSucc"
-                Start-Sleep -Seconds 2
-            } Else {
-                Logging "ERRO" "$pName Patch $mesgFailed"
-                Stop-Script 5
-            }
-        }
-
+		If ($isInstalled) {
+			Switch ($wsPmsExeVersion -eq $destVersion) {
+				$true {
+					Logging "INFO" "$pName Patch $mesgInstalled"
+					Start-Sleep -Seconds 2
+				}
+				$false {
+					If ($wsPmsExeVersion -eq $wsPmsExeBefPatchVersion) {
+						Logging "PROG" "$pName Patch $mesgToInstall"
+						Start-Process -NoNewWindow -FilePath $patchExeFile -ArgumentList " /s /f1$patchIssFile" -Wait
+						Start-Sleep 5
+						$wsPmsExeVersion #| Out-Null
+						try {
+							Switch ($wsPmsExeVersion -eq $destVersion) {
+								$true {
+									Logging "SUCC" "$pName Patch $mesgSucc"
+									Start-Sleep -Seconds 2
+								}
+								$false { 
+									Logging "ERRO" "$pName Patch $mesgFailed"
+									Stop-Script 5
+								}
+							}
+						}
+						catch {$Error[0]}
+					} Else {
+						Logging "ERRO" "$mesgDiffVer"
+						Stop-Script 5
+					}
+				}
+			}
+		} Else {
+			Logging "ERRO" "$pName $mesgFailed"
+			Stop-Script 5
+		}
     }
     end {}
 }
-
 # ---------------------------
 # Install digitalPolling
 Function Install-DigitalPolling {
@@ -479,7 +498,7 @@ Function Install-DigitalPolling {
 
     process {
         If($isExeExist) {
-            Logging "INFO" "$mesgInstalled $pName"
+            Logging "INFO" "$pName $mesgInstalled"
         } Else {
             Logging "PROG" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " /s /f1$iss2Install" -Wait
@@ -554,7 +573,7 @@ Function Install-PmsTester {
             $false {$fileCopied = $false}
         }
         If ($fileCopied) {
-            Logging "INFO" "$mesgInstalled $pName"
+            Logging "INFO" "$pName $mesgInstalled"
             Start-Sleep -Seconds 2
         } Else {
             If (($testSrcPackage -eq $true) -and ($testInstParent -eq $true)) {
@@ -696,7 +715,7 @@ If ($psVersion -lt $miniPsRequire) {
 # ---------------------------
 # Header variables
 $cname = "[$vendor]"
-$property = $property.trim().toUpper()   #############################
+$property = $property.trim().toUpper()   
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
 $shareName = 'SaflokData'
 # Windows OS version in decimal
@@ -766,26 +785,6 @@ Switch ($scriptPath -match $pattern) {
                 Logging "ERRO" "$mesgNoSource"
                 Stop-Script 5
             }
-}
-
-# ---------------------------
-# VALID DRIVE CHARACTER INPUT
-if ($inputDrive -IN $driveLetters) {
-    Logging "" "$prompChoseDrive"
-} else {
-    Logging "ERRO" "$mesgCouldNotIns"
-    Logging "WARN" "$mesgRerun4Drive"
-    Stop-Script 5
-}
-
-# ---------------------------
-# VALID Version INPUT
-if ($version -IN $versionOptions) {
-    Logging "" "$prompStartInstall"
-} else {
-    Logging "ERRO" "$mesgVerNotCorrect"
-    Logging "WARN" "$mesgRerun4Ver "
-    Stop-Script 5
 }
 
 $absPackageFolders = @()
@@ -918,6 +917,26 @@ Switch ($version) {
 # ---------------------------
 # Start to install
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
+# ---------------------------
+# VALID DRIVE CHARACTER INPUT
+if ($inputDrive -IN $driveLetters) {
+    Logging "" "$prompChoseDrive"
+Start-Sleep -seconds 4
+} else {
+    Logging "ERRO" "$mesgCouldNotIns"
+    Logging "WARN" "$mesgRerun4Drive"
+    Stop-Script 5
+}
+
+# ---------------------------
+# VALID Version INPUT
+if ($version -IN $versionOptions) {
+    Logging "" "$prompStartInstall"
+} else {
+    Logging "ERRO" "$mesgVerNotCorrect"
+    Logging "WARN" "$mesgRerun4Ver "
+    Stop-Script 5
+}
     Logging "" ""
     # -------------------------------------------------------------------
     # install Saflok client
@@ -1020,6 +1039,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		Stop-Script 5
 	} Else {
         Logging "INFO" "$mesgConfigIIS"
+Write-Colr -Text "$cname ","$noCount","$iisName","$iisState" -Colour White,White,White,White
         # ---------------------------
         # IIS features Messenger Lens requires
         $iisFeatures = [System.Collections.ArrayList]@(
@@ -1051,11 +1071,11 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 If ($lang -eq 'zh-CN') {
                     switch ($featureState) {
                         'Enabled' {
-                            $featureState = 'ÒÑÆôÓÃ'
+                            $featureState = 'å·²å¯ç”¨'
                             $foo = 'Green' -AS [string]
                         }
                         'Disabled' {
-                            $featureState = 'Î´ÆôÓÃ'
+                            $featureState = 'æœªå¯ç”¨'
                             $foo = 'Gray' -AS [string] 
                         }
                     }
@@ -1070,7 +1090,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                     }
                 }
 		        # write message to host
-				Write-Colr -Text "$cname ","[$twoDigits/23]","$featureName"," | ","$featureState" -Colour White,White,White,White,$foo
+				Write-Colr -Text "$cname ","[$twoDigits/$totalFeatures]"," | ","$featureName"," | ","$featureState" -Colour White,White,White,White,White,$foo
 				# add feature in disabledFeatures
 		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
 		            $disabledFeatures += $feature
