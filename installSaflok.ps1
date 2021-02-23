@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     SAFLOK Lodging Server silent installation script
 
