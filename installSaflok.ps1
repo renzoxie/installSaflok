@@ -670,39 +670,43 @@ Function Install-Sql {
 
     end {}
 }
+
 # ---------------------------
-# update SQL password
+# update SQL password -new
+Switch ($version -gt 6) {
+	$True  {$global:SqlServerName = 'LENSSQL'}
+	$False {$global:SqlServerName = 'LENSSQL2016'}
+}
+
 Function Update-SqlPasswd {
     Param(
         [string]$login,
         [string]$passwd
     )
 
-    $ServerNameList = 'localhost\lenssql'
+
     [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
     $objSQLConnection = New-Object System.Data.SqlClient.SqlConnection
-    foreach($ServerName in $ServerNameList)
-    {
-        Try {
-            $objSQLConnection.ConnectionString = "Server=$ServerName;Integrated Security=SSPI;"
-            $objSQLConnection.Open() | Out-Null
-            $objSQLConnection.Close()
-        } Catch {
-            $errText =  $Error[0].ToString()
-            If ($errText.Contains("network-related")) {
-                Logging "ERRO" "$mesgConnectError"
-            }
-            Logging "ERRO" "$errText"
-            continue
+    Try {
+        $objSQLConnection.ConnectionString = "Server=$SqlServerName;Integrated Security=SSPI;"
+        $objSQLConnection.Open() | Out-Null
+        $objSQLConnection.Close()
+    } Catch {
+        $errText =  $Error[0].ToString()
+        If ($errText.Contains("network-related")) {
+            Logging "ERRO" "$mesgConnectError"
         }
-        $srv = New-Object "Microsoft.SqlServer.Management.Smo.Server" $ServerName
-        $SQLUser = $srv.Logins | Where-Object {$_.Name -eq "$login"};
-        $SQLUser.ChangePassword($passwd);
-        $SQLUser.PasswordPolicyEnforced = 1;
-        $SQLUser.Alter();
-        $SQLUser.Refresh();
+        Logging "ERRO" "$errText"
+        continue
     }
+    $srv = New-Object "Microsoft.SqlServer.Management.Smo.Server" $SqlServerName
+    $SQLUser = $srv.Logins | Where-Object {$_.Name -eq "$login"};
+    $SQLUser.ChangePassword($passwd);
+    $SQLUser.PasswordPolicyEnforced = 1;
+    $SQLUser.Alter();
+    $SQLUser.Refresh();
 }
+
 # -----------------------
 # $recoveryServices
 Function Set-ServiceRecovery{
@@ -976,6 +980,16 @@ Switch ($version) {
 # ---------------------------
 # Start to install
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
+
+
+# if ver6.11, check pre-requirement applications, including kb2919442, kb2919355 and framework 4.62
+# true, pass, false, install kb2919355 first and reboot in advance
+# $addScheduleJob = "to add choco"
+# choco install kb2919355 -y 
+# wusa.exe c:\Temp\windows10.0-kb4056887-x64.msu /quiet /norestart
+
+
+
 # ---------------------------
 # VALID DRIVE CHARACTER INPUT
 if ($inputDrive -IN $driveLetters) {
@@ -1182,8 +1196,8 @@ if ($version -IN $versionOptions) {
     # -------------------------------------------------------------------
     # Microsoft SQL Server
     Switch ($version -gt 6) {
-        $false {$pName = 'Microsoft SQL Server 2012'
-            $argFile = '/qs /INSTANCENAME="LENSSQL" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
+        $False {$pName = 'Microsoft SQL Server 2012'
+            $argFile = '/qs /INSTANCENAME="$SqlServerName" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
             $argFile += '/FEATURES=SQLENGINE,SSMS /HELP="False" /INDICATEPROGRESS="True" /QUIETSIMPLE="True" /X86="True" /ERRORREPORTING="False" '
             $argFile += '/SQMREPORTING="False" /SQLSVCSTARTUPTYPE="Automatic" /FILESTREAMLEVEL="0" /FILESTREAMLEVEL="0" /ENABLERANU="True" '
             $argFile += '/SQLCOLLATION="Latin1_General_CI_AS" /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
@@ -1191,7 +1205,7 @@ if ($version -IN $versionOptions) {
         }
         $True {
             $pName = 'Microsoft SQL Server 2016 (64-bit)'
-            $argFile = '/qs /QUIETSIMPLE /IAcceptSQLServerLicenseTerms /ACTION=install /Hideconsole /FEATURES=SQL /INSTANCENAME=LENSSQL2016 '
+            $argFile = '/qs /QUIETSIMPLE /IAcceptSQLServerLicenseTerms /ACTION=install /Hideconsole /FEATURES=SQL /INSTANCENAME=$SqlServerName '
             $argFile += '/SQLSVCACCOUNT="NT Authority\System" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
             $argFile += '/AGTSVCACCOUNT="NT Authority\System" /SECURITYMODE=SQL /SAPWD="Pa$$w0rd2021"'      
         }
