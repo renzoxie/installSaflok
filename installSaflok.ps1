@@ -75,8 +75,8 @@ Switch ($version) {
         $pmsPatchedVersion = '6.1.1.0'
         $msgrVersion = '6.1.1.0'
         $msgrPatchedVersion = '6.1.1.0'
-        $msgrLensVersion = '5.6.0.0'
-        $wsPmsExeBefPatchVersion = '5.6.0.0'
+        $msgrLensVersion = '6.1.1.0'
+        $wsPmsExeBefPatchVersion = '6.1.1.0'
         $wsPmsExeAftPatchVersion = '5.6.7.22261'
     }
 }
