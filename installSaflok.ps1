@@ -14,7 +14,7 @@
     .NOTES
     =========================================================================
     Author: renzoxie@139.com
-    Version Option: 5.45, 5.68
+    Version Option: 5.45, 5.68, 6.11
     Create Date: 16 April 2019
     Modified Date: 1st Feb 2021
     =========================================================================
@@ -68,10 +68,22 @@ Switch ($version) {
         $wsPmsExeBefPatchVersion = '5.6.0.0'
         $wsPmsExeAftPatchVersion = '5.6.7.22261'
     }
+    '6.11' {
+        $progVersion = '6.1.1.0'
+        $progPatchedVersion = '6.1.1.0'
+        $pmsVersion = '6.1.1.0'
+        $pmsPatchedVersion = '6.1.1.0'
+        $msgrVersion = '6.1.1.0'
+        $msgrPatchedVersion = '6.1.1.0'
+        $msgrLensVersion = '5.6.0.0'
+        $wsPmsExeBefPatchVersion = '5.6.0.0'
+        $wsPmsExeAftPatchVersion = '5.6.7.22261'
+    }
 }
 $versionOptions = [System.Collections.ArrayList]@(
     '5.45'
     '5.68'
+    '6.11'
 )
 
 # ---------------------------
@@ -193,7 +205,7 @@ switch ($lang) {
     }
     Default {
         $mesgNoPkg ="package does not exist, operation exit"
-        $mesgInstalled = "Already installed"
+        $mesgInstalled = "already installed"
         $mesgDiffVer = "There is another version exist, please uninstall it first"
         $mesgFailed = "installation failed"
         $mesgNoSource = "Missing source installation folder"
@@ -204,7 +216,7 @@ switch ($lang) {
         $mesgNotExe = "Can not get file version as it is not an executable file"
         $mesgNoFile = "Oops, File does not exist"
         $mesgLensNotInstalled = "Messenger LENS has not been installed yet"
-        $mesgHugeInstaller = "The installer is 116M+, this could take more than 5 minutes, please wait..."
+        $mesgHugeInstaller = "The installer is greater than 100M, this could take more than 5 minutes, please wait..."
         $mesgReboot = "Reboot system and try the script again"
         $mesgContactSaflok = "If still same, please contact your SAFLOK representative"
         $mesgConnectError = "Connection Error. Check server name, port, firewall"
@@ -231,9 +243,9 @@ switch ($lang) {
         $mesgTryScriptAgain = "Try this script again after database files have been loaded"
         $mesgVerNotCorrect = "The version number specified is NOT correct"
         $mesgRerun4Ver = "Please re-run the script again to input a correct version"
-		$noCount = "Sequence|"
-		$iisName = " Feature Name      |"
-		$iisState = " State"
+        $noCount = "Seq#    |"
+        $iisName = " Feature Name      |"
+        $iisState = " State"
         #-----------------
         # Share Folder
         $shareFolderNotExist = "Folder need to be shared does not exist"
@@ -726,7 +738,7 @@ If ($psVersion -lt $miniPsRequire) {
 $cname = "[$vendor]"
 $property = $property.trim().toUpper()   
 $time = Get-Date -Format 'yyyy/MM/dd HH:mm'
-$shareName = 'SaflokData'
+$Global:shareName = 'SaflokData'
 # Windows OS version in decimal
 #$osversion = (Get-CimInstance -ClassName CIM_OperatingSystem).version.split(".") -AS [array]
 #$winOS = ($osversion[0] + '.' + $osversion[1]) -AS [decimal]
@@ -770,8 +782,9 @@ $packageFolders =  Get-ChildItem ($scriptPath) | Select-Object Name | Sort-Objec
 # ---------------------------
 # if source folder exist
 Switch ($version) {
-    '5.45' {$pattern = "([A-Z]{7}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
+    '5.45' {$pattern = "([A-Z]{8}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
     '5.68' {$pattern = "([A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
+    '6.11' {$pattern = "([A-Z]{8}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
 }
 $ver2Int = $version.Replace(".", "")
 $verNoFromRootPath = $scriptPath.Substring($scriptPath.Length -11,3)
@@ -813,11 +826,23 @@ $lensSrcFolder = $absPackageFolders[6]
 $lensExe = Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en/setup.exe'
 
 # ---------------------------
-# SQL 2012 express
-$sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' |
-               Join-Path -ChildPath 'ISSetupPrerequisites' |
-               Join-Path -ChildPath '{C38620DE-0463-4522-ADEA-C7A5A47D1FF6}' |
-               Join-Path -ChildPath 'SQLEXPR_x86_ENU.exe'
+# SQL Express
+Switch ($version -gt 6) {
+    $false {
+        #2012 
+        $sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' |
+                       Join-Path -ChildPath 'ISSetupPrerequisites' |
+                       Join-Path -ChildPath '{C38620DE-0463-4522-ADEA-C7A5A47D1FF6}' |
+                       Join-Path -ChildPath 'SQLEXPR_x86_ENU.exe'    
+    }
+    $True {
+        #2016
+        $sqlExprExe =  Join-Path $lensSrcFolder '/AutoPlay/Install Script/Lens/en' |
+                       Join-Path -ChildPath 'ISSetupPrerequisites' |
+                       Join-Path -ChildPath '{DEA37953-690E-42ED-B1D0-E75C59D41454}' |
+                       Join-Path -ChildPath 'SQLEXPR_x64_ENU.exe'     
+    }
+}
 
 # ---------------------------
 # ISS_FOR_Drive & files
@@ -848,6 +873,12 @@ Switch ($version) {
             $lensISS = Join-Path $issFolder $issFiles[5].Name
             $patchLensISS = Join-Path $issFolder $issFiles[6].Name
     }
+    '6.11' {
+            $pmsISS = Join-Path $issFolder $issFiles[1].Name
+            $msgrISS = Join-Path $issFolder $issFiles[2].Name
+            $lensISS = Join-Path $issFolder $issFiles[3].Name
+            $patchPollingISS = Join-Path $issFolder $issFiles[4].Name
+    }
 
 }
 
@@ -864,6 +895,9 @@ Switch ($version) {
             $pmsPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[1].Name
             $lensPatchExe = Join-Path $absPackageFolders[7] $patchExeFiles[2].Name
     }
+    '6.11' {
+            $pollingPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name
+    }
 }
 # ---------------------------
 # Web service PMS tester [FOLDER]
@@ -877,11 +911,27 @@ Switch ($version) {
             $pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name
             $lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name
     }
+    '6.11' {
+            $configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name |
+            Sort-Object -Property Name
+            $pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name
+            $lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name
+    }
 }
 # ---------------------------
 # Absolute installed FOLDER
+Switch ($version -gt 6) {
+    $true {
+        $saflokV4InstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'SaflokV4'
+        
+    }
+    $false {
+        $saflokV4InstFolder = Join-Path $installDrive 'SaflokV4'  
+    }
+
+}
+
 $kabaInstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'KABA'
-$saflokV4InstFolder = Join-Path $installDrive 'SaflokV4'
 $lensInstFolder = Join-Path $kabaInstFolder 'Messenger Lens'
 $hubGateWayInstFolder = Join-Path $lensInstFolder 'HubGatewayService'
 $hmsInstFolder = Join-Path $lensInstFolder 'HubManagerService'
@@ -1006,26 +1056,29 @@ if ($version -IN $versionOptions) {
     # -------------------------------------------------------------------
     # share database folder
     try {
-        If(!(Test-Path -Path $shareFolder -IsValid)) {
+        $isShareFolderExist = Test-Path -Path $shareFolder -IsValid
+        If(!($isShareFolderExist)) {
             Logging "ERRO" "$shareFolderNotExist"
             Stop-Script -seconds 5
-        }
-        $getSmbShare = Get-SmbShare | Where-Object {$_.Name -eq $shareName}
-        Switch ($null -ne $getSmbShare) {
-            $True {
-                Logging "INFO" "$shareAlreadyShared"
-                Start-Sleep -S 2
-            }
-            $False {
-                Logging "PROG" "$sharingFolder"
-                New-SmbShare -Name $shareName -Path $shareFolder -FullAccess "everyone" -Description "Saflok database folder share" | Out-Null
-                Start-Sleep -S 2
-                Logging "SUCC" "$shareFolderDone"
-            }
+        } Else {
+            $getSmbShare = Get-SmbShare | Where-Object {$_.Name -eq $shareName}
+            Switch ($null -ne $getSmbShare) {
+                $True {
+                    Logging "INFO" "$shareAlreadyShared"
+                    Start-Sleep -S 2
+                }
+                $False {
+                    Logging "PROG" "$sharingFolder"
+                    New-SmbShare -Name $shareName -Path $shareFolder -FullAccess "everyone" -Description "Saflok database folder share" | Out-Null
+                    Start-Sleep -S 2
+                    Logging "SUCC" "$shareFolderDone"
+                }
+            }          
         }
     }
     catch {
         Logging "WARN" "$Error[0]"
+        Stop-Script -seconds 5
     }
 
     # -------------------------------------------------------------------
@@ -1048,7 +1101,7 @@ if ($version -IN $versionOptions) {
 		Stop-Script 5
 	} Else {
         Logging "INFO" "$mesgConfigIIS"
-Write-Colr -Text "$cname ","$noCount","$iisName","$iisState" -Colour White,White,White,White
+        Write-Colr -Text "$cname ","$noCount","$iisName","$iisState" -Colour White,White,White,White
         # ---------------------------
         # IIS features Messenger Lens requires
         $iisFeatures = [System.Collections.ArrayList]@(
@@ -1127,19 +1180,38 @@ Write-Colr -Text "$cname ","$noCount","$iisName","$iisState" -Colour White,White
     }
 
     # -------------------------------------------------------------------
-    # Microsoft SQL Server 2012
-    $pName = 'Microsoft SQL Server 2012'
-    $argFile = '/qs /INSTANCENAME="LENSSQL" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
-    $argFile += '/FEATURES=SQLENGINE,SSMS /HELP="False" /INDICATEPROGRESS="True" /QUIETSIMPLE="True" /X86="True" /ERRORREPORTING="False" '
-    $argFile += '/SQMREPORTING="False" /SQLSVCSTARTUPTYPE="Automatic" /FILESTREAMLEVEL="0" /FILESTREAMLEVEL="0" /ENABLERANU="True" '
-    $argFile += '/SQLCOLLATION="Latin1_General_CI_AS" /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
-    $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="S@flok2018"'
-    Install-Sql -pName $pName -packageFolder $sqlExprExe -exe2Install $sqlExprExe -argFile $argFile
-    If (Assert-IsInstalled 'Microsoft SQL Server 2012') {
-        Try{Update-SqlPasswd -login 'sa' -passwd 'Lens2014'}
-        catch {$ERROR[0]}
+    # Microsoft SQL Server
+    Switch ($version -gt 6) {
+        $false {$pName = 'Microsoft SQL Server 2012'
+            $argFile = '/qs /INSTANCENAME="LENSSQL" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
+            $argFile += '/FEATURES=SQLENGINE,SSMS /HELP="False" /INDICATEPROGRESS="True" /QUIETSIMPLE="True" /X86="True" /ERRORREPORTING="False" '
+            $argFile += '/SQMREPORTING="False" /SQLSVCSTARTUPTYPE="Automatic" /FILESTREAMLEVEL="0" /FILESTREAMLEVEL="0" /ENABLERANU="True" '
+            $argFile += '/SQLCOLLATION="Latin1_General_CI_AS" /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
+            $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="Pa$$w0rd2021"'
+        }
+        $True {
+            $pName = 'Microsoft SQL Server 2016 (64-bit)'
+            $argFile = '/qs /QUIETSIMPLE /IAcceptSQLServerLicenseTerms /ACTION=install /Hideconsole /FEATURES=SQL /INSTANCENAME=LENSSQL2016 '
+            $argFile += '/SQLSVCACCOUNT="NT Authority\System" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
+            $argFile += '/AGTSVCACCOUNT="NT Authority\System" /SECURITYMODE=SQL /SAPWD="Pa$$w0rd2021"'      
+        }
     }
-
+    Install-Sql -pName $pName -packageFolder $sqlExprExe -exe2Install $sqlExprExe -argFile $argFile
+    
+    Switch ($version -gt 6) {
+        $false {
+            If (Assert-IsInstalled 'Microsoft SQL Server 2012') {
+                Try { Update-SqlPasswd -login 'sa' -passwd 'Lens2014' }
+                catch {$ERROR[0]}
+            }            
+        }
+        $True {
+            If (Assert-IsInstalled 'Microsoft SQL Server 2016 (64-bit)') {
+                Try { Update-SqlPasswd -login 'sa' -passwd 'S@flok2018' }
+                catch { $ERROR[0] }    
+            }
+        }  
+    }
     # -------------------------------------------------------------------
     # install Messenger Lens
     $pName = "Messenger Lens"
@@ -1154,7 +1226,7 @@ Write-Colr -Text "$cname ","$noCount","$iisName","$iisState" -Colour White,White
 
     # -------------------------------------------------------------------
     # install digital polling service
-    If ($version -eq  '5.45') {
+    If ($version -ne  '5.68') {
         $isInstalled = 0
         $pName = "Marriott digital polling service"
         Install-DigitalPolling -pName $pName -targetFile $digitalPollingExe -exe2Install $pollingPatchExe `
