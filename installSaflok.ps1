@@ -1002,14 +1002,17 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 
 	# ---------------------------
 	# starting installation from here
-    Logging "" "Checking prerequisites hotfix"
+    Logging "PROG" "Checking prerequisites hotfix"
 	# check and install hotfix before saflok installation 
 	$KBArrayList = New-Object -TypeName System.Collections.ArrayList 
 	$KBArrayList.AddRange(@("KB2919442","KB2919355")) 
-	$hotFixMsu = join-path $hotFix $KB'.msu'
 	foreach ($KB in $KBArrayList) { 
+		$hotFixMsu = join-path $hotFix $KB'.msu'
 		if (-not(Get-Hotfix -Id $KB)) { 
-			Start-Process -FilePath "wusa.exe" -ArgumentList "$hotFixMsu /quiet /norestart" -Wait } 
+			Start-Process -FilePath "wusa.exe" -ArgumentList "$hotFixMsu /quiet /norestart" -Wait 
+		} Else {
+			Logging "INFO" "Hotfix $KB is ready"
+		}
 	} 
 
     # -------------------------------------------------------------------
