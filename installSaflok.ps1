@@ -903,25 +903,23 @@ Switch ($version) {
             $pollingPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name
     }
 }
+
 # ---------------------------
 # Web service PMS tester [FOLDER]
 $webServiceTester = $absPackageFolders[8]
-Switch ($version) {
-    '5.45' {
-            # ---------------------------
-            # ConfigFiles Folder & Files
-            $configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name |
-            Sort-Object -Property Name
-            $pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name
-            $lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name
-    }
-    '6.11' {
-            $configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name |
-            Sort-Object -Property Name
-            $pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name
-            $lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name
-    }
+if($version -ne '5.68') {
+	# ---------------------------
+	# ConfigFiles Folder & Files
+	$configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name |
+	Sort-Object -Property Name
+	$pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name
+	$lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name
 }
+
+# ---------------------------
+# hotFix [FOLDER]
+$hotFix = $absPackageFolders[10]
+
 # ---------------------------
 # Absolute installed FOLDER
 Switch ($version -gt 6) {
@@ -981,36 +979,39 @@ Switch ($version) {
 # Start to install
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 
+	# ---------------------------
+	# VALID DRIVE CHARACTER INPUT
+	if ($inputDrive -IN $driveLetters) {
+	    Logging "" "$prompChoseDrive"
+	Start-Sleep -seconds 4
+	} else {
+	    Logging "ERRO" "$mesgCouldNotIns"
+	    Logging "WARN" "$mesgRerun4Drive"
+	    Stop-Script 5
+	}
 
-# if ver6.11, check pre-requirement applications, including kb2919442, kb2919355 and framework 4.62
-# true, pass, false, install kb2919355 first and reboot in advance
-# $addScheduleJob = "to add choco"
-# choco install kb2919355 -y 
-# wusa.exe c:\Temp\windows10.0-kb4056887-x64.msu /quiet /norestart
+	# ---------------------------
+	# VALID Version INPUT
+	if ($version -IN $versionOptions) {
+	    Logging "" "$prompStartInstall"
+	} else {
+	    Logging "ERRO" "$mesgVerNotCorrect"
+	    Logging "WARN" "$mesgRerun4Ver "
+	    Stop-Script 5
+	}
 
+	# ---------------------------
+	# starting installation from here
+    Logging "" "Checking prerequisites hotfix"
+	# check and install hotfix before saflok installation 
+	$KBArrayList = New-Object -TypeName System.Collections.ArrayList 
+	$KBArrayList.AddRange(@("KB2919442","KB2919355")) 
+	$hotFixMsu = join-path $hotFix $KB'.msu'
+	foreach ($KB in $KBArrayList) { 
+		if (-not(Get-Hotfix -Id $KB)) { 
+			Start-Process -FilePath "wusa.exe" -ArgumentList "$hotFixMsu /quiet /norestart" -Wait } 
+	} 
 
-
-# ---------------------------
-# VALID DRIVE CHARACTER INPUT
-if ($inputDrive -IN $driveLetters) {
-    Logging "" "$prompChoseDrive"
-Start-Sleep -seconds 4
-} else {
-    Logging "ERRO" "$mesgCouldNotIns"
-    Logging "WARN" "$mesgRerun4Drive"
-    Stop-Script 5
-}
-
-# ---------------------------
-# VALID Version INPUT
-if ($version -IN $versionOptions) {
-    Logging "" "$prompStartInstall"
-} else {
-    Logging "ERRO" "$mesgVerNotCorrect"
-    Logging "WARN" "$mesgRerun4Ver "
-    Stop-Script 5
-}
-    Logging "" ""
     # -------------------------------------------------------------------
     # install Saflok client
     $pName = 'Saflok Program'
