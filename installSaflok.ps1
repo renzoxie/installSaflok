@@ -1,4 +1,13 @@
 ﻿<#
+    .NOTES
+    =========================================================================
+    Author: renzoxie@139.com
+    Version Option: 5.45, 5.68, 6.11
+    Create Date: 16 April 2019
+    Modified Date: 1st Feb 2021
+    Run the script as administrator
+    =========================================================================
+
     .SYNOPSIS
     SAFLOK Lodging Server silent installation script
 
@@ -10,14 +19,6 @@
 
     .EXAMPLE
     .\install.ps1 -inputDrive c -version 5.45 -vendor 'dormakaba' -property 'Hotel Name'
-
-    .NOTES
-    =========================================================================
-    Author: renzoxie@139.com
-    Version Option: 5.45, 5.68, 6.11
-    Create Date: 16 April 2019
-    Modified Date: 1st Feb 2021
-    =========================================================================
 
     .LINK
     For deployments of this script, please see https://github.com/renzoxie/installSaflok
@@ -80,11 +81,7 @@ Switch ($version) {
         $wsPmsExeAftPatchVersion = '5.6.7.22261'
     }
 }
-$versionOptions = [System.Collections.ArrayList]@(
-    '5.45'
-    '5.68'
-    '6.11'
-)
+$versionOptions = [System.Collections.ArrayList]@('5.45'; '5.68'; '6.11')
 
 # ---------------------------
 # Functions
@@ -162,6 +159,9 @@ switch ($lang) {
         $prompVerNoMatch = "输入版本与安装包不否，准备退出"
         $prompAccept = "选择安装即代表接受软件的许可协议"
         $prompDoU = "是否继续安装?(输入[Y]es/[N]o)"
+        # $mesgCheckPre = "正在检查依赖程序..."
+        # $mesgFinished = "完成安装"
+        # $mesgAllHotfixReady = "所需系统补丁已安装就绪"
         $prompStartInstall = "开始安装..."
         $prompChoseDrive = "SAFLOK程序将安装在 ["+ $inputDrive+"] 盘"
         $prompChkConfig = "| 需要手动配置以下文件中的部分参数: "
@@ -236,6 +236,9 @@ switch ($lang) {
         $prompDoU = "Do you want to run the script?([Y]es/[N]o)"
         $prompChkConfig = "| The following files need to be checked or configure: "
         $prompChoseDrive = "You chose drive ["+ $inputDrive+"]"
+        # $mesgCheckPre = "Checking prerequisites"
+        # $mesgFinished = "Finished installing"
+        # $mesgAllHotfixReady = "All Windows hotfix are ready"
         $prompStartInstall = "Start installing..."
         $mesgCouldNotIns = "We could not install on drive "+$inputDrive
         $mesgRerun4Drive = "Please re-run the script again to input a correct drive"
@@ -550,7 +553,7 @@ Function Update-Copy {
 
     begin {
         $fileCopied = 0
-        $testSrcPackage  = Test-Path $srcPackage -PathType Any | Out-Null
+        Test-Path $srcPackage -PathType Any | Out-Null
         $testInstFolder0 = Test-Path $instFolder0 -PathType Any | Out-Null
         $testInstFolder1 = Test-Path $instFolder1 -PathType Any | Out-Null
     }
@@ -562,6 +565,7 @@ Function Update-Copy {
     end {}
 
 }
+
 # ---------------------------
 # Install Web Service PMS Tester
 Function Install-PmsTester {
@@ -918,7 +922,7 @@ if($version -ne '5.68') {
 
 # ---------------------------
 # hotFix [FOLDER]
-$hotFix = $absPackageFolders[10]
+# $hotFixPath = $absPackageFolders[10]
 
 # ---------------------------
 # Absolute installed FOLDER
@@ -978,43 +982,30 @@ Switch ($version) {
 # ---------------------------
 # Start to install
 If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
+    # ---------------------------
+    # VALID DRIVE CHARACTER INPUT
+    if ($inputDrive -IN $driveLetters) {
+        Logging "" "$prompChoseDrive"
+    Start-Sleep -seconds 4
+    } else {
+        Logging "ERRO" "$mesgCouldNotIns"
+        Logging "WARN" "$mesgRerun4Drive"
+        Stop-Script 5
+    }
 
-	# ---------------------------
-	# VALID DRIVE CHARACTER INPUT
-	if ($inputDrive -IN $driveLetters) {
-	    Logging "" "$prompChoseDrive"
-	Start-Sleep -seconds 4
-	} else {
-	    Logging "ERRO" "$mesgCouldNotIns"
-	    Logging "WARN" "$mesgRerun4Drive"
-	    Stop-Script 5
-	}
-
-	# ---------------------------
-	# VALID Version INPUT
-	if ($version -IN $versionOptions) {
-	    Logging "" "$prompStartInstall"
-	} else {
-	    Logging "ERRO" "$mesgVerNotCorrect"
-	    Logging "WARN" "$mesgRerun4Ver "
-	    Stop-Script 5
-	}
-
-	# ---------------------------
-	# starting installation from here
-    Logging "PROG" "Checking prerequisites hotfix"
-	# check and install hotfix before saflok installation 
-	$KBArrayList = New-Object -TypeName System.Collections.ArrayList 
-	$KBArrayList.AddRange(@("KB2919442","KB2919355")) 
-	foreach ($KB in $KBArrayList) { 
-		$hotFixMsu = join-path $hotFix $KB'.msu'
-		if (-not(Get-Hotfix -Id $KB)) { 
-			Start-Process -FilePath "wusa.exe" -ArgumentList "$hotFixMsu /quiet /norestart" -Wait 
-		} Else {
-			Logging "INFO" "Hotfix $KB is ready"
-		}
-	} 
-
+    # ---------------------------
+    # VALID Version INPUT
+    if ($version -IN $versionOptions) {
+        Logging "" "$prompStartInstall"
+    } else {
+        Logging "ERRO" "$mesgVerNotCorrect"
+        Logging "WARN" "$mesgRerun4Ver "
+        Stop-Script 5
+    }
+    # support for TLS 1.2
+    If ($version -eq 6.11) {
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+    }
     # -------------------------------------------------------------------
     # install Saflok client
     $pName = 'Saflok Program'
@@ -1029,6 +1020,57 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         $munit = 'C:\Users\Public\Desktop\Kaba Saflok M-Unit.lnk'
         If (Test-Path -Path $munit){
             Remove-Item $munit -Force
+        }
+    }
+
+    # make sure dotnet framework 4.62 is installed
+    If ($version -eq 6.11) {
+        # ---------------------------
+        # check and install hotfix
+        <#
+        Logging "PROG" "$mesgCheckPre"
+        $hotfixID = @("KB2919442","KB2919355")
+        $hotFixes = @()
+        foreach ($hotfix IN $hotfixID) {
+            $hotFixList = Get-HotFix | Where-Object {$_.HotFixID -eq $hotfix}
+            $hotFixes += $hotFixList
+        }
+
+        If ($hotFixes.Count -ne 2) {
+            foreach ($hotfix in $hotFixes.HotFixID) {
+                Logging "INFO" "${hotfix} $mesgInstalled"
+            }
+
+            $msus = Get-ChildItem -Path $hotFixPath | Where-Object {$_.extension -eq ".msu"}
+            foreach ($msu in $msus)
+            {
+                Logging "PROG" "$prompStartInstall $msu ..."
+                $fullname = $msu.fullname
+                # wrap in quotes
+                $fullname = "`"" + $fullname + "`""
+                # Specify the command line parameters for wusa.exe
+                $parameters = $fullname + " /quiet /norestart"
+                # Start wusa.exe and pass in the parameters
+                $install = [System.Diagnostics.Process]::Start( "wusa",$parameters )
+                $install.WaitForExit()
+                Logging "INFO" "$mesgFinished $msu"
+            }
+            Logging "INFO" "Rebooting windows, please run this script again after system start up"
+            Start-Sleep -Seconds 6
+            Restart-Computer -Force
+        } Else {
+            Logging "INFO" "$mesgAllHotfixReady"
+        }
+        #>
+        # dotnet version installed in current system 
+        $dotNetVersion = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").Release
+        # check if v4.62 is installed
+        If(($dotNetVersion -eq '394802') -or  ($dotNetVersion -eq '394806')) {
+            Logging "INFO" "Framework V4.62 $mesgInstalled"
+            
+        } Else {
+            # install dotnet framework 4.62
+            Logging "PROG" "$prompStartInstall Framework V4.62 ..."
         }
     }
 
@@ -1101,24 +1143,28 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 
     # -------------------------------------------------------------------
     # start firebird service
-    $fbSvcStat = (Get-Service | Where-Object {$_.Name -eq 'FirebirdGuardianDefaultInstance'}).Status
-    If ($fbSvcStat -eq "Stopped"){Start-Service -Name 'FirebirdGuardianDefaultInstance';Start-Sleep -S 2}
+    If (Get-Service | Where-Object {$_.Name -eq 'FirebirdGuardianDefaultInstance'-and $_.Status -eq "Stopped"}) {
+        Start-Service -Name 'FirebirdGuardianDefaultInstance' -ErrorAction SilentlyContinue
+        Start-Sleep -S 2
+    }
     
     # -------------------------------------------------------------------
     # start Saflok launcher service
     If (Get-Service | Where-Object {$_.Name -eq 'SaflokServiceLauncher' -and $_.Status -eq "Stopped"}){
-        Start-Service -Name 'SaflokServiceLauncher'
+        Start-Service -Name 'SaflokServiceLauncher' -ErrorAction SilentlyContinue
+        Start-Sleep -S 2
     }
 
     # -------------------------------------------------------------------
     # IIS FEATURES, requirement for messenger lens
-    # Delete the support for win7 and win server 2008, as they were retired
+    # Removed the support for win7 and win server 2008, as they were retired
     Update-Status -pName "Saflok Messenger Server"
 	If ($isInstalled -ne $True) {
 		Logging "WARN" "$mesgLensBefMessenger"
 		Stop-Script 5
 	} Else {
         Logging "INFO" "$mesgConfigIIS"
+        Start-Sleep -Seconds 3
         Write-Colr -Text "$cname ","$noCount","$iisName","$iisState" -Colour White,White,White,White
         # ---------------------------
         # IIS features Messenger Lens requires
@@ -1244,7 +1290,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 
     # -------------------------------------------------------------------
     # install digital polling service
-    If ($version -ne  '5.68') {
+    If ($version -ne '5.68') {
         $isInstalled = 0
         $pName = "Marriott digital polling service"
         Install-DigitalPolling -pName $pName -targetFile $digitalPollingExe -exe2Install $pollingPatchExe `
