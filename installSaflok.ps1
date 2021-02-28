@@ -83,6 +83,13 @@ Switch ($version) {
 }
 $versionOptions = [System.Collections.ArrayList]@('5.45'; '5.68'; '6.11')
 
+$testchoco = powershell choco -v
+If (-not($testchoco)) { 
+    Set-ExecutionPolicy Bypass -Scope Process -Force 
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
+}
+
 # ---------------------------
 # Functions
 # ---------------------------
@@ -147,8 +154,8 @@ switch ($lang) {
         $mesgConnectError = "数据库连接错误，请检查服务器名称，端口，防火墙配置"
         $mesgPsVer = "当前系统PowerShell版本是"
         $mesgPSMiniRequire = "此脚本需要PowerShell $miniPsRequire或者更高版本"
-        $mesgPSDownloadUrl = "微软官网下载更高版本PowerShell网址: https://docs.microsoft.com/en-us/powershell/"
-        $mesgRootAndTryAgain =  "请先安装Powershell V5以上版本, 重启系统后再次运行此脚本"
+        # $mesgPSDownloadUrl = "微软官网下载更高版本PowerShell网址: https://docs.microsoft.com/en-us/powershell/"
+        # $mesgRootAndTryAgain =  "请先安装Powershell V5以上版本, 重启系统后再次运行此脚本"
         $prompProperty = "酒店名称："
         $prompWelcome = "| 欢迎使用SAFLOK酒店系统安装脚本"
         $prompImprtant = " # 重要"
@@ -224,8 +231,8 @@ switch ($lang) {
         $mesgConnectError = "Connection Error. Check server name, port, firewall"
         $mesgPsVer = "Your current PowerShell version is"
         $mesgPSMiniRequire = "This script requires PowerShell version $miniPsRequire or above"
-        $mesgPSDownloadUrl = "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
-        $mesgRootAndTryAgain =  "Reboot server after installing Powershell 5 or above, run this script again"
+        # $mesgPSDownloadUrl = "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
+        # $mesgRootAndTryAgain =  "Reboot server after installing Powershell 5 or above, run this script again"
         $prompProperty = "Property: "
         $prompWelcome = "| WELCOME TO SAFLOK LODGING SYSTEMS INSTALLATION"
         $prompImprtant = " # IMPORTANT"
@@ -249,7 +256,7 @@ switch ($lang) {
         $mesgTryScriptAgain = "Try this script again after database files have been loaded"
         $mesgVerNotCorrect = "The version number specified is NOT correct"
         $mesgRerun4Ver = "Please re-run the script again to input a correct version"
-        $mesgReboot = "restarting, rerun the script after reboot"
+        $mesgReboot = "server will reboot in 15 seconds, rerun the script after server start up"
         $noCount = "Seq#    |"
         $iisName = " Feature Name      |"
         $iisState = " State"
@@ -357,6 +364,15 @@ Function Update-Status {
         $script:updateVersion = Get-InstVersion -pName $pName
     }
     end {}
+}
+
+# ---------------------------
+# Install software via choco
+Function Install-Choco {
+    param(
+        [string]$pName
+    )
+   Start-Process -Wait choco -ArgumentList "install $pName","-y" -ErrorAction SilentlyContinue
 }
 
 # ---------------------------
@@ -752,10 +768,15 @@ $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
 # Mini Powershell version requirement
 If ($psVer -lt $miniPsRequire) {
     Logging "INFO" "$mesgPsVer $psVer"
-    Logging "ERRO" "$mesgPSMiniRequire"
-    Logging "WARN" "$mesgPSDownloadUrl"
-    Logging "WARN" "$mesgRootAndTryAgain"
-    Stop-Script 5
+    Logging "INFO" "$mesgPSMiniRequire"
+    Logging "PROG" "PowerShell version 5.1 $mesgToInstall" 
+    Try {
+        Install-Choco -pName 'Powershell'
+    }
+    catch { $_;stop-script -seconds 2}
+    Logging "WARN" "$mesgReboot"
+    Start-Sleep -Seconds 15
+    Restart-Computer -Force
 }
 
 # ---------------------------
@@ -940,7 +961,6 @@ Switch ($version -gt 6) {
 
 }
 
-
 $lensInstFolder = Join-Path $kabaInstFolder 'Messenger Lens'
 $hubGateWayInstFolder = Join-Path $lensInstFolder 'HubGatewayService'
 $hmsInstFolder = Join-Path $lensInstFolder 'HubManagerService'
@@ -1016,32 +1036,14 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             Logging "INFO" ".Net Framework V4.6.2 $mesgInstalled"   
         } Else {
             # install dotnet framework 4.62
-            $ishotFixInst = $null -eq (get-hotfix | Where-Object {$_.HotFixID -eq 'KB2919355'})
-            If (-not($ishotFixInst)) {
-                Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
-                $testchoco = powershell choco -v
-                If (-not($testchoco)) { 
-                    Set-ExecutionPolicy Bypass -Scope Process -Force 
-                    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-                    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
-                }
-                # install dotnet 4.6.2 by choco
-                choco install dotnet-4.6.2 -y  | Out-Null
-                Start-Process -Wait choco -ArgumentList "install dotnet-4.6.2","-y" -ErrorAction SilentlyContinue
-                Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
-                Logging "WARN" "$mesgReboot"
-                start-sleep -Seconds 8
-                Restart-Computer -Force
-            } else {
-                Logging "PROG" "$prompStartUpdate KB2919335"
-                # install KB2919355 by choco
-                Start-Process -Wait choco -ArgumentList "install KB2919355","-y" -ErrorAction SilentlyContinue
-                Logging "SUCC" "$prompFinishUpdate KB2919335"
-                Logging "INFO" "$mesgReboot"      
-                Start-Sleep -Seconds 8
-                Restart-Computer -force
-            }
-        }
+            Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
+            # install dotnet 4.6.2 by choco
+            Install-Choco -pName dotnet-4.6.2
+            Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
+            Logging "WARN" "$mesgReboot"
+            start-sleep -Seconds 15
+            Restart-Computer -Force
+        } 
     }
 
     # -------------------------------------------------------------------
@@ -1270,7 +1272,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $pName = "Messenger Lens"
     Install-Prog -pName $pName -progVersion $msgrLensVersion -progPatchedVersion $msgrLensVersion `
                 -exeProgFile $wsPmsExe -exe2Install $lensExe -iss2Install $lensISS
-    If ($version -eq '6.11') {Logging "WARN" "$mesgReboot"}
+    If (($version -eq '6.11') -and ((Assert-IsInstalled -pName $pName) -eq $False)) {Logging "WARN" "$mesgReboot"}
     # -------------------------------------------------------------------
     # install Messenger Lens patch
     If ($version -ne '6.11') {
