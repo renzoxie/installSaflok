@@ -46,6 +46,7 @@ $scriptPath = $PSScriptRoot
 # Versions
 $scriptVersion = '2.1'
 $miniPsRequire = '5.1' -AS [decimal]
+$psVer = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor -AS [Decimal]
 Switch ($version) {
     '5.45' {
         $progVersion = '5.4.0.0'
@@ -77,8 +78,7 @@ Switch ($version) {
         $msgrVersion = '6.1.1.0'
         $msgrPatchedVersion = '6.1.1.0'
         $msgrLensVersion = '6.1.1.0'
-        $wsPmsExeBefPatchVersion = '6.1.1.0'
-        $wsPmsExeAftPatchVersion = '5.6.7.22261'
+        $wsPmsExeBefPatchVersion = '6.1.1.20121'
     }
 }
 $versionOptions = [System.Collections.ArrayList]@('5.45'; '5.68'; '6.11')
@@ -159,9 +159,10 @@ switch ($lang) {
         $prompVerNoMatch = "输入版本与安装包不否，准备退出"
         $prompAccept = "选择安装即代表接受软件的许可协议"
         $prompDoU = "是否继续安装?(输入[Y]es/[N]o)"
-        # $mesgCheckPre = "正在检查依赖程序..."
-        # $mesgFinished = "完成安装"
-        # $mesgAllHotfixReady = "所需系统补丁已安装就绪"
+        $mesgCheckPre = "正在检查依赖程序..."
+        $mesgFinished = "完成安装"
+        $prompStartUpdate = "开始安装更新"
+        $prompFinishUpdate = "完成完整更新"
         $prompStartInstall = "开始安装..."
         $prompChoseDrive = "SAFLOK程序将安装在 ["+ $inputDrive+"] 盘"
         $prompChkConfig = "| 需要手动配置以下文件中的部分参数: "
@@ -171,6 +172,7 @@ switch ($lang) {
         $mesgTryScriptAgain = "数据库文件放置在上述文件夹后，请再次运行此脚本"
         $mesgVerNotCorrect = "输入的版本号不正确"
         $mesgRerun4Ver = "请重新运行本脚本，请选择正确的版本号"
+        $mesgReboot = "准备重启系统，重启后请重新运行本脚本"
 		$noCount = "序号     |"
 		$iisName = " 组件名称   	  |"
 		$iisState = " 状态"
@@ -236,9 +238,10 @@ switch ($lang) {
         $prompDoU = "Do you want to run the script?([Y]es/[N]o)"
         $prompChkConfig = "| The following files need to be checked or configure: "
         $prompChoseDrive = "You chose drive ["+ $inputDrive+"]"
-        # $mesgCheckPre = "Checking prerequisites"
-        # $mesgFinished = "Finished installing"
-        # $mesgAllHotfixReady = "All Windows hotfix are ready"
+        $mesgCheckPre = "Checking prerequisites"
+        $mesgFinished = "Finished installing"
+        $prompStartUpdate = "Starting Update"
+        $prompFinishUpdate = "Finished Update"
         $prompStartInstall = "Start installing..."
         $mesgCouldNotIns = "We could not install on drive "+$inputDrive
         $mesgRerun4Drive = "Please re-run the script again to input a correct drive"
@@ -246,6 +249,7 @@ switch ($lang) {
         $mesgTryScriptAgain = "Try this script again after database files have been loaded"
         $mesgVerNotCorrect = "The version number specified is NOT correct"
         $mesgRerun4Ver = "Please re-run the script again to input a correct version"
+        $mesgReboot = "restarting, rerun the script after reboot"
         $noCount = "Seq#    |"
         $iisName = " Feature Name      |"
         $iisState = " State"
@@ -505,18 +509,19 @@ Function Install-LensPatch {
     }
     end {}
 }
+
 # ---------------------------
 # Install digitalPolling
 Function Install-DigitalPolling {
     [CmdletBinding()]
     Param (
         [String]$pName,
-        [String]$targetFile,
         [String]$exe2Install,
         [String]$iss2Install
     )
-
+    
     begin {
+        $targetFile = "$digitalPollingExe"
         $isExeExist = Test-Path $targetFile -PathType Any
     }
 
@@ -526,6 +531,7 @@ Function Install-DigitalPolling {
         } Else {
             Logging "PROG" "$pName $mesgToInstall"
             Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " /s /f1$iss2Install" -Wait
+            $targetFile = "$digitalPollingExe"
             $isExeExist = Test-Path $targetFile -PathType Any
             If ($isExeExist){
                 Logging "SUCC" "$pName $mesgSucc"
@@ -657,7 +663,7 @@ Function Install-Sql {
                     Start-Process -NoNewWindow -FilePath $exe2Install -ArgumentList " $argFile" -Wait
                     Start-Sleep -Seconds 2
                     Update-Status -pName $pName
-                    If ($installed) {
+                    If ($isInstalled) {
                         Logging "SUCC" "$pName $mesgSucc"
                         Start-Sleep -Seconds 2
 			        } Else {
@@ -677,20 +683,18 @@ Function Install-Sql {
 
 # ---------------------------
 # update SQL password -new
-Switch ($version -gt 6) {
-	$True  {$global:SqlServerName = 'LENSSQL'}
-	$False {$global:SqlServerName = 'LENSSQL2016'}
-}
-
 Function Update-SqlPasswd {
     Param(
         [string]$login,
         [string]$passwd
     )
 
-
     [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
     $objSQLConnection = New-Object System.Data.SqlClient.SqlConnection
+    Switch ($version -lt 6) {
+        $True  {$SqlServerName = 'localhost\LENSSQL'}
+        $False {$SqlServerName = 'localhost\LENSSQL2016'}
+    }
     Try {
         $objSQLConnection.ConnectionString = "Server=$SqlServerName;Integrated Security=SSPI;"
         $objSQLConnection.Open() | Out-Null
@@ -731,16 +735,7 @@ Function Set-ServiceRecovery{
     $output = sc.exe $serverPath failure $service actions= $action reset= $resetCounter | Out-Null
     Return $output
 }
-# ---------------------------
-# Mini Powershell version requirement
-$psVersion = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor -AS [Decimal]
-If ($psVersion -lt $miniPsRequire) {
-    Logging "INFO" "$mesgPsVer V$psVerion"
-    Logging "ERRO" "$mesgPSMiniRequire"
-    Logging "WARN" "$mesgPSDownloadUrl"
-    Logging "WARN" "$mesgRootAndTryAgain"
-    Stop-Script 5
-}
+
 # ---------------------------
 # Header variables
 $cname = "[$vendor]"
@@ -752,6 +747,17 @@ $Global:shareName = 'SaflokData'
 #$winOS = ($osversion[0] + '.' + $osversion[1]) -AS [decimal]
 # Windows OS information
 $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
+
+# ---------------------------
+# Mini Powershell version requirement
+If ($psVer -lt $miniPsRequire) {
+    Logging "INFO" "$mesgPsVer $psVer"
+    Logging "ERRO" "$mesgPSMiniRequire"
+    Logging "WARN" "$mesgPSDownloadUrl"
+    Logging "WARN" "$mesgRootAndTryAgain"
+    Stop-Script 5
+}
+
 # ---------------------------
 # MENU OPTION
 Clear-Host
@@ -921,32 +927,27 @@ if($version -ne '5.68') {
 }
 
 # ---------------------------
-# hotFix [FOLDER]
-# $hotFixPath = $absPackageFolders[10]
-
-# ---------------------------
 # Absolute installed FOLDER
 Switch ($version -gt 6) {
     $true {
         $saflokV4InstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'SaflokV4'
-        
+        $kabaInstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'dormakaba'
     }
     $false {
         $saflokV4InstFolder = Join-Path $installDrive 'SaflokV4'  
+        $kabaInstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'KABA'
     }
 
 }
 
-$kabaInstFolder = Join-Path $installDrive 'Program Files (x86)' | Join-Path -ChildPath 'KABA'
+
 $lensInstFolder = Join-Path $kabaInstFolder 'Messenger Lens'
 $hubGateWayInstFolder = Join-Path $lensInstFolder 'HubGatewayService'
 $hmsInstFolder = Join-Path $lensInstFolder 'HubManagerService'
 $pmsInstFolder = Join-Path $lensInstFolder 'PMS Service'
 $wsTesterInstFolder = Join-Path $kabaInstFolder '08.Web_Service_PMS_Tester'
-Switch ($version) {
-    '5.45' {
-            $digitalPollingFolder = Join-Path $lensInstFolder 'DigitalKeysPollingSoftware'
-    }
+if ($version -ne '5.68') {
+    $digitalPollingFolder = Join-Path $lensInstFolder 'DigitalKeysPollingSoftware'
 }
 $kdsInstFolder = Join-Path $lensInstFolder 'KeyDeliveryService'
 # ---------------------------
@@ -960,23 +961,19 @@ $shareFolder = Join-Path $saflokV4InstFolder  'SaflokData'
 $gatewayExe = Join-Path $hubGateWayInstFolder 'LENS_Gateway.exe'
 $hmsExe = Join-Path $hmsInstFolder 'LENS_HMS.exe'
 $wsPmsExe = Join-Path $pmsInstFolder 'LENS_PMS.exe'
-Switch ($version) {
-    '5.45' {
-            $digitalPollingExe = Join-Path $digitalPollingFolder 'DigitalKeysPollingService.exe'
-    }
+If ($version -ne '5.68') {
+     $digitalPollingExe = Join-Path $digitalPollingFolder 'DigitalKeysPollingService.exe'
 }
 $kdsExe = Join-Path $kdsInstFolder 'Kaba_KDS.exe'
 # ---------------------------
 # INSTALLED CONFIG FILES
 $lensPmsConfigFileInst =  Join-Path $pmsInstFolder 'LENS_PMS.exe.config'
 $hh6ConfigFile = Join-Path $saflokV4InstFolder 'KabaSaflokHH6.exe.config'
-Switch ($version) {
-    '5.45' {
-            $pollingConfigInst  = Join-Path $digitalPollingFolder 'DigitalKeysPollingService.exe.config'
-            # ---------------------------
-            # Polling log
-            $pollingLog = 'C:\ProgramData\DormaKaba\Server\Polling\logs.log'
-    }
+IF ($version -ne '5.68') {
+    $pollingConfigInst  = Join-Path $digitalPollingFolder 'DigitalKeysPollingService.exe.config'
+    # ---------------------------
+    # Polling log
+    $pollingLog = 'C:\ProgramData\DormaKaba\Server\Polling\logs.log'
 }
 
 # ---------------------------
@@ -986,7 +983,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # VALID DRIVE CHARACTER INPUT
     if ($inputDrive -IN $driveLetters) {
         Logging "" "$prompChoseDrive"
-    Start-Sleep -seconds 4
+        Start-Sleep -seconds 2
     } else {
         Logging "ERRO" "$mesgCouldNotIns"
         Logging "WARN" "$mesgRerun4Drive"
@@ -997,15 +994,54 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # VALID Version INPUT
     if ($version -IN $versionOptions) {
         Logging "" "$prompStartInstall"
+        Start-Sleep -seconds 4
     } else {
         Logging "ERRO" "$mesgVerNotCorrect"
         Logging "WARN" "$mesgRerun4Ver "
         Stop-Script 5
     }
-    # support for TLS 1.2
+   
     If ($version -eq 6.11) {
+        # support for TLS 1.2
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+        # ---------------------------
+        # check and install hotfix
+        Logging "" ""
+        Start-Sleep -Seconds 1
+        Logging "PROG" "$mesgCheckPre"
+        Start-Sleep -Seconds 1
+        $dotNetVersion = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").Release
+        # check if v4.62 is installed
+        If(($dotNetVersion -eq '394802') -or  ($dotNetVersion -eq '394806')) {
+            Logging "INFO" ".Net Framework V4.6.2 $mesgInstalled"   
+        } Else {
+            # install dotnet framework 4.62
+            $ishotFixInst = $null -eq (get-hotfix | Where-Object {$_.HotFixID -eq 'KB2919355'})
+            If (-not($ishotFixInst)) {
+                Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
+                $testchoco = powershell choco -v
+                If (-not($testchoco)) { 
+                    Set-ExecutionPolicy Bypass -Scope Process -Force 
+                    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+                    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
+                }
+                # install dotnet 4.6.2 by choco
+                choco install dotnet-4.6.2 -y  | Out-Null
+                Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
+                Logging "WARN" "$mesgReboot"
+                start-sleep -Seconds 8
+                Restart-Computer -Force
+            } else {
+                Logging "PROG" "$prompStartUpdate KB2919335"
+                choco install KB2919355 -y  | Out-Null
+                Logging "SUCC" "$prompFinishUpdate KB2919335"
+                Logging "INFO" "$mesgReboot"      
+                Start-Sleep -Seconds 8
+                Restart-Computer -force
+            }
+        }
     }
+
     # -------------------------------------------------------------------
     # install Saflok client
     $pName = 'Saflok Program'
@@ -1020,57 +1056,6 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         $munit = 'C:\Users\Public\Desktop\Kaba Saflok M-Unit.lnk'
         If (Test-Path -Path $munit){
             Remove-Item $munit -Force
-        }
-    }
-
-    # make sure dotnet framework 4.62 is installed
-    If ($version -eq 6.11) {
-        # ---------------------------
-        # check and install hotfix
-        <#
-        Logging "PROG" "$mesgCheckPre"
-        $hotfixID = @("KB2919442","KB2919355")
-        $hotFixes = @()
-        foreach ($hotfix IN $hotfixID) {
-            $hotFixList = Get-HotFix | Where-Object {$_.HotFixID -eq $hotfix}
-            $hotFixes += $hotFixList
-        }
-
-        If ($hotFixes.Count -ne 2) {
-            foreach ($hotfix in $hotFixes.HotFixID) {
-                Logging "INFO" "${hotfix} $mesgInstalled"
-            }
-
-            $msus = Get-ChildItem -Path $hotFixPath | Where-Object {$_.extension -eq ".msu"}
-            foreach ($msu in $msus)
-            {
-                Logging "PROG" "$prompStartInstall $msu ..."
-                $fullname = $msu.fullname
-                # wrap in quotes
-                $fullname = "`"" + $fullname + "`""
-                # Specify the command line parameters for wusa.exe
-                $parameters = $fullname + " /quiet /norestart"
-                # Start wusa.exe and pass in the parameters
-                $install = [System.Diagnostics.Process]::Start( "wusa",$parameters )
-                $install.WaitForExit()
-                Logging "INFO" "$mesgFinished $msu"
-            }
-            Logging "INFO" "Rebooting windows, please run this script again after system start up"
-            Start-Sleep -Seconds 6
-            Restart-Computer -Force
-        } Else {
-            Logging "INFO" "$mesgAllHotfixReady"
-        }
-        #>
-        # dotnet version installed in current system 
-        $dotNetVersion = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").Release
-        # check if v4.62 is installed
-        If(($dotNetVersion -eq '394802') -or  ($dotNetVersion -eq '394806')) {
-            Logging "INFO" "Framework V4.62 $mesgInstalled"
-            
-        } Else {
-            # install dotnet framework 4.62
-            Logging "PROG" "$prompStartInstall Framework V4.62 ..."
         }
     }
 
@@ -1105,9 +1090,11 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     }
     $instGdb = (Get-ChildItem -Path $shareFolder).Name
     If ((($instGdb -match '^SAFLOKDATAV2.GDB$').Count -eq 0) -or (($instGdb -match '^SAFLOKLOGV2.GDB$').Count -eq 0)) {
-        If ((Get-Service -Name FirebirdGuardianDefaultInstance).Status -eq "Running") { # stop firebird service
+        If ((Get-Service -Name FirebirdGuardianDefaultInstance).Status -eq "Running") { 
+            # stop firebird service
             Stop-Service -Name FirebirdGuardianDefaultInstance -Force -ErrorAction SilentlyContinue
-            Copy-Item -Path $srcHotelData\*.gdb -Destination $shareFolder        # copy database
+            # copy database
+            Copy-Item -Path $srcHotelData\*.gdb -Destination $shareFolder        
         } Else {
             Copy-Item -Path $srcHotelData\*.gdb -Destination $shareFolder
         }
@@ -1247,17 +1234,17 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # Microsoft SQL Server
     Switch ($version -gt 6) {
         $False {$pName = 'Microsoft SQL Server 2012'
-            $argFile = '/qs /INSTANCENAME="$SqlServerName" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
+            $argFile = '/qs /INSTANCENAME="LENSSQL" /ACTION="Install" /Hideconsole /IAcceptSQLServerLicenseTerms="True" '
             $argFile += '/FEATURES=SQLENGINE,SSMS /HELP="False" /INDICATEPROGRESS="True" /QUIETSIMPLE="True" /X86="True" /ERRORREPORTING="False" '
             $argFile += '/SQMREPORTING="False" /SQLSVCSTARTUPTYPE="Automatic" /FILESTREAMLEVEL="0" /FILESTREAMLEVEL="0" /ENABLERANU="True" '
             $argFile += '/SQLCOLLATION="Latin1_General_CI_AS" /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
-            $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="Pa$$w0rd2021"'
+            $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="P@ssw0rd2021"'
         }
         $True {
             $pName = 'Microsoft SQL Server 2016 (64-bit)'
-            $argFile = '/qs /QUIETSIMPLE /IAcceptSQLServerLicenseTerms /ACTION=install /Hideconsole /FEATURES=SQL /INSTANCENAME=$SqlServerName '
+            $argFile = '/qs /QUIETSIMPLE /IAcceptSQLServerLicenseTerms /ACTION=install /FEATURES=SQL /INSTANCENAME="LENSSQL2016" '
             $argFile += '/SQLSVCACCOUNT="NT Authority\System" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
-            $argFile += '/AGTSVCACCOUNT="NT Authority\System" /SECURITYMODE=SQL /SAPWD="Pa$$w0rd2021"'      
+            $argFile += '/AGTSVCACCOUNT="NT Authority\System" /SECURITYMODE=SQL /SAPWD="P@ssw0rd2021"'      
         }
     }
     Install-Sql -pName $pName -packageFolder $sqlExprExe -exe2Install $sqlExprExe -argFile $argFile
@@ -1281,20 +1268,21 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     $pName = "Messenger Lens"
     Install-Prog -pName $pName -progVersion $msgrLensVersion -progPatchedVersion $msgrLensVersion `
                 -exeProgFile $wsPmsExe -exe2Install $lensExe -iss2Install $lensISS
-         
+    If ($version -eq '6.11') {Logging "WARN" "$mesgReboot"}
     # -------------------------------------------------------------------
     # install Messenger Lens patch
-    $pName = "Messenger Lens"
-    Install-LensPatch -targetFile $wsPmsExe -destVersion $wsPmsExeAftPatchVersion -pName $pName -patchExeFile `
-                      $lensPatchExe -patchIssFile $patchLensISS
+    If ($version -ne '6.11') {
+        $pName = "Messenger Lens"
+        Install-LensPatch -targetFile $wsPmsExe -destVersion $wsPmsExeAftPatchVersion -pName $pName -patchExeFile `
+                          $lensPatchExe -patchIssFile $patchLensISS
+    }
 
     # -------------------------------------------------------------------
     # install digital polling service
     If ($version -ne '5.68') {
         $isInstalled = 0
         $pName = "Marriott digital polling service"
-        Install-DigitalPolling -pName $pName -targetFile $digitalPollingExe -exe2Install $pollingPatchExe `
-                               -iss2Install $patchPollingISS
+        Install-DigitalPolling -pName $pName -exe2Install $pollingPatchExe -iss2Install $patchPollingISS
     }
 
     # -------------------------------------------------------------------
