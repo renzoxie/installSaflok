@@ -1027,13 +1027,15 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 }
                 # install dotnet 4.6.2 by choco
                 choco install dotnet-4.6.2 -y  | Out-Null
+                Start-Process -Wait choco -ArgumentList "install dotnet-4.6.2","-y" -ErrorAction SilentlyContinue
                 Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
                 Logging "WARN" "$mesgReboot"
                 start-sleep -Seconds 8
                 Restart-Computer -Force
             } else {
                 Logging "PROG" "$prompStartUpdate KB2919335"
-                choco install KB2919355 -y  | Out-Null
+                # install KB2919355 by choco
+                Start-Process -Wait choco -ArgumentList "install KB2919355","-y" -ErrorAction SilentlyContinue
                 Logging "SUCC" "$prompFinishUpdate KB2919335"
                 Logging "INFO" "$mesgReboot"      
                 Start-Sleep -Seconds 8
