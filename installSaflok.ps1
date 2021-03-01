@@ -39,10 +39,6 @@ Param (
 )
 
 # ---------------------------
-# Script location
-$scriptPath = $PSScriptRoot
-
-# ---------------------------
 # Versions
 $scriptVersion = '2.1'
 $miniPsRequire = '5.1' -AS [decimal]
@@ -81,8 +77,23 @@ Switch ($version) {
         $wsPmsExeBefPatchVersion = '6.1.1.20121'
     }
 }
+
+# ---------------------------
+# Program List
+$saflokPrograms = [System.Collections.ArrayList]@(
+    'Saflok Program';                   
+    'Saflok PMS';                        #[1]
+    'Saflok Messenger Server';           #[2]
+    'Messenger Lens';                    #[3]
+    'Marriott digital polling service'   #[4]
+)
+
+# ---------------------------
+# Version options
 $versionOptions = [System.Collections.ArrayList]@('5.45'; '5.68'; '6.11')
 
+# ---------------------------
+# valid if choco installed
 $testchoco = powershell choco -v
 If (-not($testchoco)) { 
     Set-ExecutionPolicy Bypass -Scope Process -Force 
@@ -812,7 +823,7 @@ $installDrive = $inputDrive + ':'
 
 # ---------------------------
 # SOURCE FOLDER - INSTALL SCRIPT
-$packageFolders =  Get-ChildItem ($scriptPath) | Select-Object Name | Sort-Object -Property Name
+$packageFolders =  Get-ChildItem ($PSScriptRoot) | Select-Object Name | Sort-Object -Property Name
 
 # ---------------------------
 # if source folder exist
@@ -822,8 +833,8 @@ Switch ($version) {
     '6.11' {$pattern = "([A-Z]{8}_[A-Z]{9}_[A-Z]{4}_\d{3}_\w{3}\d{4}$)"}
 }
 $ver2Int = $version.Replace(".", "")
-$verNoFromRootPath = $scriptPath.Substring($scriptPath.Length -11,3)
-Switch ($scriptPath -match $pattern) {
+$verNoFromRootPath = $PSScriptRoot.Substring($PSScriptRoot.Length -11,3)
+Switch ($PSScriptRoot -match $pattern) {
     $True  {
                 If ([int]$ver2Int -ne [int]$verNoFromRootPath) {
                     Logging "ERRO" "$prompVerNoMatch"
@@ -846,7 +857,7 @@ Switch ($scriptPath -match $pattern) {
 
 $absPackageFolders = @()
 For ($i=0; $i -lt ($packageFolders.Length-1); $i++) {
-    $absPackageFolders += Join-Path $scriptPath $packageFolders[$i].Name
+    $absPackageFolders += Join-Path $PSScriptRoot $packageFolders[$i].Name
 }
 
 # ---------------------------
@@ -941,8 +952,7 @@ $webServiceTester = $absPackageFolders[8]
 if($version -ne '5.68') {
 	# ---------------------------
 	# ConfigFiles Folder & Files
-	$configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name |
-	Sort-Object -Property Name
+	$configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name | Sort-Object -Property Name
 	$pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name
 	$lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name
 }
@@ -1014,7 +1024,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # VALID Version INPUT
     if ($version -IN $versionOptions) {
         Logging "" "$prompStartInstall"
-        Start-Sleep -seconds 4
+        Start-Sleep -seconds 2
     } else {
         Logging "ERRO" "$mesgVerNotCorrect"
         Logging "WARN" "$mesgRerun4Ver "
@@ -1025,7 +1035,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         # support for TLS 1.2
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
         # ---------------------------
-        # check and install hotfix
+        # check and install hot-fix
         Logging "" ""
         Start-Sleep -Seconds 1
         Logging "PROG" "$mesgCheckPre"
@@ -1035,10 +1045,9 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         If(($dotNetVersion -eq '394802') -or  ($dotNetVersion -eq '394806')) {
             Logging "INFO" ".Net Framework V4.6.2 $mesgInstalled"   
         } Else {
-            # install dotnet framework 4.62
             Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
-            # install dotnet 4.6.2 by choco
-            Install-Choco -pName dotnet-4.6.2
+            # install .net 4.6.2 by choco
+            Install-Choco -pName 'netfx-4.6.2'
             Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
             Logging "WARN" "$mesgReboot"
             start-sleep -Seconds 15
@@ -1048,12 +1057,12 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 
     # -------------------------------------------------------------------
     # install Saflok client
-    $pName = 'Saflok Program'
+    $pName = $saflokPrograms[0]
     Install-Prog -pName $pName -progVersion $progVersion -progPatchedVersion $progPatchedVersion -exeProgFile $saflokClient -exe2Install $progExe -iss2Install $progISS
     # -------------------------------------------------------------------
     # install Saflok Program Patch
     if ($version -eq '5.68') {
-        $pName = 'Saflok Program'
+        $pName = $saflokPrograms[0]
         Install-Patch -pName $pName -progVersion $progVersion -progPatchedVersion $progPatchedVersion -patchExeFile $progPatchExe -patchIssFile $patchProgISS
         # -------------------------------------------------------------------
         # [ clean munit ink ]
@@ -1065,20 +1074,20 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 
     # -------------------------------------------------------------------
     # install Saflok PMS
-    $pName = "Saflok PMS"
+    $pName = $saflokPrograms[1]
     Install-Prog -pName $pName -progVersion $pmsVersion -progPatchedVersion $pmsPatchedVersion -exeProgFile $saflokIRS `
                 -exe2Install $pmsExe -iss2Install $pmsISS
     # -------------------------------------------------------------------
     # install Saflok PMS Patch
     if ($version -eq '5.68') {
-        $pName = "Saflok PMS"
+        $pName = $saflokPrograms[1]
         Install-Patch -pName $pName -progVersion $pmsVersion -progPatchedVersion $pmsPatchedVersion -patchExeFile $pmsPatchExe `
                     -patchIssFile $patchPmsISS
     }
 
     # -------------------------------------------------------------------
     # install Saflok Messenger
-    $pName = "Saflok Messenger Server"
+    $pName = $saflokPrograms[2]
     Install-Prog -pName $pName -progVersion $msgrVersion -progPatchedVersion $msgrPatchedVersion -exeProgFile $saflokMsgr `
                     -exe2Install $msgrExe -iss2Install $msgrISS
     # -------------------------------------------------------------------
@@ -1149,7 +1158,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # -------------------------------------------------------------------
     # IIS FEATURES, requirement for messenger lens
     # Removed the support for win7 and win server 2008, as they were retired
-    Update-Status -pName "Saflok Messenger Server"
+    Update-Status -pName $saflokPrograms[2]
 	If ($isInstalled -ne $True) {
 		Logging "WARN" "$mesgLensBefMessenger"
 		Stop-Script 5
@@ -1269,14 +1278,14 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     }
     # -------------------------------------------------------------------
     # install Messenger Lens
-    $pName = "Messenger Lens"
+    $pName = $saflokPrograms[3]
     Install-Prog -pName $pName -progVersion $msgrLensVersion -progPatchedVersion $msgrLensVersion `
                 -exeProgFile $wsPmsExe -exe2Install $lensExe -iss2Install $lensISS
     If (($version -eq '6.11') -and ((Assert-IsInstalled -pName $pName) -eq $False)) {Logging "WARN" "$mesgReboot"}
     # -------------------------------------------------------------------
     # install Messenger Lens patch
     If ($version -ne '6.11') {
-        $pName = "Messenger Lens"
+        $pName = $saflokPrograms[3]
         Install-LensPatch -targetFile $wsPmsExe -destVersion $wsPmsExeAftPatchVersion -pName $pName -patchExeFile `
                           $lensPatchExe -patchIssFile $patchLensISS
     }
@@ -1285,7 +1294,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     # install digital polling service
     If ($version -ne '5.68') {
         $isInstalled = 0
-        $pName = "Marriott digital polling service"
+        $pName = $saflokPrograms[4]
         Install-DigitalPolling -pName $pName -exe2Install $pollingPatchExe -iss2Install $patchPollingISS
     }
 
@@ -1337,7 +1346,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                     'VirtualEncoderService',
                     'Kaba Digital Keys Polling Service'
     )
-	Update-Status -pName "Messenger LENS"
+	Update-Status -pName $saflokPrograms[3]
     If ($isInstalled) {
         If ($version -eq '5.68') {
             $servicesCheck.Remove('Kaba Digital Keys Polling Service')
@@ -1364,11 +1373,11 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             Start-Process -NoNewWindow -FilePath $saflokIRS; Start-Sleep -S 1
         } # run IRS GUI
         Get-Process -ProcessName notepad* | Stop-Process -Force; Start-Sleep -S 1
-        If ((Assert-isInstalled "Saflok Program") -and (Test-Path -path $hh6ConfigFile -PathType Leaf)) {
+        If ((Assert-isInstalled $saflokPrograms[0]) -and (Test-Path -path $hh6ConfigFile -PathType Leaf)) {
             Logging "" "[ KabaSaflokHH6.exe.config ]"
             Start-Process notepad $hh6ConfigFile -WindowStyle Minimized; Start-Sleep -S 1
         } # hh6 config
-        If ((Assert-isInstalled  "Messenger LENS") -and (Test-Path -Path $lensPmsConfigFileInst -PathType Leaf)) {
+        If ((Assert-isInstalled  $saflokPrograms[3]) -and (Test-Path -Path $lensPmsConfigFileInst -PathType Leaf)) {
             Logging "" "[ LENS_PMS.exe.config ]"
             Start-Process notepad $lensPmsConfigFileInst -WindowStyle Minimized; Start-Sleep -S 1
         } # PMS config
@@ -1435,7 +1444,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Write-host "$mesgNeedReboot" -ForegroundColor Gray
         Write-Host "";Write-Host ""
         # clean up script files and SAFLOK folder
-        If (Test-Path -Path "$scriptPath\*.*" -Include *.ps1){Remove-Item -Path "$scriptPath\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
+        If (Test-Path -Path "$PSScriptRoot\*.*" -Include *.ps1){Remove-Item -Path "$PSScriptRoot\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }
         Start-Sleep -Second 2
     } Else {
