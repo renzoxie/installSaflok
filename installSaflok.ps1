@@ -1,4 +1,4 @@
-﻿<#
+<#
     .NOTES
     =========================================================================
     Author: renzoxie@139.com
@@ -93,6 +93,11 @@ $saflokPrograms = [System.Collections.ArrayList]@(
 $versionOptions = [System.Collections.ArrayList]@('5.45'; '5.68'; '6.11')
 
 # ---------------------------
+# DRIVE INFO
+$inputDrive = $inputDrive.Trim().ToUpper()
+$driveLetterPattern = "(\w{1})"
+
+# ---------------------------
 # valid if choco installed
 $testchoco = powershell choco -v
 If (-not($testchoco)) { 
@@ -100,47 +105,6 @@ If (-not($testchoco)) {
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
 }
-
-# ---------------------------
-# Functions
-# ---------------------------
-# Customized color
-Function Write-Colr {
-    [CmdletBinding()]
-    Param ([String[]]$Text,[ConsoleColor[]]$Colour,[Switch]$NoNewline=$false)
-
-    For ([int]$i = 0; $i -lt $Text.Length; $i++) { Write-Host $Text[$i] -Foreground $Colour[$i] -NoNewLine }
-    If ($NoNewline -eq $false) { Write-Host '' }
-}
-# ---------------------------
-# Customized logging
-Function Logging {
-    [CmdletBinding()]
-    Param(
-        [string]$state,
-        [string[]]$message
-    )
-
-    $part1 = $cname;
-    $part2 = ' ';
-    $part3 = $state;
-    $part4 = ": ";
-    $part5 = "$message"
-    Switch ($state)
-    {
-        'ERRO' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
-        'WARN'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
-        'INFO'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
-        'PROG' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
-        'SUCC' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Green,Green,Green}
-        "" {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
-   }
-}
-
-# ---------------------------
-# DRIVE INFO
-$inputDrive = $inputDrive.Trim().ToUpper()
-$driveLetterPattern = "(\w{1})"
 
 # ---------------------------
 # Logging Messages
@@ -165,8 +129,8 @@ switch ($lang) {
         $mesgConnectError = "数据库连接错误，请检查服务器名称，端口，防火墙配置"
         $mesgPsVer = "当前系统PowerShell版本是"
         $mesgPSMiniRequire = "此脚本需要PowerShell $miniPsRequire或者更高版本"
-        # $mesgPSDownloadUrl = "微软官网下载更高版本PowerShell网址: https://docs.microsoft.com/en-us/powershell/"
-        # $mesgRootAndTryAgain =  "请先安装Powershell V5以上版本, 重启系统后再次运行此脚本"
+        $mesgPSDownloadUrl = "微软官网下载更高版本PowerShell网址: https://docs.microsoft.com/en-us/powershell/"
+        $mesgRootAndTryAgain =  "请先安装Powershell V5以上版本, 重启系统后再次运行此脚本"
         $prompProperty = "酒店名称："
         $prompWelcome = "| 欢迎使用SAFLOK酒店系统安装脚本"
         $prompImprtant = " # 重要"
@@ -191,6 +155,7 @@ switch ($lang) {
         $mesgVerNotCorrect = "输入的版本号不正确"
         $mesgRerun4Ver = "请重新运行本脚本，请选择正确的版本号"
         $mesgReboot = "准备重启系统，重启后请重新运行本脚本"
+        $mesgDotnet462 = "需要先手动安装 .Net Framework V4.6.2"
 		$noCount = "序号     |"
 		$iisName = " 组件名称   	  |"
 		$iisState = " 状态"
@@ -242,8 +207,8 @@ switch ($lang) {
         $mesgConnectError = "Connection Error. Check server name, port, firewall"
         $mesgPsVer = "Your current PowerShell version is"
         $mesgPSMiniRequire = "This script requires PowerShell version $miniPsRequire or above"
-        # $mesgPSDownloadUrl = "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
-        # $mesgRootAndTryAgain =  "Reboot server after installing Powershell 5 or above, run this script again"
+        $mesgPSDownloadUrl = "You can download newer version PowerShell at: https://docs.microsoft.com/en-us/powershell/"
+        $mesgRootAndTryAgain =  "Reboot server after installing Powershell 5 or above, run this script again"
         $prompProperty = "Property: "
         $prompWelcome = "| WELCOME TO SAFLOK LODGING SYSTEMS INSTALLATION"
         $prompImprtant = " # IMPORTANT"
@@ -268,6 +233,7 @@ switch ($lang) {
         $mesgVerNotCorrect = "The version number specified is NOT correct"
         $mesgRerun4Ver = "Please re-run the script again to input a correct version"
         $mesgReboot = "server will reboot in 15 seconds, rerun the script after server start up"
+        $mesgDotnet462 = "Need to install .Net Framework V4.6.2 manually in advance"
         $noCount = "Seq#    |"
         $iisName = " Feature Name      |"
         $iisState = " State"
@@ -301,6 +267,54 @@ switch ($lang) {
         $mesgbye = " Thank you, Bye!"
         $mesgDone = "DONE"
     }
+}
+
+# ---------------------------
+# Functions
+# ---------------------------
+
+# ---------------------------
+# TEST INTERNET ACCESS
+Function Test-Internet {
+    Param (
+        [string]$url
+    )
+    $result = !$null -eq ((New-Object System.Net.WebClient).DownloadString($url))
+    return $result
+}
+
+# Customized color
+Function Write-Colr {
+    [CmdletBinding()]
+    Param ([String[]]$Text,[ConsoleColor[]]$Colour,[Switch]$NoNewline=$false)
+
+    For ([int]$i = 0; $i -lt $Text.Length; $i++) { Write-Host $Text[$i] -Foreground $Colour[$i] -NoNewLine }
+    If ($NoNewline -eq $false) { Write-Host '' }
+}
+
+# ---------------------------
+# Customized logging
+Function Logging {
+    [CmdletBinding()]
+    Param(
+        [string]$state,
+        [string[]]$message
+    )
+
+    $part1 = $cname;
+    $part2 = ' ';
+    $part3 = $state;
+    $part4 = ": ";
+    $part5 = "$message"
+    Switch ($state)
+    {
+        'ERRO' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Red,Red,Red}
+        'WARN'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Magenta,Magenta,Magenta}
+        'INFO'  {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Yellow,Yellow,Yellow}
+        'PROG' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,White,White,White}
+        'SUCC' {Write-Colr -Text $part1,$part2,$part3,$part4,$part5 -Colour White,White,Green,Green,Green}
+        "" {Write-Colr -Text $part1,$part2,$part5 -Colour White,White,Cyan}
+   }
 }
 
 # ---------------------------
@@ -378,7 +392,7 @@ Function Update-Status {
 }
 
 # ---------------------------
-# Install software via choco
+# INSTALL BY CHOCO
 Function Install-Choco {
     param(
         [string]$pName
@@ -709,7 +723,7 @@ Function Install-Sql {
 }
 
 # ---------------------------
-# update SQL password -new
+# update SQL password 
 Function Update-SqlPasswd {
     Param(
         [string]$login,
@@ -780,14 +794,20 @@ $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
 If ($psVer -lt $miniPsRequire) {
     Logging "INFO" "$mesgPsVer $psVer"
     Logging "INFO" "$mesgPSMiniRequire"
-    Logging "PROG" "PowerShell version 5.1 $mesgToInstall" 
-    Try {
-        Install-Choco -pName 'Powershell'
+    If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
+        Logging "PROG" "PowerShell version 5.1 $mesgToInstall" 
+        start-sleep -seconds 4
+        Try {
+            Install-Choco -pName 'Powershell'
+        }
+        catch { $_;stop-script -seconds 2}
+        Logging "WARN" "$mesgReboot"
+        Start-Sleep -Seconds 15
+        Restart-Computer -Force
+    } Else {
+        Logging "INFO" "$mesgPSDownloadUrl"
+        logging "INFO" "$mesgRootAndTryAgain"
     }
-    catch { $_;stop-script -seconds 2}
-    Logging "WARN" "$mesgReboot"
-    Start-Sleep -Seconds 15
-    Restart-Computer -Force
 }
 
 # ---------------------------
@@ -891,7 +911,7 @@ Switch ($version -gt 6) {
 }
 
 # ---------------------------
-# ISS_FOR_Drive & files
+# ISS_FOR_Drive & files [FILE]
 Switch ($inputDrive) {
     'C' {$iss4Drive = '01.ISS_FOR_' + 'C'}
     'D' {$iss4Drive = '02.ISS_FOR_' + 'D'}
@@ -1039,19 +1059,45 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "" ""
         Start-Sleep -Seconds 1
         Logging "PROG" "$mesgCheckPre"
-        Start-Sleep -Seconds 1
+        Start-Sleep -Seconds 2
         $dotNetVersion = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").Release
         # check if v4.62 is installed
         If(($dotNetVersion -eq '394802') -or  ($dotNetVersion -eq '394806')) {
             Logging "INFO" ".Net Framework V4.6.2 $mesgInstalled"   
         } Else {
-            Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
-            # install .net 4.6.2 by choco
-            Install-Choco -pName 'netfx-4.6.2'
-            Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
-            Logging "WARN" "$mesgReboot"
-            start-sleep -Seconds 15
-            Restart-Computer -Force
+            # check hotfix KB2919355
+            Switch ($null -eq (get-hotfix | where {$_.HotFixID -eq 'KB2919355' })) {
+                # need install update KB2919355
+                $true {
+                    If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
+                        Logging "PROG" "KB2919355 $mesgToInstall"
+                        Start-Sleep -Seconds 4
+                        Install-choco -pName 'KB2919355' 
+                        start-sleep -Seconds 2
+                        Logging "WARN" "$mesgReboot"
+                        start-sleep -Seconds 15
+                        Restart-Computer -Force
+                    } Else {
+                        Logging "INFO" "$mesgDotnet462"
+                        stop-script -seconds 5
+                    }
+                }
+                $false {
+                    If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
+                        Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
+                        Start-Sleep -Seconds 4
+                        Install-Choco -pName 'netfx-4.6.2'
+                        Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
+                        start-sleep -Seconds 2
+                        Logging "WARN" "$mesgReboot"
+                        start-sleep -Seconds 15
+                        Restart-Computer -Force
+                    } Else {
+                        Logging "INFO" "$mesgDotnet462" 
+                        stop-script -seconds 5
+                    }
+                }
+            }
         } 
     }
 
@@ -1443,7 +1489,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Write-host ""
         Write-host "$mesgNeedReboot" -ForegroundColor Gray
         Write-Host "";Write-Host ""
-        # clean up script files and SAFLOK folder
+        # clean up 
         If (Test-Path -Path "$PSScriptRoot\*.*" -Include *.ps1){Remove-Item -Path "$PSScriptRoot\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }
         Start-Sleep -Second 2
