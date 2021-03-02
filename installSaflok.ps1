@@ -1071,9 +1071,9 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 $true {
                     If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
                         Logging "PROG" "KB2919355 $mesgToInstall"
-                        Start-Sleep -Seconds 4
+                        Start-Sleep -Seconds 5
                         Install-choco -pName 'KB2919355' 
-                        start-sleep -Seconds 2
+                        start-sleep -Seconds 5
                         Logging "WARN" "$mesgReboot"
                         start-sleep -Seconds 15
                         Restart-Computer -Force
@@ -1085,10 +1085,10 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 $false {
                     If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
                         Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
-                        Start-Sleep -Seconds 4
+                        Start-Sleep -Seconds 5
                         Install-Choco -pName 'netfx-4.6.2'
                         Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
-                        start-sleep -Seconds 2
+                        start-sleep -Seconds 5
                         Logging "WARN" "$mesgReboot"
                         start-sleep -Seconds 15
                         Restart-Computer -Force
