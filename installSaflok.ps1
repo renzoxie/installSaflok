@@ -156,6 +156,7 @@ switch ($lang) {
         $mesgRerun4Ver = "请重新运行本脚本，请选择正确的版本号"
         $mesgReboot = "准备重启系统，重启后请重新运行本脚本"
         $mesgDotnet462 = "需要先手动安装 .Net Framework V4.6.2"
+        $mesgLongUpdate = "安装此更新大约需要半小时左右时间，等待时间较长"
 		$noCount = "序号     |"
 		$iisName = " 组件名称   	  |"
 		$iisState = " 状态"
@@ -234,6 +235,7 @@ switch ($lang) {
         $mesgRerun4Ver = "Please re-run the script again to input a correct version"
         $mesgReboot = "server will reboot in 15 seconds, rerun the script after server start up"
         $mesgDotnet462 = "Need to install .Net Framework V4.6.2 manually in advance"
+        $mesgLongUpdate = "Install this update will take around 30 mins to complete"
         $noCount = "Seq#    |"
         $iisName = " Feature Name      |"
         $iisState = " State"
@@ -970,11 +972,10 @@ Switch ($version) {
 # Web service PMS tester [FOLDER]
 $webServiceTester = $absPackageFolders[8]
 if($version -ne '5.68') {
-	# ---------------------------
 	# ConfigFiles Folder & Files
 	$configFiles = Get-ChildItem ($absPackageFolders[9]) | Select-Object Name | Sort-Object -Property Name
 	$pollingConfig = Join-Path $absPackageFolders[9] $configFiles[0].Name
-	$lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name
+	$lensPmsConfig = Join-Path $absPackageFolders[9] $configFiles[1].Name 
 }
 
 # ---------------------------
@@ -1071,9 +1072,10 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 $true {
                     If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
                         Logging "PROG" "KB2919355 $mesgToInstall"
+                        Logging "INFO" "$mesgLongUpdate"
                         Start-Sleep -Seconds 5
-                        Install-choco -pName 'KB2919355' 
-                        start-sleep -Seconds 5
+                        Install-Choco -pName 'KB2919355' 
+                        Start-Sleep -Seconds 5
                         Logging "WARN" "$mesgReboot"
                         start-sleep -Seconds 15
                         Restart-Computer -Force
@@ -1085,6 +1087,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                 $false {
                     If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
                         Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
+                        Logging "INFO" "$mesgLongUpdate"
                         Start-Sleep -Seconds 5
                         Install-Choco -pName 'netfx-4.6.2'
                         Logging "INFO" "$mesgFinished .NetFramework V4.6.2"
