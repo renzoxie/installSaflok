@@ -35,7 +35,6 @@ get-help ./installSaflok.ps1 -full
 ````
 
 # Change log
-<<<<<<< HEAD
 V2.2 - compatible with saflok version 6.11 <br />
 V2.1 - add Chinese language<br />
 V2.0 - rebuild script structure <br />
