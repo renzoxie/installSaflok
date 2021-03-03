@@ -10,6 +10,7 @@
 <ol>
     <li> 5.45 </li>
     <li> 5.68 </li>
+    <li> 6.11 </li>
 </ol>
 
 # Features
