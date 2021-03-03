@@ -34,7 +34,6 @@ get-help ./installSaflok.ps1 -full
 ````
 
 # 版本记录
-<<<<<<< HEAD
 V2.2 - 兼容saflok 6.11版 <br />
 V2.1 - 加入中文菜单 <br />
 V2.0 - 重建、优化架构 <br />
