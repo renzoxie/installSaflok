@@ -1229,19 +1229,28 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		$totalFeatures = $iisFeatures.count
 		Try {
             For ($i=0; $i -lt $totalFeatures; $i++) {
+
+		        $feature = $iisFeatures[$i]
+		        $featureList =  Get-WindowsOptionalFeature -Online |
+		        Select-Object -Property @{Name='Name'; expression = {$_.FeatureName}}, @{Name='State'; expression = {$_.State}} |
+		        Where-Object {$_.Name -eq $feature} -ErrorAction SilentlyContinue
+		        
+                # get feature name and state
+		        $featureName = $featureList.Name
+		        $featureState = $featureList.State
+				# add feature in disabledFeatures
+		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
+		            $disabledFeatures += $feature
+		        }
+
+
 		        $sequenceNo = $i + 1
 		        if ($sequenceNo -lt 10) {
 		            $twoDigits = [string]'0' + $sequenceNo
 		        } else {
 		            $twoDigits = $sequenceNo
 		        }
-		        $feature = $iisFeatures[$i]
-		        $featureList =  Get-WindowsOptionalFeature -Online |
-		        Select-Object -Property @{Name='Name'; expression = {$_.FeatureName}}, @{Name='State'; expression = {$_.State}} |
-		        Where-Object {$_.Name -eq $feature} -ErrorAction SilentlyContinue
-		        # get feature name and state
-		        $featureName = $featureList.Name
-		        $featureState = $featureList.State
+
                 
                 If ($lang -eq 'zh-CN') {
                     switch ($featureState) {
@@ -1265,11 +1274,14 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                     }
                 }
 		        # write message to host
-				Write-Colr -Text "$cname ","[$twoDigits/$totalFeatures]"," | ","$featureName"," | ","$featureState" -Colour White,White,White,White,White,$foo
-				# add feature in disabledFeatures
-		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
-		            $disabledFeatures += $feature
-		        }
+                If ($disabledFeatures.length -eq 0) {
+                    Write-Colr -Text "$cname ", "$mesgIISEnabled" -Colour White,Gray
+		            Start-Sleep -Seconds 1
+                } Else {
+                    Write-Colr -Text "$cname ","[$twoDigits/$totalFeatures]"," | ","$featureName"," | ","$featureState" -Colour White,White,White,White,White,$foo
+                }
+				
+
 		    }
 
 		    if ($disabledFeatures.length -gt 0) {
@@ -1277,18 +1289,18 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		            Logging "PROG" "$addinFeature $disabled"
 		            Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
 		            Logging "SUCC" "$disabled $enabledFeature"
-		            Start-Sleep -Seconds 2
+		            Start-Sleep -Seconds 1
 		        }
 		    } else {
 		            Write-Colr -Text "$cname ", "$mesgIISEnabled" -Colour White,Gray
-		            Start-Sleep -Seconds 2
+		            Start-Sleep -Seconds 1
 		    }
 
 		}
 
 		catch {
 		    Write-Warning -Message "$mesgFailedEnableIIS"
-            Stop-Script 5
+            Stop-Script 2
 		}
     }
 
