@@ -161,9 +161,6 @@ switch ($lang) {
         $mesgReboot = "准备重启系统，重启后请重新运行本脚本"
         $mesgDotnet462 = "需要先手动安装 .Net Framework V4.6.2"
         $mesgLongUpdate = "安装此更新大约需要半小时左右时间，等待时间较长"
-		$noCount = "序号     |"
-		$iisName = " 组件名称   	  |"
-		$iisState = " 状态"
 		#-----------------
         # IIS
 		$addinFeature = "正在添加组件"
@@ -230,7 +227,7 @@ switch ($lang) {
         $mesgFinished = "Finished installing"
         $prompStartUpdate = "Starting Update"
         $prompFinishUpdate = "Finished Update"
-        $prompStartInstall = "Start installing..."
+        $prompStartInstall = "Start checking installation..."
         $mesgCouldNotIns = "We could not install on drive "+$inputDrive
         $mesgRerun4Drive = "Please re-run the script again to input a correct drive"
         $mesgCp2dFolder = "Please copy database files to this folder:"
@@ -240,9 +237,6 @@ switch ($lang) {
         $mesgReboot = "server will reboot in 15 seconds, rerun the script after server start up"
         $mesgDotnet462 = "Need to install .Net Framework V4.6.2 manually in advance"
         $mesgLongUpdate = "Install this update will take around 30 mins to complete"
-        $noCount = "Seq#    |"
-        $iisName = " Feature Name      |"
-        $iisState = " State"
         #-----------------
         # Share Folder
         $shareFolderNotExist = "Folder need to be shared does not exist"
@@ -1216,7 +1210,6 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 	} Else {
         Logging "INFO" "$mesgConfigIIS"
         Start-Sleep -Seconds 3
-        Write-Colr -Text "$cname ","$noCount","$iisName","$iisState" -Colour White,White,White,White
         # ---------------------------
         # IIS features Messenger Lens requires
         $iisFeatures = [System.Collections.ArrayList]@(
@@ -1244,60 +1237,19 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
 		            $disabledFeatures += $feature
 		        }
-
-
-		        $sequenceNo = $i + 1
-		        if ($sequenceNo -lt 10) {
-		            $twoDigits = [string]'0' + $sequenceNo
-		        } else {
-		            $twoDigits = $sequenceNo
-		        }
-
-                
-                If ($lang -eq 'zh-CN') {
-                    switch ($featureState) {
-                        'Enabled' {
-                            $featureState = '已启用'
-                            $foo = 'Green' -AS [string]
-                        }
-                        'Disabled' {
-                            $featureState = '未启用'
-                            $foo = 'Gray' -AS [string] 
-                        }
-                    }
-                } Else {
-                    switch ($featureState) {
-                        'Enabled' {
-                            $foo = 'Green' -AS [string]
-                        }
-                        'Disabled' {
-                            $foo = 'Gray' -AS [string] 
-                        }
-                    }
-                }
-		        # write message to host
-                If ($disabledFeatures.length -eq 0) {
-                    Write-Colr -Text "$cname ", "$mesgIISEnabled" -Colour White,Gray
-		            Start-Sleep -Seconds 1
-                } Else {
-                    Write-Colr -Text "$cname ","[$twoDigits/$totalFeatures]"," | ","$featureName"," | ","$featureState" -Colour White,White,White,White,White,$foo
-                }
-				
-
 		    }
 
-		    if ($disabledFeatures.length -gt 0) {
+		    If ($disabledFeatures.length -eq 0) {
+                    Write-Colr -Text "$cname ", "$mesgIISEnabled" -Colour White,Gray
+		            Start-Sleep -Seconds 1
+            } Else {
 		        foreach ($disabled in $disabledFeatures) {
 		            Logging "PROG" "$addinFeature $disabled"
 		            Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
 		            Logging "SUCC" "$disabled $enabledFeature"
 		            Start-Sleep -Seconds 1
 		        }
-		    } else {
-		            Write-Colr -Text "$cname ", "$mesgIISEnabled" -Colour White,Gray
-		            Start-Sleep -Seconds 1
-		    }
-
+		    } 
 		}
 
 		catch {
