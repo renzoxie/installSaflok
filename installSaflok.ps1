@@ -277,11 +277,11 @@ switch ($lang) {
 
 # ---------------------------
 # TEST INTERNET ACCESS
-Function Test-Internet {
+Function Test-Choco {
     Param (
         [string]$url
     )
-    $result = !$null -eq ((New-Object System.Net.WebClient).DownloadString($url))
+    $result = !($null -eq (New-Object System.Net.WebClient).DownloadString($url))
     return $result
 }
 
@@ -796,7 +796,7 @@ $osDetail = (Get-CimInstance -ClassName CIM_OperatingSystem).Caption
 If ($psVer -lt $miniPsRequire) {
     Logging "INFO" "$mesgPsVer $psVer"
     Logging "INFO" "$mesgPSMiniRequire"
-    If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
+    If (Test-Choco -url 'https://chocolatey.org/install.ps1') {
         Logging "PROG" "PowerShell version 5.1 $mesgToInstall" 
         start-sleep -seconds 4
         Try {
@@ -1063,14 +1063,14 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Start-Sleep -Seconds 2
         $dotNetVersion = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").Release
         # check if v4.62 is installed
-        If(($dotNetVersion -eq '394802') -or  ($dotNetVersion -eq '394806')) {
+        If(($dotNetVersion -ge '394802') -or  ($dotNetVersion -eq '394806')) {
             Logging "INFO" ".Net Framework V4.6.2 $mesgInstalled"   
         } Else {
             # check hotfix KB2919355
             Switch ($null -eq (get-hotfix | where {$_.HotFixID -eq 'KB2919355' })) {
                 # need install update KB2919355
                 $true {
-                    If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
+                    If (Test-Choco -url 'https://chocolatey.org/install.ps1') {
                         Logging "PROG" "KB2919355 $mesgToInstall"
                         Logging "INFO" "$mesgLongUpdate"
                         Start-Sleep -Seconds 5
@@ -1085,7 +1085,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
                     }
                 }
                 $false {
-                    If (Test-Internet -url 'https://chocolatey.org/install.ps1') {
+                    If (Test-Choco -url 'https://chocolatey.org/install.ps1') {
                         Logging "PROG" ".Net Framework V4.6.2 $mesgToInstall"
                         Logging "INFO" "$mesgLongUpdate"
                         Start-Sleep -Seconds 5
