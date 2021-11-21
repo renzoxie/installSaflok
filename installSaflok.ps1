@@ -39,6 +39,10 @@ Param (
 )
 
 # ---------------------------
+# support for TLS 1.2
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12  
+
+# ---------------------------
 # Versions
 $scriptVersion = '2.2'
 $miniPsRequire = '5.1' -AS [decimal]
@@ -1051,10 +1055,8 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Logging "WARN" "$mesgRerun4Ver "
         Stop-Script 5
     }
-   
+
     If ($version -eq 6.11) {
-        # support for TLS 1.2
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
         # ---------------------------
         # check and install hot-fix
         Logging "" ""
