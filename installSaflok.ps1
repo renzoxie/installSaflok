@@ -40,7 +40,7 @@ Param (
 
 # ---------------------------
 # Versions
-$scriptVersion = '2.1'
+$scriptVersion = '2.2'
 $miniPsRequire = '5.1' -AS [decimal]
 $psVer = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor -AS [Decimal]
 Switch ($version) {
