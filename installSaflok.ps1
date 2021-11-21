@@ -35,7 +35,7 @@ Param (
     [String]$property = 'vagrant',
 
     [Parameter(Mandatory=$False)]
-    [String]$vendor = 'Jeeking'
+    [String]$vendor = 'KABA'
 )
 
 # ---------------------------
