@@ -4,6 +4,7 @@
     <li> Windows 8+ / windows Server 2003+ </li>
     <li> PowerShell V5+ </li>
     <li> If system prompt no right to run the script, please run the following command in advance <br />set-executionPolicy remoteSigned -force</li>
+    <li> Chocolatey optional </li>
 </ol>
 
 # Version Options
@@ -35,7 +36,7 @@ get-help ./installSaflok.ps1 -full
 ````
 
 # Change log
-V2.2 - compatible with saflok version 6.11 <br />
+V2.2 - compatible with saflok version 6.11, add choco for installation option<br />
 V2.1 - add Chinese language<br />
 V2.0 - rebuild script structure <br />
 V1.7 - fix minor bug for installing on drive c <br />
