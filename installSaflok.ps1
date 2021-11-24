@@ -1370,7 +1370,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
             If ($serviceStatus.Status -eq "stopped") {
                 Logging "" "$mesgStartinService $service."
-                Start-Service -Name $service -ErrorAction SilentlyContinue
+                Start-Service -Name $service -WarningAction SilentlyContinue | Out-Null
                 $serviceStatus = Get-Service | Where-Object {$_.Name -eq $service}
                 If ($serviceStatus.Status -eq "running") { Logging "" "$service $mesgServiceStarted"}
                 Start-Sleep -S 2
