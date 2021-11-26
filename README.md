@@ -36,6 +36,7 @@ get-help ./installSaflok.ps1 -full
 ````
 
 # Change log
+V2.3 - optimize some codes, add progress bar GUI <br />
 V2.2 - compatible with saflok version 6.11, add choco for installation option<br />
 V2.1 - add Chinese language<br />
 V2.0 - rebuild script structure <br />
