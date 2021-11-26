@@ -1479,7 +1479,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Write-host "$mesgNeedReboot" -ForegroundColor Gray
         Write-Host "";Write-Host ""
         # clean up 
-        #If (Test-Path -Path "$PSScriptRoot\*.*" -Include *.ps1){Remove-Item -Path "$PSScriptRoot\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
+        If (Test-Path -Path "$PSScriptRoot\*.*" -Include *.ps1){Remove-Item -Path "$PSScriptRoot\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }
         Start-Sleep -Second 2
     } Else {
