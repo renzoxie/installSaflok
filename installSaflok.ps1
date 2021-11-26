@@ -4,8 +4,7 @@
     Author: renzoxie@139.com
     Version Option: 5.45, 5.68, 6.11
     Create Date: 16 April 2019
-    Modified Date: 1st Feb 2021
-    Run the script as administrator
+    Modified Date: 26 Nov 2021
     =========================================================================
 
     .SYNOPSIS
@@ -35,7 +34,7 @@ Param (
     [String]$property = 'vagrant',
 
     [Parameter(Mandatory=$False)]
-    [String]$vendor = 'KABA'
+    [String]$vendor = 'SAFLOK'
 )
 
 # ---------------------------
@@ -44,9 +43,13 @@ Param (
 
 # ---------------------------
 # Versions
-$scriptVersion = '2.2'
+# Script Version Info
+$scriptVersion = '2.3'
+# Mini require for pwsh
 $miniPsRequire = '5.1' -AS [decimal]
+# Get pwsh version from current system
 $psVer = [string]$psversiontable.PSVersion.Major + '.' + [string]$psversiontable.PSVersion.Minor -AS [Decimal]
+# Version Information for exec files
 Switch ($version) {
     '5.45' {
         $progVersion = '5.4.0.0'
@@ -83,32 +86,9 @@ Switch ($version) {
 }
 
 # ---------------------------
-# Program List
-$saflokPrograms = [System.Collections.ArrayList]@(
-    'Saflok Program';                   
-    'Saflok PMS';                        #[1]
-    'Saflok Messenger Server';           #[2]
-    'Messenger Lens';                    #[3]
-    'Marriott digital polling service'   #[4]
-)
-
-# ---------------------------
-# Version options
-$versionOptions = [System.Collections.ArrayList]@('5.45'; '5.68'; '6.11')
-
-# ---------------------------
 # DRIVE INFO
 $inputDrive = $inputDrive.Trim().ToUpper()
 $driveLetterPattern = "(\w{1})"
-
-# ---------------------------
-# valid if choco installed
-$testchoco = powershell choco -v
-If (-not($testchoco)) { 
-    Set-ExecutionPolicy Bypass -Scope Process -Force 
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
-}
 
 # ---------------------------
 # Logging Messages
@@ -117,6 +97,7 @@ switch ($lang) {
     'zh-CN' {
         $mesgNoPkg ="安装包不存在，准备退出"
         $mesgInstalled = "已安装"
+	$mesgPrepare = "正在安排..."
         $mesgDiffVer = "已安装其他版本程序，请卸载其他版本后再运行本脚本"
         $mesgFailed = "程序安装失败，准备退出"
         $mesgNoSource = "未找到源安装文件夹"
@@ -132,7 +113,7 @@ switch ($lang) {
         $mesgContactSaflok = "如果重启后问题依旧, 请联系Saflok技术支持"
         $mesgConnectError = "数据库连接错误，请检查服务器名称，端口，防火墙配置"
         $mesgPsVer = "当前系统PowerShell版本是"
-        $mesgPSMiniRequire = "此脚本需要PowerShell $miniPsRequire或者更高版本"
+        $mesgPSMiniRequire = "此脚本需要PowerShell $miniPsRequire 或者更高版本"
         $mesgPSDownloadUrl = "微软官网下载更高版本PowerShell网址: https://docs.microsoft.com/en-us/powershell/"
         $mesgRootAndTryAgain =  "请先安装Powershell V5以上版本, 重启系统后再次运行此脚本"
         $prompProperty = "酒店名称："
@@ -193,6 +174,7 @@ switch ($lang) {
     Default {
         $mesgNoPkg ="package does not exist, operation exit"
         $mesgInstalled = "already installed"
+	$mesgPrepare = "Prepare to install Powershell version 5.1"
         $mesgDiffVer = "There is another version exist, please uninstall it first"
         $mesgFailed = "installation failed"
         $mesgNoSource = "Missing source installation folder"
@@ -269,9 +251,42 @@ switch ($lang) {
     }
 }
 
+# INSTALL REQUIRED MSI PACKAGE
+if ($version -eq '5.68') {
+    $root = Get-ChildItem $psscriptRoot
+    $patchFolder = $root[7].Name
+    $msiPacks = (Get-childItem $patchFolder).Fullname -like "*.msi"
+    Write-Host $mesgCheckPre -BackgroundColor Black -ForegroundColor Yellow
+    foreach ($msi IN $msiPacks) {
+        Start-Process msiexec.exe "/I $msi /quiet" -Wait -NoNewWindow
+    }
+}
+
+# ---------------------------
+# Program List
+$saflokPrograms = [System.Collections.ArrayList]@(
+    'Saflok Program';                   
+    'Saflok PMS';                        #[1]
+    'Saflok Messenger Server';           #[2]
+    'Messenger Lens';                    #[3]
+    'Marriott digital polling service'   #[4]
+)
+
+# ---------------------------
+# Version options
+$versionOptions = [System.Collections.ArrayList]@('5.45'; '5.68'; '6.11')
+
+# ---------------------------
+# valid if choco installed
+$testchoco = powershell choco -v
+If (-not($testchoco)) { 
+    Set-ExecutionPolicy Bypass -Scope Process -Force 
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
+}
+
 # ---------------------------
 # Functions
-# ---------------------------
 
 # ---------------------------
 # TEST INTERNET ACCESS
@@ -795,14 +810,15 @@ If ($psVer -lt $miniPsRequire) {
     Logging "INFO" "$mesgPsVer $psVer"
     Logging "INFO" "$mesgPSMiniRequire"
     If (Test-Choco -url 'https://chocolatey.org/install.ps1') {
+	Logging "INFO" "$mesgPrepare"
         Logging "PROG" "PowerShell version 5.1 $mesgToInstall" 
-        start-sleep -seconds 4
+        start-sleep -seconds 1
         Try {
-            Install-Choco -pName 'Powershell'
+            Install-Choco -pName 'Powershell';
         }
-        catch { $_;stop-script -seconds 2}
+        catch { $_; stop-script -seconds 1 }
         Logging "WARN" "$mesgReboot"
-        Start-Sleep -Seconds 15
+        Start-Sleep -Seconds 1
         Restart-Computer -Force
     } Else {
         Logging "INFO" "$mesgPSDownloadUrl"
@@ -829,7 +845,7 @@ Logging "" "+---------------------------------------------------------"
 Logging "" ""
 
 # Get drive IDs from localhost
-$driveIDs = (Get-WmiObject -class Win32_LogicalDisk -computername localhost -filter "drivetype=3").DeviceID
+$driveIDs = (Get-CimInstance -ClassName win32_LogicalDisk -ComputerName localhost -Filter "drivetype=3").DeviceID
 $driveLetters = @()
 for ($i=0; $i -lt $driveIDs.Length; $i++) {
     if ($driveIds[$i] -match $driveLetterPattern) {
@@ -950,7 +966,8 @@ Switch ($version) {
 
 # ---------------------------
 # PATCH FILES
-$patchExeFiles = Get-ChildItem ($absPackageFolders[7]) | Select-Object Name | Sort-Object -Property Name
+$patchFolder = Get-ChildItem ($absPackageFolders[7]) 
+$patchExeFiles = $patchFolder | Select-Object Name | Sort-Object -Property Name
 Switch ($version) {
     '5.45' {
             $pollingPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name
@@ -960,6 +977,8 @@ Switch ($version) {
             $progPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name
             $pmsPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[1].Name
             $lensPatchExe = Join-Path $absPackageFolders[7] $patchExeFiles[2].Name
+            $sqlSysClrTypesMsi = Join-Path $absPackageFolders[7] $patchExeFiles[3].Name
+            $shareManagementObjectsMsi = Join-Path $absPackageFolders[7] $patchExeFiles[4].Name
     }
     '6.11' {
             $pollingPatchExe = Join-Path $absPackageFolders[7]  $patchExeFiles[0].Name
@@ -1209,53 +1228,54 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
 		Stop-Script 5
 	} Else {
         Logging "INFO" "$mesgConfigIIS"
-        Start-Sleep -Seconds 3
+        Start-Sleep -Milliseconds 100
         # ---------------------------
         # IIS features Messenger Lens requires
         $iisFeatures = [System.Collections.ArrayList]@(
-            'IIS-WebServerRole', 'IIS-WebServer', 'IIS-CommonHttpFeatures', 'IIS-HttpErrors', 'IIS-ApplicationDevelopment',
-        	'IIS-RequestFiltering', 'IIS-HealthAndDiagnostics', 'IIS-HttpLogging', 'IIS-Performance', 'IIS-ISAPIExtensions',
-        	'IIS-ISAPIFilter', 'IIS-StaticContent', 'IIS-DefaultDocument', 'IIS-DirectoryBrowsing', 'IIS-ASP',
-            'IIS-ManagementConsole', 'IIS-HttpCompressionStatic', 'NetFx4Extended-ASPNET45', 'IIS-ASPNET45',
-        	'IIS-NetFxExtensibility45', 'IIS-Security', 'IIS-WebServerManagementTools', 'IIS-ApplicationInit'
+            'IIS-WebServerRole', 'IIS-WebServer', 'IIS-CommonHttpFeatures', 'IIS-HttpErrors', 'IIS-ApplicationDevelopment', `
+        	'IIS-RequestFiltering', 'IIS-HealthAndDiagnostics', 'IIS-HttpLogging', 'IIS-Performance', 'IIS-ISAPIExtensions', `
+        	'IIS-ISAPIFilter', 'IIS-StaticContent', 'IIS-DefaultDocument', 'IIS-DirectoryBrowsing', 'IIS-ASP', `
+            'IIS-ManagementConsole', 'IIS-HttpCompressionStatic', 'NetFx4Extended-ASPNET45', 'IIS-ASPNET45','IIS-NetFxExtensibility45', `
+            'IIS-Security', 'IIS-WebServerManagementTools', 'IIS-ApplicationInit'
         )
-        # arrays to collect features in disabled state
+        # Arrays to collect features in disabled state
         $disabledFeatures = @()
-		$totalFeatures = $iisFeatures.count
-		Try {
+        $totalFeatures = $iisFeatures.count
+        Try {
             For ($i=0; $i -lt $totalFeatures; $i++) {
+                $feature = $iisFeatures[$i]
+                $featureList = Get-WindowsOptionalFeature -Online | 
+		            Where-Object {$_.FeatureName -eq $feature} 
 
-		        $feature = $iisFeatures[$i]
-		        $featureList =  Get-WindowsOptionalFeature -Online |
-		        Select-Object -Property @{Name='Name'; expression = {$_.FeatureName}}, @{Name='State'; expression = {$_.State}} |
-		        Where-Object {$_.Name -eq $feature} -ErrorAction SilentlyContinue
-		        
-                # get feature name and state
-		        $featureName = $featureList.Name
-		        $featureState = $featureList.State
-				# add feature in disabledFeatures
-		        if ((Get-WindowsOptionalFeature -Online | Where-Object {$_.FeatureName -eq $feature}).State -eq "Disabled") {
+		        # Add feature in disabledFeatures
+		        If ($featureList.State -eq "Disabled") {
 		            $disabledFeatures += $feature
 		        }
-		    }
 
-		    If ($disabledFeatures.length -eq 0) {
+                # Show progress bar
+                Write-Progress -PercentComplete ($i / $totalFeatures * 100) -Activity "Checking features status..." -Status "$([math]::Round(($i / $totalFeatures * 100),0))%"	
+                Start-Sleep -Milliseconds 100
+            }
+            Write-Progress -Completed -Activity "Check completed" -Status "100%"
+
+            Switch ($disabledFeatures.length -eq 0) {
+                $True {
                     Write-Colr -Text "$cname ", "$mesgIISEnabled" -Colour White,Gray
 		            Start-Sleep -Seconds 1
-            } Else {
-		        foreach ($disabled in $disabledFeatures) {
-		            Logging "PROG" "$addinFeature $disabled"
-		            Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
-		            Logging "SUCC" "$disabled $enabledFeature"
-		            Start-Sleep -Seconds 1
-		        }
-		    } 
-		}
-
-		catch {
-		    Write-Warning -Message "$mesgFailedEnableIIS"
-            Stop-Script 2
-		}
+                }
+                $False {
+            	    foreach ($disabled in $disabledFeatures) {
+		                Logging "PROG" "$addinFeature $disabled"
+		                Enable-WindowsOptionalFeature -Online -FeatureName $disabled -All -NoRestart | Out-Null
+		                Logging "SUCC" "$disabled $enabledFeature"
+		                Start-Sleep -Milliseconds 200
+		            }
+                }
+            }
+        } Catch {
+            Write-Warning -Message "$mesgFailedEnableIIS"
+            Stop-Script -seconds 1
+        }
     }
 
     # -------------------------------------------------------------------
@@ -1459,7 +1479,7 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
         Write-host "$mesgNeedReboot" -ForegroundColor Gray
         Write-Host "";Write-Host ""
         # clean up 
-        If (Test-Path -Path "$PSScriptRoot\*.*" -Include *.ps1){Remove-Item -Path "$PSScriptRoot\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
+        #If (Test-Path -Path "$PSScriptRoot\*.*" -Include *.ps1){Remove-Item -Path "$PSScriptRoot\*.*" -Include *.ps1 -Force -ErrorAction SilentlyContinue}
         If (Test-path -Path "C:\SAFLOK") { Remove-Item -Path "C:\SAFLOK" -Recurse -Force -ErrorAction SilentlyContinue }
         Start-Sleep -Second 2
     } Else {
