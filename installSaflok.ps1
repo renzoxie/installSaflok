@@ -1286,13 +1286,13 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
             $argFile += '/FEATURES=SQLENGINE,SSMS /HELP="False" /INDICATEPROGRESS="True" /QUIETSIMPLE="True" /X86="True" /ERRORREPORTING="False" '
             $argFile += '/SQMREPORTING="False" /SQLSVCSTARTUPTYPE="Automatic" /FILESTREAMLEVEL="0" /FILESTREAMLEVEL="0" /ENABLERANU="True" '
             $argFile += '/SQLCOLLATION="Latin1_General_CI_AS" /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
-            $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="P@ssw0rd2021"'
+            $argFile += '/SECURITYMODE="SQL" /ADDCURRENTUSERASSQLADMIN="True" /TCPENABLED="1" /NPENABLED="0" /SAPWD="P@ssw0rd1987"'
         }
         $True {
             $pName = 'Microsoft SQL Server 2016 (64-bit)'
             $argFile = '/qs /QUIETSIMPLE /IAcceptSQLServerLicenseTerms /ACTION=install /FEATURES=SQL /INSTANCENAME="LENSSQL2016" '
             $argFile += '/SQLSVCACCOUNT="NT Authority\System" /SQLSYSADMINACCOUNTS="BUILTIN\Administrators" '
-            $argFile += '/AGTSVCACCOUNT="NT Authority\System" /SECURITYMODE=SQL /SAPWD="P@ssw0rd2021"'      
+            $argFile += '/AGTSVCACCOUNT="NT Authority\System" /SECURITYMODE=SQL /SAPWD="P@ssw0rd1987"'      
         }
     }
     Install-Sql -pName $pName -packageFolder $sqlExprExe -exe2Install $sqlExprExe -argFile $argFile
@@ -1300,13 +1300,13 @@ If ($confirmation -eq 'Y' -or $confirmation -eq 'YES') {
     Switch ($version -gt 6) {
         $false {
             If (Assert-IsInstalled 'Microsoft SQL Server 2012') {
-                Try { Update-SqlPasswd -login 'sa' -passwd 'Lens2014' }
+                Try { Update-SqlPasswd -login 'sa' -passwd '8-digits-passwd' }
                 catch {$ERROR[0]}
             }            
         }
         $True {
             If (Assert-IsInstalled 'Microsoft SQL Server 2016 (64-bit)') {
-                Try { Update-SqlPasswd -login 'sa' -passwd 'S@flok2018' }
+                Try { Update-SqlPasswd -login 'sa' -passwd '10-digits-passwd' }
                 catch { $ERROR[0] }    
             }
         }  
